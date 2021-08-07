@@ -246,6 +246,7 @@ biologicSeqTools::upload.datatable.to.database(
     db.col.parameter.list = colCatList,
     new.table = T,
     cols2Index = c("gene"),
+    #indexName = c("idx_gene_exp"),
     mode = "SQLite"  # Options: "MySQL" and "SQLite"
 )
 
@@ -396,10 +397,11 @@ query <- as.vector(NULL, mode = "character")
 # GRANT SELECT on csl_data.p316_rna_seq_table TO csl316data@'shiny-bioinformatics.crick.ac.uk';
 ## Create relevant directory ##
 ## Create log-in file ##
-url <- host
-id <- sUser
-id2 <- sPwd
-db <- primDataDB
+mode <- "SQLite"
+url <- ""
+id <- ""
+id2 <- ""
+db <- gsub(paste0("./", project_id, "_app/"), "",primDataDB)
 coordTb <- PCAdbTableName
 exprTb <- paste0(project_id, "_gene_expr_tb")
 geneTb <- paste0(project_id, "_geneID_tb")
