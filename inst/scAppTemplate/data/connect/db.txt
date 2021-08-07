@@ -1,2 +1,0 @@
-"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"default"
-"10.27.241.82"	"PBMC10k_scData"	"BrEcydDT"	"immuno_ref_data"	"PBMC10k_PCA"	"PBMC10k_gene_expr_tb"	"PBMC10k_geneID_tb"	"IGKC"
