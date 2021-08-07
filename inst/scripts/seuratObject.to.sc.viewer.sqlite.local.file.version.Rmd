@@ -111,7 +111,7 @@ shinyDataPath <-paste0(shinyProjectPath, "/data/connect/")
 if (!dir.exists(shinyDataPath)){
   dir.create(shinyDataPath, recursive = T)
 }
-shinyParamPath <-paste0(shinyProjectPath, "/parameters/")
+shinyParamPath <-paste0(shinyProjectPath, "/data/parameters/")
 if (!dir.exists(shinyParamPath)){
   dir.create(shinyParamPath)
 }
@@ -155,6 +155,11 @@ devtools::install_github("decusInLabore/biologicSeqTools")
 ## Step 1: Load Seurat object                                                ##
 
 OsC <- readRDS(rdsFN)
+names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
+OsC@meta.data[["clusterName"]] <- OsC@meta.data$cluster
+OsC@meta.data[["sampleName"]] <- OsC@meta.data$orig_ident
+OsC@meta.data[["all"]] <- "all"
+  
 
 ##                                                                           ##
 ###############################################################################
@@ -255,10 +260,7 @@ biologicSeqTools::upload.datatable.to.database(
 ## Create Metadata table                                                     ##
 
 dfCoord <- biologicSeqTools::createDfCoord(OsC)
-names(dfCoord) <- gsub("\\.", "_", names(dfCoord))
-dfCoord[["all"]] <- "all"
-dfCoord[["clusterName"]] <- dfCoord$cluster
-dfCoord[["sampleName"]] <- dfCoord$sampleID
+
 
 dupTest <- duplicated(toupper(names(dfCoord)))
 
@@ -316,6 +318,13 @@ biologicSeqTools::killDbConnections()
 ###############################################################################
 
 ###############################################################################
+## Menu Options                                                              ##
+paramList <- biologicSeqTools::scanObjParams(OsC)
+
+## Done                                                                      ##
+###############################################################################
+
+###############################################################################
 ## Select default splitBy options                                            ##
 
 ## Default all non-numeric columns
@@ -324,8 +333,24 @@ chrCols <- unlist(lapply(dfCoord, is.character))
 
 splitOptions <- names(dfCoord)[chrCols]
 
+splitOptions <- c(splitOptions[splitOptions == "all"], sort(splitOptions[splitOptions != "all"]))
+
+names(splitOptions) <- splitOptions
+names(splitOptions) <- gsub("all", "None", names(splitOptions))
+
+firstup <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
+names(splitOptions) <- sapply(names(splitOptions), function(x) firstup(x))
+
+
+paramList$splitPlotsBy <- NULL
+
+paramList$splitPlotsBy <- splitOptions
+
 ## Make None the first option
-splitOptions <- c(splitOptions[splitOptions == "all"], splitOptions[splitOptions != "all"])
 
 ##                                                                           ##
 ###############################################################################
@@ -365,32 +390,122 @@ if (length(colorByOptionsPart1) > 0){
 }
 
 colorDisplayOptions <- c(
+    "lg10Expr",
     colorByOptions[colorByOptionsPart1],
     sort(colorByOptionsPart2)
 )
 
+names(colorDisplayOptions) <- colorDisplayOptions
+names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
+names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
+
+firstup <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
+
+names(colorDisplayOptions) <- sapply(names(colorDisplayOptions), function(x) firstup(x))
+names(colorDisplayOptions) <- gsub("_", " ", names(colorDisplayOptions))
+
+
+paramList$colorPlotsBy <- NULL
+
+paramList$colorPlotsBy <- colorDisplayOptions
+
 ## Order Options ##
 
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Edit x-axis                                                               ##
+
+## Done                                                                      ##
+###############################################################################
+
+###############################################################################
+## Edit y-axis                                                               ##
+
+## Done                                                                      ##
+###############################################################################
+
+
+###############################################################################
+## Helper function                                                           ##
+
+createListChunk <- function(
+  optionName = "Choose_an_X-axis",
+  pList = paramList,
+  listItem = "x_axis"
+){
+  dfTemp <- data.frame(
+      menuName = rep( optionName,length(pList[listItem])), 
+      displayName = names(pList[listItem]), 
+      colSel=pList[[listItem]],
+      displayOrder = 1:length(pList[[listItem]])
+  )
+  return(dfTemp)
+}
+
+##                                                                           ##
+###############################################################################
+
+dfTemp <- createListChunk(
+    optionName = "Choose_an_X-axis",
+    pList = paramList,
+    listItem = "x_axis"
+)
+
+df <- dfTemp
+
+dfTemp <- createListChunk(
+    optionName = "Choose_an_Y-axis",
+    pList = paramList,
+    listItem = "y_axis"
+)
+
+df <- rbind(
+    dfTemp,
+    df
+)
+
+dfTemp <- createListChunk(
+    optionName = "Split_Plots_By",
+    pList = paramList,
+    listItem = "splitPlotsBy"
+)
+
+df <- rbind(
+    dfTemp,
+    df
+)
+
+dfTemp <- createListChunk(
+    optionName = "Color_Plots_By",
+    pList = paramList,
+    listItem = "colorPlotsBy"
+)
+
+df <- rbind(
+    dfTemp,
+    df
+)
+
+write.table(
+    df,
+    paste0(shinyParamPath, "menuParameters.txt"),
+    sep = "\t",
+    row.names = F
+)
 
 ##                                                                           ##
 ###############################################################################
 
 ###############################################################################
-## Optional selection table                                                  ##
+## Make color table                                                          ##
 
-
-
-##                                                                           ##
+## Done                                                                      ##
 ###############################################################################
-
-###############################################################################
-## Optional: Make color table/file                                           ##
-
-dbTableColumn | diplayName | catValue | catColor
-
-##                                                                           ##
-###############################################################################
-
 
 ## Done 
 ###############################################################################
