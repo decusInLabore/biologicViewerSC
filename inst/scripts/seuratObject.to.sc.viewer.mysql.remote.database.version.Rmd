@@ -1,0 +1,688 @@
+---
+
+output: 
+    html_document:
+        highlight: default
+        theme: paper
+        code_folding: hide
+        df_print: tibble
+        toc: true
+        toc_depth: 3
+        toc_float: true
+        
+
+---
+    
+    
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    tidy = TRUE,
+    tidy.opts = list(width.cutoff = 120),
+    message = FALSE,
+    warning = FALSE
+)
+
+# if (length(.libPaths()) > 2){
+#     .libPaths(.libPaths()[2:3])
+# }
+
+# myPaths <- .libPaths()
+# myNewPaths <- c("/camp/stp/babs/working/boeings/Projects/pachnisv/song.chng/195B_RNAseq_enteric_neurons_DIV_timecourse/basedata", myPaths)
+# .libPaths(myNewPaths)
+# library(renv)
+# .libPaths(myPaths)
+
+#renv::init()
+```
+
+
+
+```{r populate_meta_data_database, eval=FALSE, echo=F, results=F}
+#Create the environment and load a suitable version of R, e.g. so:
+VersionPdfExt <- paste0(".V", gsub("-", "", Sys.Date()), ".pdf")
+
+
+###############################################################################
+##                                                                           ##
+
+if (dir.exists("/Volumes/babs/working/boeings/")){
+  hpc.mount <- "/Volumes/babs/working/boeings/"
+} else if (dir.exists("Y:/working/boeings/")){
+  hpc.mount <- "Y:/working/boeings/"
+} else if (dir.exists("/camp/stp/babs/working/boeings/")){
+  hpc.mount <- "/camp/stp/babs/working/boeings/"
+} else {
+  hpc.mount <- ""
+}
+#Create the environment and load a suitable version of R, e.g. so:
+FN <- paste0(hpc.mount, "Projects/reference_data/documentation/BC.parameters.txt")
+dbTable <- read.delim(
+  FN, 
+  sep = "\t",
+  stringsAsFactors = F
+)
+db.pwd <- as.vector(dbTable[1,1])
+
+
+##                                                                           ##
+###############################################################################
+
+k = 1
+
+
+figureCount <- 1
+
+HMplotList <- list()
+chnkVec <- as.vector(NULL, mode="character")
+
+###############################################################################
+## Upload Anna's samples                                                     ##
+
+
+# Load Seurat Object from rds file
+
+rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/SmallIntestineDevelopmentalData/SmallIntestineDevelopmentalData.rds"
+rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/MouseGliaIfngrKO/MouseGliaIfngrKO.rds"
+rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/EGCsHPoly/EGCsHPoly.rds"
+#rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/InVitroData/InVitroData.rds"
+rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/InVitroData/InVitroFoxd3RAData.rds"
+
+## Object received from Michael ##
+rdsFN <- "/camp/lab/pachnisv/working/Michael/FranzeColouredSeuratObject/ColoredSeuratObject.rds"
+## name to be used PubMouseGliaIfngrKO
+
+
+## Done                                                                      ##
+###############################################################################
+
+
+```
+
+What you need before you start:
+  A MySQL database that can be accessed remotely
+  A user for this database that is authorized to insert, select and delete. 
+  
+```{r main_bit, echo=F, eval=T, warning=FALSE, results="asis"}
+###############################################################################
+## Set Project Parameters                                                    ##
+h <- unlist(strsplit(rdsFN, "\\/"))[length(unlist(strsplit(rdsFN, "\\/")))]
+project_id <- gsub(".rds", "", h)
+#project_id <- "InVitroFoxd3RAData"
+#project_id <- "PubMouseGliaIfngrKO"
+
+host = "10.27.241.82"
+db.user = "boeingS"
+password = db.pwd
+primDataDB = "vpl_data"
+
+
+PCAdbTableName <- paste0(
+    project_id, 
+    "_PCA"
+)
+
+
+##                                                                           ##
+###############################################################################
+```
+
+```{r main_bit, echo=F, eval=T, warning=FALSE, results="asis"}
+
+###############################################################################
+##
+devtools::install_github("decusInLabore/biologicSeqTools")
+
+
+##
+###############################################################################
+
+###############################################################################
+## Step 1: Load Seurat object                                                ##
+
+OsC <- readRDS(rdsFN)
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Create Expr table                                                         ##
+
+
+## Running this function may take a minute or two, depending on the number of cells in your dataset
+
+dfExpr <-  biologicSeqTools::createDfExpr(
+    obj = OsC,
+    assay = "RNA",
+    #slot = "data",
+    geneSel = NULL
+) 
+
+
+
+## Adding gene_ids 
+
+library("dplyr")
+
+dfIDTable <- dfExpr %>% 
+    select(gene) %>% 
+    distinct() %>% 
+    mutate(gene_id = row_number())
+
+
+## Upload expression table to database 
+
+print(paste0("Database to be used: ", primDataDB))
+print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
+
+biologicSeqTools::upload.datatable.to.database(
+    host = host,
+    user = db.user,
+    password = db.pwd,
+    prim.data.db = primDataDB,
+    dbTableName = paste0(project_id, "_geneID_tb"),
+    df.data = dfIDTable,
+    db.col.parameter.list = list(
+        "BIGINT(8) NULL DEFAULT NULL" = c("row_names"),
+        "VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci" = c("gene"),
+        "INT(8) NULL DEFAULT NULL" = c("gene_id")
+    ),
+    new.table = T,
+    cols2Index = c("gene"),
+    mode = "MySQL"
+)
+
+
+## Rearrange expression talbe
+## This step may take a couple of minutes in a large dataset
+dfExpr <- dfExpr %>% 
+    rename(condition = cellID)  %>%  
+    mutate(lg10Expr = round(lg10Expr, 3)) %>% 
+    arrange(gene) %>% 
+    mutate(row_names = row_number())
+
+
+
+## Save as temp file for more efficient database upload
+tempFN <- paste0("temp.",project_id,".csv")
+write.csv(dfExpr, tempFN, row.names = F)
+
+# You may want to remove dfExpr to save on memory space
+# rm(dfExpr)
+
+expDbTable <- paste0(project_id, "_gene_expr_tb")
+
+
+###############################################################################
+## Helper function for setting up access privileges                          ##
+
+doQuery <- function(
+    #Obio, 
+    query,
+    resOut = FALSE
+){
+    #library(RMySQL)
+    res <- NULL
+    dbDB <- DBI::dbConnect(
+        drv = RMySQL::MySQL(), 
+        user = db.user, 
+        password = db.pwd, 
+        host = host,
+        dbname = primDataDB
+    ) 
+    tryCatch(res <- dbGetQuery(dbDB, query), error = function(c) {
+        c$message <- stop(paste0("Error in ", query, "."))
+    })
+    
+    dbDisconnect(dbDB)
+    
+    if (resOut){
+        return(res)
+    }
+    
+}
+
+## End helper function                                                       ##
+###############################################################################
+
+###############################################################################
+## Upload Metadata table                                                     ##
+
+###############################################################################
+## Create Metadata table                                                     ##
+
+dfCoord <- biologicSeqTools::createDfCoord(OsC)
+
+dfCoord[["all"]] <- "all"
+##                                                                           ##
+###############################################################################
+
+
+###############################################################################
+## Add sampleName and clusterName
+
+
+dfCoord[["clusterName"]] <- dfCoord$cluster
+dfCoord[["sampleName"]] <- dfCoord$sampleID
+
+dupTest <- duplicated(toupper(names(dfCoord)))
+
+if (sum(dupTest) > 0 ){
+  names(dfCoord)[duplicated(toupper(names(dfCoord)))] <- paste0( names(dfCoord)[duplicated(toupper(names(dfCoord)))], "_B")
+}
+
+dfCoord <- dfCoord [,!(duplicated(names(dfCoord)))]
+
+
+
+
+###############################################################################
+## Select default splitBy options                                            ##
+
+## Default all non-numeric columns
+numCols <- unlist(lapply(dfCoord, is.numeric))
+chrCols <- unlist(lapply(dfCoord, is.character))
+
+splitOptions <- names(dfCoord)[chrCols]
+
+## Make None the first option
+splitOptions <- c(splitOptions[splitOptions == "all"], splitOptions[splitOptions != "all"])
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Select colorBy options                                                    ##
+
+
+## Default all non-numeric columns
+numCols <- unlist(lapply(dfCoord, is.numeric))
+chrCols <- unlist(lapply(dfCoord, is.character))
+
+colorByOptions <- sort(names(dfCoord))
+
+## Order Options ##
+
+
+##                                                                           ##
+###############################################################################
+
+
+
+
+
+###############################################################################
+## Add additonal classifications                                             ##
+# dfdbTable[["Sample_Group"]] <- ""
+# groupLength <- nchar(dfdbTable$Sample_Group)
+# groupLength <- groupLength -1
+# dfdbTable[["Sample_Group"]] <- substr(dfdbTable$sampleID, 1, groupLength)
+##
+###############################################################################
+dfdbTable <- dfCoord
+
+pos <- grep("integrated_", names(dfdbTable))
+if (length(pos) > 0){
+  dfdbTable <- dfdbTable[,-pos]
+}
+names(dfdbTable) <- gsub("\\.", "_", names(dfdbTable))
+
+write.table(
+  dfdbTable,
+  "temp.txt",
+  row.names = F,
+  sep = "\t"
+)
+
+dfdbTable <- read.delim(
+  "temp.txt",
+  sep = "\t",
+  stringsAsFactors = F
+)
+
+if (file.exists("temp.txt")){
+  unlink("temp.txt")
+}
+
+dfdbTable[is.na(dfdbTable)] <- ""
+
+
+
+columnDBcategoryList <- biologicSeqTools::inferDBcategories(dfData=dfdbTable)
+
+
+biologicSeqTools::upload.datatable.to.database(
+  host = host,
+  user = db.user,
+  password = db.pwd,
+  prim.data.db = primDataDB,
+  dbTableName = PCAdbTableName,
+  df.data = dfdbTable,
+  db.col.parameter.list = columnDBcategoryList,
+  new.table = TRUE
+)
+biologicSeqTools::killDbConnections()
+##
+#########################
+
+## Done 
+###############################################################################
+
+## Create user in db
+if (host == "10.27.241.82"){
+    serverString <- "shiny-bioinformatics.crick.ac.uk"
+    shinyBasePath <- "/camp/stp/babs/www/shiny/boeings/external/"  
+    FvDir <- paste0("/camp/stp/babs/www/boeings/bioLOGIC/data/", project_id)
+} else if (host == "10.27.241.234"){
+    serverString <- "shiny.thecrick.org"
+    shinyBasePath <- "/camp/stp/babs/www/shiny/boeings/"
+    FvDir <- paste0("/camp/stp/babs/www/boeings/bioLOGIC/data/", project_id)
+} else {
+    serverString <- "shiny-bioinformatics.crick.ac.uk"
+    shinyBasePath <- "./"
+    FvDir <- paste0("./data/", project_id)
+    #stop("no server specified")
+}  
+
+## Remove if it exists
+shinyProjectPath <-paste0(
+  shinyBasePath, 
+  project_id, "_app"
+)
+if (!dir.exists(shinyProjectPath)){
+  dir.create(shinyProjectPath)
+}
+shinyDataPath <-paste0(shinyProjectPath, "/data/connect/")
+if (!dir.exists(shinyDataPath)){
+  dir.create(shinyDataPath, recursive = T)
+}
+shinyParamPath <-paste0(shinyProjectPath, "/parameters/")
+if (!dir.exists(shinyParamPath)){
+  dir.create(shinyParamPath)
+}
+aFN <- paste0(shinyDataPath, "db.txt")
+
+if (file.exists(aFN)){
+  df <- read.delim(aFN, header = T, sep="\t", stringsAsFactors = F)
+  sPwd <- as.vector(df$id2)
+  sUser <- as.vector(df$id)
+} else {
+    sUser <- substr(paste0(project_id, "_scData"), 1, 15)
+    sPwd <-c(2:9,letters,LETTERS)
+    sPwd <- paste(sample(sPwd,8),collapse="")
+}
+
+
+query <- as.vector(NULL, mode = "character")
+
+query0 <- paste0("SELECT User, Host FROM mysql.user WHERE User = '",sUser,"' AND Host = '10.%';")
+res <- doQuery(query = query0, resOut=TRUE)
+if (nrow(res) > 0){
+    query0a <- paste0("DROP USER '",sUser,"'@'10.%';")   
+    doQuery(query = query0a)
+    
+    
+} 
+
+query6 <- paste0(
+  "CREATE USER '",
+  sUser, 
+  "'@'","10.%","' IDENTIFIED BY '",
+  sPwd,
+  "';"
+)
+
+
+
+doQuery(query = query6)
+query <- c(query, query6)
+
+query0 <- paste0("SELECT User, Host FROM mysql.user WHERE User = '",sUser,"' AND Host = '",serverString,"';")
+res <- doQuery(query = query0, resOut=TRUE)
+if (nrow(res) > 0){
+    query0a <- paste0("DROP USER '",sUser,"'@'",serverString,"';")   
+    doQuery(query = query0a)
+    
+    
+} 
+
+## Add user for debugging ##
+query6a <- paste0(
+  "CREATE USER '",
+  sUser, 
+  "'@'",serverString,"' IDENTIFIED BY '",
+  sPwd,
+  "';"
+)
+
+doQuery(query = query6a)
+query <- c(query, query6a)
+
+
+query1 <- paste0("DROP TABLE IF EXISTS ", expDbTable , ";\n")
+query <- query1
+doQuery(query = query1)
+query2 <- paste0(
+    #query,
+    "CREATE TABLE IF NOT EXISTS ",
+    expDbTable,
+    " (gene VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, cellID VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, lg10Expr DECIMAL(6,3) NULL DEFAULT NULL, row_names INT(10) NOT NULL AUTO_INCREMENT,PRIMARY KEY (row_names)); "
+)
+doQuery(query = query2)
+query <- c(query, query2)
+#CREATE TABLE IF NOT EXISTS test_expr (`row_names` bigint(10) NOT NULL, `gene_id` INT(5), `gene` VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, `lg10Expr` DECIMAL(6,3) NULL DEFAULT NULL, PRIMARY KEY (`row_names`));
+query3 <- paste0(
+    #query,
+    "LOAD DATA LOCAL INFILE '",
+    
+    "temp.",project_id,".csv",
+    "' INTO TABLE ",
+    expDbTable , 
+    " FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (gene, cellID, lg10Expr, row_names);"
+)
+doQuery(query = query3)
+query <- c(query, query3)
+#LOAD DATA LOCAL INFILE '/camp/stp/babs/working/boeings/Projects//schaefera/tobias.ackels/319_scRNAseq_mm_olfactory_bulb_proj_neuron_analysis_SC19135/workdir/temp.csv' INTO TABLE test_expr FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, mycol1, mycol2);
+query4 <- paste0(
+    #query,
+    "ALTER TABLE ", expDbTable , " ADD UNIQUE(row_names);"
+)
+doQuery(query = query4)
+query <- c(query, query4)
+query5 <- paste0(
+    #query,
+    "CREATE INDEX idx_gene ON ", expDbTable , " (gene);"
+)
+doQuery(query = query5)
+query <- c(query, query5)
+
+
+query7 <- paste0(
+    "GRANT SELECT on ", primDataDB,".",PCAdbTableName, " TO ",sUser,"@'",serverString,"';"
+)
+doQuery(query = query7)
+query <- c(query, query7)
+query7a <- paste0(
+    "GRANT SELECT on ", primDataDB,".",PCAdbTableName, " TO ",sUser,"@'10.%';"
+)
+doQuery(query = query7a)
+query <- c(query, query7a)
+query8 <- paste0(
+    "GRANT SELECT on ", primDataDB,".",expDbTable, " TO ",sUser,"@'",serverString,"';"
+)
+doQuery(query = query8)
+query <- c(query, query8)
+query8a <- paste0(
+    "GRANT SELECT on ", primDataDB,".",expDbTable, " TO ",sUser,"@'10.%';"
+)
+doQuery(query = query8a)
+query <- c(query, query8a)
+geneTb <- paste0(project_id, "_geneID_tb")
+query9 <- paste0(
+    "GRANT SELECT on ", primDataDB,".",geneTb, " TO ",sUser,"@'",serverString,"';"
+)
+doQuery(query = query9)
+query <- c(query, query9)
+geneTb <- paste0(project_id, "_geneID_tb")
+query9a <- paste0(
+    "GRANT SELECT on ", primDataDB,".",geneTb, " TO ",sUser,"@'10.%';"
+)
+doQuery(query = query9a)
+query <- c(query, query9a)
+# 
+# GRANT SELECT on csl_data.p316_rna_seq_table TO csl316data@'shiny-bioinformatics.crick.ac.uk';
+## Create relevant directory ##
+## Create log-in file ##
+url <- host
+id <- sUser
+id2 <- sPwd
+db <- primDataDB
+coordTb <- PCAdbTableName
+exprTb <- paste0(project_id, "_gene_expr_tb")
+geneTb <- paste0(project_id, "_geneID_tb")
+#dfPercCellsExpr <- Obio@dataTableList$dfPercCellsExpr
+#dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
+#dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
+default <- as.vector(dfExpr[1,"gene"])
+
+
+if (!(default %in% dfExpr$gene)){
+    stop("Set default gene correctly")
+    
+}
+dfID <- data.frame(
+    url,
+    id,
+    id2,
+    db,
+    coordTb,
+    exprTb,
+    geneTb,
+    default
+)
+## Maintain old password if exists
+# FN <- paste0(shinyDataPath, "db.txt")
+# if (file.exists(FN)){
+#     dfCont <- read.delim(
+#         FN, 
+#         header = T,
+#         sep = "\t",
+#         stringsAsFactors = F
+#     )
+#     dfID$id2 <- dfCont$id2
+# }
+#write.table(dfID, FN, row.names = F, sep="\t")
+## Copy rest ##
+
+
+
+########################
+## Temp section
+devtools::install_github("decusInLabore/biologicViewerSC")
+library(biologicViewerSC)
+
+pathCP <- system.file("scAppTemplate",package="biologicViewerSC")
+
+##
+##########################
+
+cpString1 <- paste0("cp -r /camp/stp/babs/www/shiny/boeings/external/scAppTemplate/* ", shinyProjectPath)
+
+
+#cpString1 <- paste0("cp assets/template_sc_app/ui.r ", shinyProjectPath)
+system(cpString1)
+
+FN <- paste0(shinyDataPath, "db.txt")
+write.table(dfID, FN, row.names = F, sep="\t")
+# cpString2 <- paste0("cp assets/template_sc_app/server.r ", shinyProjectPath)
+# system(cpString2)
+## Done creating app ##
+## Make featureView entry ##
+FvDir <- paste0("/camp/stp/babs/www/boeings/bioLOGIC_external/data/", project_id)
+if (!dir.exists(FvDir)){
+    dir.create(FvDir)
+}
+FvDir <- paste0(FvDir, "/html/") #html_local_dir
+#[1] "/camp/stp/babs/working/boeings/P
+#paste0("/camp/stp/babs/www/boeings/bioLOGIC_external/data/", project_id, "/html")
+if (!dir.exists(FvDir)){
+    dir.create(FvDir)
+}
+## Feature View Created ##
+## Export upload string ##
+write.table(
+    data.frame(query),
+    "query.string.txt",
+    row.names = F,
+    sep = "\t"
+)
+
+
+##                                                                           ##
+###############################################################################
+
+
+
+
+
+
+
+################
+##
+
+createHTMLoutput <- function(FvFN = NULL, project_id = NULL){
+    sink(FvFN)
+    cat('<!DOCTYPE html>');cat("\n");
+    cat('<html lang="en">');cat("\n");
+    cat('<head>');cat("\n");
+    cat('    <meta charset="UTF-8">');cat("\n");
+    cat(paste0('<title> ',project_id,' FeatureView</title>    <style>'));cat("\n");
+    cat('        body {');cat("\n");
+    cat('             margin: 0;            /* Reset default margin */');cat("\n");
+    cat('         }');cat("\n");
+    cat('        iframe {');cat("\n");
+    cat('            display: block;       /* iframes are inline by default */');cat("\n");
+    cat('            background: #000;');cat("\n");
+    cat('            border: none;         /* Reset default border */');cat("\n");
+    cat('            height: 100vh;        /* Viewport-relative units */');cat("\n");
+    cat('            width: 100vw;');cat("\n");
+    cat('        }');cat("\n");
+    cat('    </style>');cat("\n");
+    cat('</head>');cat("\n");
+    cat('<body>');cat("\n");
+    cat(paste0('<iframe src="https://shiny-bioinformatics.crick.ac.uk/shiny/boeings/',project_id,'_app/" title="FeatureView"></iframe>'));cat("\n");
+    cat('</body>');cat("\n");
+    cat('</html>');cat("\n");
+    sink()
+    
+}
+createHTMLoutput(
+    FvFN = paste0(FvDir, "FeatureView_", project_id,".html"), 
+    project_id = project_id
+)
+
+
+
+
+```
+
+
+
+## Documentation
+```{r documentation, eval=TRUE, echo=T, results=T}
+sessionInfo()
+```
+
+---
+title: Create Single Cell Viewer connected to a MySQL database
+subtitle:  SeuratObject to Database
+author:
+    - Bioinformatics: Stefan Boeing^[The Francis Crick Institute, stefan.boeing@crick.ac.uk]
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+
+abstract: |
+    This recepie will create a single-cell viewer from your Seurat object
+    
+css: `system.file("src/assets/style/style.css" ,package="biologicViewerSC)`    
+
+---

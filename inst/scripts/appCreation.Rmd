@@ -1,0 +1,91 @@
+---
+output: 
+  html_document:
+    code_folding: hide
+    df_print: tibble
+    highlight: default
+    theme: paper
+    toc: true
+    toc_depth: 5
+    toc_float: true
+    
+always_allow_html: yes
+---
+  
+Setting up of a shiny single-cell app from your Seurat object
+
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  tidy = F,
+  tidy.opts = list(width.cutoff = 120),
+  message = FALSE,
+  warning = FALSE
+)
+
+library(tidyverse)
+library(dplyr)
+library(Seurat)
+library(ggplot2)
+library(tidyr)
+library(knitr)
+
+cwd <- getwd()
+setwd("..")
+tempWorkDir <- getwd()
+setwd(cwd)
+
+
+
+
+# ## Load custom packages specific for this analysis ##
+# source("assets/R/scTools.r")
+# source("assets/R/SBwebtools.pckg.r")
+
+devtools::install_github("decusInLabore/biologicSeqTools")
+devtools::install_github("decusInLabore/biologicToolsSC")
+library(biologicSeqTools)
+library(biologicToolsSC)
+
+#source("assets/R/scTools.r")
+#source("assets/R/SBwebtools.pckg.r")
+
+upload.results.to.database <- TRUE
+save.chunk.intermediates <- TRUE
+
+
+```
+
+```{r setup, include=TRUE}
+
+FNscript <- system.file("scripts", package="biologicViewerSC")
+shinyPath <- system.file("scAppTemplate", package="biologicViewerSC")
+
+## Place data into db or localdb
+
+###############################################################################
+## Step 1A Seurat Object to Database                                         ##
+
+## Done Seurat Object to database                                            ##
+###############################################################################
+
+###############################################################################
+## Step 1B Seurat Object to SQLite Database                                  ##
+
+## Done Seurat Object to database                                            ##
+###############################################################################
+
+###############################################################################
+## Create data directory                                                     ##
+
+## Done                                                                      ##
+###############################################################################
+
+###############################################################################
+## Run App                                                                   ##
+
+## Done                                                                      ##
+###############################################################################
+
+
+```
