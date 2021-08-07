@@ -47,14 +47,14 @@ knitr::opts_chunk$set(
 
 # Load Seurat Object from rds file
 
-rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/SmallIntestineDevelopmentalData/SmallIntestineDevelopmentalData.rds"
-rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/MouseGliaIfngrKO/MouseGliaIfngrKO.rds"
+#rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/SmallIntestineDevelopmentalData/SmallIntestineDevelopmentalData.rds"
+#rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/MouseGliaIfngrKO/MouseGliaIfngrKO.rds"
 rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/EGCsHPoly/EGCsHPoly.rds"
 #rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/InVitroData/InVitroData.rds"
-rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/InVitroData/InVitroFoxd3RAData.rds"
+#rdsFN <- "/camp/lab/pachnisv/working/SingleCellData/Internal/InVitroData/InVitroFoxd3RAData.rds"
 
 ## Object received from Michael ##
-rdsFN <- "/camp/lab/pachnisv/working/Michael/FranzeColouredSeuratObject/ColoredSeuratObject.rds"
+#rdsFN <- "/camp/lab/pachnisv/working/Michael/FranzeColouredSeuratObject/ColoredSeuratObject.rds"
 ## name to be used PubMouseGliaIfngrKO
 
 h <- unlist(strsplit(rdsFN, "\\/"))[length(unlist(strsplit(rdsFN, "\\/")))]
@@ -255,16 +255,8 @@ biologicSeqTools::upload.datatable.to.database(
 ## Create Metadata table                                                     ##
 
 dfCoord <- biologicSeqTools::createDfCoord(OsC)
-
+names(dfCoord) <- gsub("\\.", "_", names(dfCoord))
 dfCoord[["all"]] <- "all"
-##                                                                           ##
-###############################################################################
-
-
-###############################################################################
-## Add sampleName and clusterName
-
-
 dfCoord[["clusterName"]] <- dfCoord$cluster
 dfCoord[["sampleName"]] <- dfCoord$sampleID
 
@@ -276,52 +268,6 @@ if (sum(dupTest) > 0 ){
 
 dfCoord <- dfCoord [,!(duplicated(names(dfCoord)))]
 
-
-
-
-###############################################################################
-## Select default splitBy options                                            ##
-
-## Default all non-numeric columns
-numCols <- unlist(lapply(dfCoord, is.numeric))
-chrCols <- unlist(lapply(dfCoord, is.character))
-
-splitOptions <- names(dfCoord)[chrCols]
-
-## Make None the first option
-splitOptions <- c(splitOptions[splitOptions == "all"], splitOptions[splitOptions != "all"])
-
-##                                                                           ##
-###############################################################################
-
-###############################################################################
-## Select colorBy options                                                    ##
-
-
-## Default all non-numeric columns
-numCols <- unlist(lapply(dfCoord, is.numeric))
-chrCols <- unlist(lapply(dfCoord, is.character))
-
-colorByOptions <- sort(names(dfCoord))
-
-## Order Options ##
-
-
-##                                                                           ##
-###############################################################################
-
-
-
-
-
-###############################################################################
-## Add additonal classifications                                             ##
-# dfdbTable[["Sample_Group"]] <- ""
-# groupLength <- nchar(dfdbTable$Sample_Group)
-# groupLength <- groupLength -1
-# dfdbTable[["Sample_Group"]] <- substr(dfdbTable$sampleID, 1, groupLength)
-##
-###############################################################################
 dfdbTable <- dfCoord
 
 pos <- grep("integrated_", names(dfdbTable))
@@ -366,8 +312,85 @@ biologicSeqTools::upload.datatable.to.database(
    mode = "SQLite"
 )
 biologicSeqTools::killDbConnections()
-##
-#########################
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Select default splitBy options                                            ##
+
+## Default all non-numeric columns
+numCols <- unlist(lapply(dfCoord, is.numeric))
+chrCols <- unlist(lapply(dfCoord, is.character))
+
+splitOptions <- names(dfCoord)[chrCols]
+
+## Make None the first option
+splitOptions <- c(splitOptions[splitOptions == "all"], splitOptions[splitOptions != "all"])
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Select colorBy options                                                    ##
+
+
+## Default all non-numeric columns
+numCols <- unlist(lapply(dfCoord, is.numeric))
+chrCols <- unlist(lapply(dfCoord, is.character))
+
+colorByOptions <- sort(names(dfCoord))
+
+## Columns not to show in the color selection
+rmVec <- c(
+    grep("^UMAP", toupper(colorByOptions)),
+    grep("^TSNE", toupper(colorByOptions)),
+    grep("^PC", toupper(colorByOptions)),
+    grep("orig.ident", toupper(colorByOptions)),
+    grep("cellID", toupper(colorByOptions))
+    
+)
+
+if (length(rmVec) > 0){
+    colorByOptions <- colorByOptions[-rmVec]
+}
+
+colorByOptionsPart1 <- c(
+    grep("clusterName", colorByOptions),
+    grep("seurat_clusters", colorByOptions),
+    grep("sampleName", colorByOptions)
+)
+
+if (length(colorByOptionsPart1) > 0){
+    colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+}
+
+colorDisplayOptions <- c(
+    colorByOptions[colorByOptionsPart1],
+    sort(colorByOptionsPart2)
+)
+
+## Order Options ##
+
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Optional selection table                                                  ##
+
+
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Optional: Make color table/file                                           ##
+
+dbTableColumn | diplayName | catValue | catColor
+
+##                                                                           ##
+###############################################################################
+
 
 ## Done 
 ###############################################################################
