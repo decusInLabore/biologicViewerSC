@@ -80,7 +80,8 @@ plot_prep_server <- function(
         grep("sampleID", splitOptions),
         grep("old_ident", splitOptions),
         grep("hmIdent", splitOptions),
-        grep("color", tolower(splitOptions))
+        grep("color", tolower(splitOptions)),
+        grep("lg10expr", tolower(splitOptions))
         
     )
     
@@ -333,6 +334,7 @@ plot_prep_server_dl <- function(
     
     
     splitOptions <- as.vector(names(Nopt))
+    splitOptions <- splitOptions[splitOptions != "lg10Expr"]
     ## Done                                                                  ##
     ###########################################################################
     
@@ -497,7 +499,10 @@ plot_prep_server_dl <- function(
     # })
 ## End of download functions   
 }
-# -------------------------------------------------------------------------
+##                                                                           ##
+###############################################################################
+
+
 
 ###############################################################################
 ## Data Access Module                                                        ##
@@ -714,11 +719,7 @@ allColorOptions <- c(
 
 
 allColorOptions <- allColorOptions[allColorOptions %in% names(dfCoordSel)]
-allColorOptions <- 
-    c(
-        "Log10 Expression" = "lg10Expr",
-        allColorOptions
-    )
+
 
 
 splitOptions <- names(dfCoordSel)
@@ -737,7 +738,7 @@ if (length(rmVec) > 0){
 }
 
 
-## Remove all split options with more than 20 options ##
+## Remove all split options with more than 50 options ##
 Nopt <- apply(dfCoordSel[,splitOptions], 2, function(x) length(unique(x)))
 Nopt <- sort(Nopt[Nopt < 51], decreasing = F)
 
@@ -746,7 +747,8 @@ splitOptions <- as.vector(names(Nopt))
 
 factorOptions <- splitOptions
 numericOptions <- allColorOptions[!(allColorOptions %in% factorOptions)]
-numericOptions <- numericOptions[numericOptions != "lg10Expr"]
+
+    
 numericRes <- as.vector(NULL, mode = "character")
 for (i in 1:length(numericOptions)){
     if (is.numeric(dfCoordSel[,numericOptions[i]])){
@@ -757,6 +759,7 @@ for (i in 1:length(numericOptions)){
     }
 }
 numericOptions <- numericRes
+
 
 ## Done                                                                      ##
 ###############################################################################
@@ -805,29 +808,7 @@ app_server <- function(input, output, session) {
         dfCoordSel$row_names <- NULL
         dfCoordSel[["all"]] <- "all"  
         
-        # clusterCols <- unique(
-        #   c(
-        #     names(dfCoordSel)[grep("cluster", names(dfCoordSel))],
-        #     names(dfCoordSel)[grep("Cluster", names(dfCoordSel))]
-        #   )
-        # )
-        # 
-        # 
-        # 
-        # if (length(clusterCols) > 0){
-        #     for (m in 1:length(clusterCols)){
-        #         clusters <- sort(unique(dfCoordSel[, clusterCols[m]]))
-        #         tag <- paste0(clusterCols[m], "_number")
-        #         dfCoordSel[[tag]] <- -1
-        #         for (k in 1:length(clusters)){
-        #             dfCoordSel[dfCoordSel[,clusterCols[m]] == clusters[k],  tag ] <- k
-        #         }
-        #     }
-        # }
-        # 
-        # output$dev_text <- renderPrint({
-        #   cat(getwd())
-        # })
+        
         
         dfCoordSel$cellID <- gsub("[.]", "-", dfCoordSel$cellID)
         dfCoordSel$cellID <- gsub("-", "_", dfCoordSel$cellID)
@@ -920,7 +901,7 @@ app_server <- function(input, output, session) {
         
         #query <- paste0("SELECT DISTINCT * FROM agl315_gene_expr_tb WHERE gene = 'GFAP'" )
         dfExprSel <- DBI::dbGetQuery(dbDB, query)
-        dbDisconnect(dbDB)
+        DBI::dbDisconnect(dbDB)
         
         names(dfExprSel) <- gsub("condition", "cellID", names(dfExprSel))
         names(dfExprSel) <- gsub("^expr$", "lg10Expr", names(dfExprSel))
@@ -973,25 +954,7 @@ app_server <- function(input, output, session) {
         ## Done                                                              ##
         #######################################################################
         
-        #dfTemp[["Dcolor"]] <- dfTemp[,input$colorBy]
         
-        # if (!(input$colorBy %in% c("lg10Expr"))){
-        #     dfTemp$Dcolor <- factor(dfTemp$Dcolor) 
-        # } else {
-        #     dfTemp$Dcolor <- as.numeric(dfTemp$Dcolor)        
-        # } 
-        
-        
-        
-        # if (input$x_axis == "clusterName"){
-        #     clusters <- sort(unique(dfTemp[,input$x_axis]))
-        #     
-        #     dfTemp[["x_axis"]] <- dfTemp[,paste0( input$x_axis, "_number")]
-        #    
-        #     
-        # } else {
-        #     dfTemp[["x_axis"]] <- dfTemp[,input$x_axis]    
-        # }
         
         dfTemp[["x_axis"]] <- dfTemp[,input$x_axis]   
         
@@ -1000,29 +963,6 @@ app_server <- function(input, output, session) {
         }
         
         dfTemp[["y_axis"]] <- dfTemp[,input$y_axis]
-        # clusterColorColName <- "clusterName"
-        # dfCol <- unique(dfTemp[,c("clusterName", "clusterColor")])
-        # colVec <- dfCol$clusterColor
-        # names(colVec) <- dfCol$clusterName
-        # 
-        # subClusterColorColName <- "subClusterName"
-        # dfCol <- unique(dfTemp[,c("subClusterName", "subClusterColor")])
-        # sColVec <- dfCol$subClusterColor
-        # names(sColVec) <- dfCol$subClusterName
-        # sColVec <- sColVec[sColVec != ""]
-        # 
-        # levels <- 
-        # dfTemp[["Cluster"]] <- factor(dfTemp[,clusterColorColName], levels = sort(unique(dfTemp[,clusterColorColName])))   
-        # #dfTemp$clusterName <- as.numeric(dfTemp$clusterName)
-        
-        
-        # if (input$colorBy == "lg10Expr"){
-        #     selVec <- unique(c( "gene", "lg10Expr", "x_axis", "y_axis", "Dcolor", "cellID", "sampleID", input$splitByColumn))
-        # } else {
-        #     selVec <- unique(c( "gene", "lg10Expr", "x_axis", "y_axis", "Dcolor", "cellID", "sampleID", input$colorBy, input$splitByColumn))
-        # }
-        # 
-        
         
         
         #dfTemp <- dfTemp[,selVec]  
@@ -1049,7 +989,7 @@ app_server <- function(input, output, session) {
     #     plot_data()[[1]]
     # }) 
     observe({
-        updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE,selected=geneDefault) 
+        updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE, selected=geneDefault) 
     })
     
     
