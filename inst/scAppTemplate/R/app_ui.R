@@ -305,12 +305,28 @@ Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
 
 splitOptions <- as.vector(names(Nopt))
 
-headVec <- c(
-    grep("meta_", tolower(splitOptions)),
+
+Nsamples <- length(unique(dfCoordSel$sampleName))
+
+if (Nsamples > 3 | nrow(dfCoordSel) < 5000){
+  headVec <- c(
+    grep("all", splitOptions),
     grep("sampleName", splitOptions),
+    grep("meta_", tolower(splitOptions)),
     grep("clusterName", splitOptions),
     grep("subClusterName", splitOptions)
-)
+  )  
+} else {
+  headVec <- c(
+    grep("sampleName", splitOptions),
+    grep("meta_", tolower(splitOptions)),
+    grep("all", splitOptions),
+    grep("clusterName", splitOptions),
+    grep("subClusterName", splitOptions)
+  )  
+}
+
+
 
 if (length(headVec) > 0){
     headOptions <- splitOptions[headVec]
