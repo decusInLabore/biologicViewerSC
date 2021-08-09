@@ -16,7 +16,7 @@ devtools::install_github("decusinlabore/biologicViewerSC")
 
 ```
 ###############################################################################
-## Step 1: Load Seurat object                                                ##
+## Step 1: Load Exampe Seurat object                                         ##
 
 library(Seurat)
 library(dplyr)
