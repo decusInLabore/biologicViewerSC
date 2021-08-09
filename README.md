@@ -3,8 +3,8 @@
 ## Run App Locally
 ```
 # Install R-package for app creation
-devtools::install_github("decusinlabore/biologicViewerSC")
 devtools::install_github("decusInLabore/biologicSeqTools")
+devtools::install_github("decusinlabore/biologicViewerSC")
 
 # When prompted to update packages, try first the 'None' option. 
 
@@ -15,9 +15,6 @@ Once the installation is complete run
 library(biologicViewerSC)
 library(biologicSeqTools)
 library(Seurat)
-
-project_id = "test2_PBMC"
-
 
 
 
@@ -70,22 +67,31 @@ names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
 ###############################################################################
 
 ###############################################################################
+## Prepare your Seurat Object                                                ##
+
+OsC@meta.data[["clusterName"]] <- paste0("C", OsC@meta.data$seurat_clusters)
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
 ## Create Single-cell Application                                            ##
 project_id <- "testApp"
+projectPath = "./"
 
 params <- biologicSC::scanObjParams(OsC)
 
 seuratObjectToLocalViewer(
     project_id = project_id,
-    projectPath = "./",
+    projectPath = projectPath,
     OsC = OsC,
     dataMode = "SQLite"
 )
 
 Run app locally
 
-sewd("testApp")
-shiny::runApp(paste0("../", project_id))
+
+shiny::runApp(paste0(projectPath, project_id, "_app"))
 
 
 
