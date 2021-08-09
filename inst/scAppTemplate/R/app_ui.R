@@ -8,25 +8,59 @@
 #' @import colourpicker
 #' @import DBI
 #' @import RMySQL
+#' @import RSQLite
 #' @noRd
 
+
+###############################################################################
+## Load parameter file if available                                          ##
+FNparameters <- "parameters/menuParameters.txt"
+
+if (file.exists(FNparameters)){
+    dfParam <- read.delim(
+        FNparameters, 
+        header = T, 
+        sep = "\t",
+        stringsAsFactors = F
+    )
+    
+    parameterFileLoaded <- TRUE
+    ## Check file integrity ##
+    if (!(sum(names(dfParam) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
+        rm(dfParam)
+        parameterFileLoaded <- FALSE
+    }
+    
+} else {
+    parameterFileLoaded <- FALSE
+}
+
+## Done                                                                      ##
+###############################################################################
+
+###############################################################################
+## Load category color file if available                                     ##
+FNparameters <- "parameters/colorParameters.txt"
+colorFileLoaded <- FALSE
+##                                                                           ##
+###############################################################################
 
 ###############################################################################
 ## Data Access Module                                                        ##
 
 FNkey <- "data/connect/db.txt"
 FNrda <- "data/dfkey.rda"
+
 if (file.exists(FNkey)){
     dfkey <- read.delim(FNkey, stringsAsFactors = F, sep="\t")
 } else if (file.exists(FNrda)){
-  load(FNrda)
+    load(FNrda)
 } else {
-  data("dfkey")
-}
+    data("dfkey")
+} 
 
 
 geneDefault = as.character(dfkey$default)
-
 host <- as.character(dfkey$url)
 user <- as.character(dfkey$id)
 DBpd <- as.character(dfkey$id2)
@@ -35,28 +69,61 @@ coordinateTbName <- as.character(dfkey$coordTb)
 exprTbName <- as.character(dfkey$exprTb)
 geneID_TbName <- as.character(dfkey$geneTb)
 
+pos <- grep("dataMode", names(dfkey))
+if (length(pos) == 1){
+    if (dfkey$dataMode == "SQLite"){
+        dataMode <- dfkey$dataMode
+    } else {
+        dataMode <- "MySQL"
+    }
+} else {
+    dataMode <- "MySQL"
+}
+
 ## Done Data Access Module                                                   ##
 ###############################################################################
 
 ###############################################################################
-##  Retrieve dfCoordSel                                                      ##       
+##  Retrieve Meta data table                                                 ##      
+
 oldw <- getOption("warn")
 options(warn = -1)
-dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+
+if (dataMode == "SQLite"){
+  
+  dbDB <- DBI::dbConnect(
+    drv = RSQLite::SQLite(),
+    dbname=dbname
+  )
+  
+} else {
+  
+  dbDB <- DBI::dbConnect(
+    drv = RMySQL::MySQL(),
+    user = user, 
+    password = DBpd, 
+    host = host, 
+    dbname=dbname
+    
+  )
+  
+}
+
+
 query <- paste0("SELECT DISTINCT * FROM ", coordinateTbName)
 dfCoordSel <- DBI::dbGetQuery(dbDB, query)
 DBI::dbDisconnect(dbDB)
 
+## Add column for all values
 dfCoordSel[["all"]] <- "all"
 ##                                                                           ##
 ###############################################################################
 
-
 ###############################################################################
-## Select Display options                                                    ##       
+## Create order in which samples are displayed                               ##
 
 pos <- grep("sampleOrder", names(dfCoordSel))
-
+  
 if (length(pos) > 0){
     dfOrder <- unique(dfCoordSel[,c("sampleName", "sampleOrder")])
     dfOrder <- dfOrder[order(dfOrder$sampleOrder, decreasing = F),]
@@ -65,28 +132,36 @@ if (length(pos) > 0){
     conditionVec <- unique(sort(dfCoordSel$sampleName))  
 }
 
+
 Nsamples <- length(conditionVec)
 
+##                                                                           ##
+###############################################################################
+
+
+###############################################################################
+## Select Display options                                                    ##       
 
 allOptions <- names(dfCoordSel)
 
+## Remove common undesirable colums ##
 rmNameVec <-c(
-  "^DC",
-  "uniquecellID",
-  "hmIdent",
-  "old_ident",
-  "cellID", 
-  "sample_group",
-  "DF_pANN",
-  "clusterColor",
-  "sampleColor",
-  "clustIdent",
-  "G2M_Score",
-  #"DM_Pseudotime",
-  "^Sub_clusters_ExNeurons$",
-  "sample_group_colors",
-  "row_names",
-  "sampleID"
+    "^DC",
+    "uniquecellID",
+    "hmIdent",
+    "old_ident",
+    "cellID", 
+    "sample_group",
+    "DF_pANN",
+    "clusterColor",
+    "sampleColor",
+    "clustIdent",
+    "G2M_Score",
+    #"DM_Pseudotime",
+    "^Sub_clusters_ExNeurons$",
+    "sample_group_colors",
+    "row_names",
+    "sampleID"
 )
 
 rmVec <- as.vector(NULL, mode = "numeric")
@@ -97,10 +172,46 @@ for (i in 1:length(rmNameVec)){
   )
 }
 
+
+###############################################################################
+## Create selection array                                                    ##
+
+if (parameterFileLoaded){
+    dropDownList <- list()
+    listOptions <- unique(dfParam$menuName)
+    for (i in 1:length(listOptions)){
+        dfTemp <- dfParam[dfParam$menuName == listOptions[i], ]
+        dfTemp <- dfTemp[order(dfTemp$displayOrder, decreasing = F),]
+        dropDownList[[listOptions[i]]] <- as.vector(dfTemp$colSel)
+    }
+}
+
+
+
+##                                                                           ##
+###############################################################################
+
+
+###############################################################################
+## Create X-axis selection                                                   ##
+
+
+
 XYsel <- allOptions
 if (length(rmVec) > 0){
   XYsel <- XYsel[-rmVec]
 }
+
+
+###########################
+## Create Y-axis selection
+
+###########################
+## create split selection
+
+###########################
+## create colorSelection
+
 
 ## Reorder
 XYsel <- c(
@@ -230,13 +341,35 @@ numOptions <- c(
 ###############################################################################
 ##  Get full gene list                                                       ##       
 
-oldw <- getOption("wafrn")
-options(warn = -1)
 
-dbDB <- DBI::dbConnect(MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
-query <- paste0("SELECT DISTINCT gene FROM ", geneID_TbName)
-allGenes <- as.vector(DBI::dbGetQuery(dbDB, query)[,"gene"])
-dbDisconnect(dbDB)
+## This block should be retired ##
+
+# oldw <- getOption("wafrn")
+# options(warn = -1)
+# 
+# if (dataMode == "SQLite"){
+#   
+#   dbDB <- DBI::dbConnect(
+#     drv = RSQLite::SQLite(),
+#     dbname=dbname
+#   )
+#   
+# } else {
+#   
+#   dbDB <- DBI::dbConnect(
+#     drv = RMySQL::MySQL(),
+#     user, 
+#     password = DBpd, 
+#     host = host, 
+#     dbname=dbname
+#   )
+#   
+# }
+# 
+# # dbDB <- DBI::dbConnect(MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+# query <- paste0("SELECT DISTINCT gene FROM ", geneID_TbName)
+# allGenes <- as.vector(DBI::dbGetQuery(dbDB, query)[,"gene"])
+# DBI::dbDisconnect(dbDB)
 
 ##                                                                           ##
 ###############################################################################

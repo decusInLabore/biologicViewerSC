@@ -499,23 +499,22 @@ plot_prep_server_dl <- function(
 }
 # -------------------------------------------------------------------------
 
-#dfkey <- read.delim("inst/exdata/connect/db.txt", header = T, sep="\t", stringsAsFactors = F)
-#load("data/dfkey.rda")
+###############################################################################
+## Data Access Module                                                        ##
 
 FNkey <- "data/connect/db.txt"
 FNrda <- "data/dfkey.rda"
+
 if (file.exists(FNkey)){
     dfkey <- read.delim(FNkey, stringsAsFactors = F, sep="\t")
 } else if (file.exists(FNrda)){
     load(FNrda)
 } else {
     data("dfkey")
-}
-
+} 
 
 
 geneDefault = as.character(dfkey$default)
-
 host <- as.character(dfkey$url)
 user <- as.character(dfkey$id)
 DBpd <- as.character(dfkey$id2)
@@ -524,10 +523,47 @@ coordinateTbName <- as.character(dfkey$coordTb)
 exprTbName <- as.character(dfkey$exprTb)
 geneID_TbName <- as.character(dfkey$geneTb)
 
+pos <- grep("dataMode", names(dfkey))
+if (length(pos) == 1){
+    if (dfkey$dataMode == "SQLite"){
+        dataMode <- dfkey$dataMode
+    } else {
+        dataMode <- "MySQL"
+    }
+} else {
+    dataMode <- "MySQL"
+}
+
+## Done Data Access Module                                                   ##
+###############################################################################
+
 oldw <- getOption("warn")
 options(warn = -1)
 
-dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+if (dataMode == "SQLite"){
+    
+    dbDB <- DBI::dbConnect(
+        drv = RSQLite::SQLite(),
+        dbname=dbname
+    )
+    
+} else {
+    
+    dbDB <- DBI::dbConnect(
+        drv = RMySQL::MySQL(),
+        user = user, 
+        password = DBpd, 
+        host = host, 
+        dbname=dbname
+        
+    )
+    
+}
+
+#dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+
+
+
 query <- paste0("SELECT DISTINCT gene FROM ", geneID_TbName)
 dfGene <- DBI::dbGetQuery(dbDB, query)
 
@@ -541,7 +577,28 @@ RMySQL::dbDisconnect(dbDB)
        
 oldw <- getOption("warn")
 options(warn = -1)
-dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+# dbDB <- DBI::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+
+if (dataMode == "SQLite"){
+    
+    dbDB <- DBI::dbConnect(
+        drv = RSQLite::SQLite(),
+        dbname=dbname
+    )
+    
+} else {
+    
+    dbDB <- DBI::dbConnect(
+        drv = RMySQL::MySQL(),
+        user = user, 
+        password = DBpd, 
+        host = host, 
+        dbname=dbname
+        
+    )
+    
+}
+
 query <- paste0("SELECT DISTINCT * FROM ", coordinateTbName)
 dfCoordSel <- DBI::dbGetQuery(dbDB, query)
 DBI::dbDisconnect(dbDB)
@@ -717,7 +774,29 @@ app_server <- function(input, output, session) {
     createDfCoord <- reactive({
         oldw <- getOption("warn")
         options(warn = -1)
-        dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+        
+        
+        if (dataMode == "SQLite"){
+            
+            dbDB <- DBI::dbConnect(
+                drv = RSQLite::SQLite(),
+                dbname=dbname
+            )
+            
+        } else {
+            
+            dbDB <- DBI::dbConnect(
+                drv = RMySQL::MySQL(),
+                user = user, 
+                password = DBpd, 
+                host = host, 
+                dbname=dbname
+                
+            )
+            
+        }
+        
+        #dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
         query <- paste0("SELECT DISTINCT * FROM ", coordinateTbName)
         dfCoordSel <- DBI::dbGetQuery(dbDB, query)
         
@@ -811,7 +890,27 @@ app_server <- function(input, output, session) {
     createDfExprSel <- reactive({
         oldw <- getOption("warn")
         options(warn = -1)
-        dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+        #dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+        
+        if (dataMode == "SQLite"){
+            
+            dbDB <- DBI::dbConnect(
+                drv = RSQLite::SQLite(),
+                dbname=dbname
+            )
+            
+        } else {
+            
+            dbDB <- DBI::dbConnect(
+                drv = RMySQL::MySQL(),
+                user = user, 
+                password = DBpd, 
+                host = host, 
+                dbname=dbname
+                
+            )
+            
+        }
         
         if ( is.null(input$gene) | input$gene == "" ){
             query <- paste0("SELECT * FROM ",exprTbName," WHERE gene = '",geneDefault,"'" )  

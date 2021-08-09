@@ -535,34 +535,16 @@ query <- as.vector(NULL, mode = "character")
 # GRANT SELECT on csl_data.p316_rna_seq_table TO csl316data@'shiny-bioinformatics.crick.ac.uk';
 ## Create relevant directory ##
 ## Create log-in file ##
-mode <- "SQLite"
-url <- ""
-id <- ""
-id2 <- ""
-db <- gsub(paste0("./", project_id, "_app/"), "",primDataDB)
-coordTb <- PCAdbTableName
-exprTb <- paste0(project_id, "_gene_expr_tb")
-geneTb <- paste0(project_id, "_geneID_tb")
-#dfPercCellsExpr <- Obio@dataTableList$dfPercCellsExpr
-#dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
-#dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
-default <- as.vector(dfExpr[1,"gene"])
+
+
+ 
 
 
 if (!(default %in% dfExpr$gene)){
     stop("Set default gene correctly")
     
 }
-dfID <- data.frame(
-    url,
-    id,
-    id2,
-    db,
-    coordTb,
-    exprTb,
-    geneTb,
-    default
-)
+
 ## Maintain old password if exists
 # FN <- paste0(shinyDataPath, "db.txt")
 # if (file.exists(FN)){
@@ -594,6 +576,20 @@ cpString1 <- paste0("cp -r ",pathCP,"/* ", shinyProjectPath)
 
 #cpString1 <- paste0("cp assets/template_sc_app/ui.r ", shinyProjectPath)
 system(cpString1)
+
+
+
+dfID <- data.frame(
+    dataMode = "SQLite",
+    url = "",
+    id = "",
+    id2 = "",
+    db =  gsub(paste0("./", project_id, "_app/"), "",primDataDB),
+    coordTb = PCAdbTableName,
+    exprTb = paste0(project_id, "_gene_expr_tb"),
+    geneTb = paste0(project_id, "_geneID_tb"),
+    default = as.vector(dfExpr[1,"gene"])
+)
 
 FN <- paste0(shinyDataPath, "db.txt")
 write.table(dfID, FN, row.names = F, sep="\t")
