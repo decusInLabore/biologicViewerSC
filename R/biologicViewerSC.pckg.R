@@ -463,7 +463,7 @@ seuratObjectToLocalViewer <- function(
     
     pFolder <- paste0(getwd(), gsub("./", "/", shinyProjectPath))
     
-    print("Local App generated in folder ", pFolder)
+    print(paste0("Local App generated in folder ", pFolder))
   
   
 }
