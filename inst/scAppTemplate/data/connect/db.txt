@@ -1,2 +1,0 @@
-"dataMode"	"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"default"
-"SQLite"	""	""	""	"data/appDataDb"	"EGCsHPoly_PCA"	"EGCsHPoly_gene_expr_tb"	"EGCsHPoly_geneID_tb"	"0610005C13Rik"
