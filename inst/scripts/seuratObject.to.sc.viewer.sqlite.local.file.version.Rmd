@@ -102,15 +102,17 @@ if (!dir.exists(shinyProjectPath)){
   dir.create(shinyProjectPath)
 }
 
+shinyDataPath <-paste0(shinyProjectPath, "/data/connect/")
+if (!dir.exists(shinyDataPath)){
+  dir.create(shinyDataPath, recursive = T)
+}
+
 shinyLocalDbPath <-paste0(shinyProjectPath, "/data/")
 if (!dir.exists(shinyLocalDbPath)){
   dir.create(shinyDataPath, recursive = T)
 }
 
-shinyDataPath <-paste0(shinyProjectPath, "/data/connect/")
-if (!dir.exists(shinyDataPath)){
-  dir.create(shinyDataPath, recursive = T)
-}
+
 shinyParamPath <-paste0(shinyProjectPath, "/data/parameters/")
 if (!dir.exists(shinyParamPath)){
   dir.create(shinyParamPath)
@@ -513,51 +515,7 @@ write.table(
 
 aFN <- paste0(shinyDataPath, "db.txt")
 
-if (file.exists(aFN)){
-  df <- read.delim(aFN, header = T, sep="\t", stringsAsFactors = F)
-  sPwd <- as.vector(df$id2)
-  sUser <- as.vector(df$id)
-} else {
-    sUser <- substr(paste0(project_id, "_scData"), 1, 15)
-    sPwd <-c(2:9,letters,LETTERS)
-    sPwd <- paste(sample(sPwd,8),collapse="")
-}
 
-
-query <- as.vector(NULL, mode = "character")
-
-
-
-
-
-
-# 
-# GRANT SELECT on csl_data.p316_rna_seq_table TO csl316data@'shiny-bioinformatics.crick.ac.uk';
-## Create relevant directory ##
-## Create log-in file ##
-
-
- 
-
-
-if (!(default %in% dfExpr$gene)){
-    stop("Set default gene correctly")
-    
-}
-
-## Maintain old password if exists
-# FN <- paste0(shinyDataPath, "db.txt")
-# if (file.exists(FN)){
-#     dfCont <- read.delim(
-#         FN, 
-#         header = T,
-#         sep = "\t",
-#         stringsAsFactors = F
-#     )
-#     dfID$id2 <- dfCont$id2
-# }
-#write.table(dfID, FN, row.names = F, sep="\t")
-## Copy rest ##
 
 
 
@@ -566,16 +524,19 @@ if (!(default %in% dfExpr$gene)){
 devtools::install_github("decusInLabore/biologicViewerSC")
 library(biologicViewerSC)
 
-pathCP <- system.file("scAppTemplate",package="biologicViewerSC")
+
+copyVec <- paste0(
+    system.file("scAppTemplate/",package="biologicViewerSC"),
+    "/",
+    list.files(system.file("scAppTemplate/",package="biologicViewerSC"))
+)
+
+file.copy(copyVec, shinyProjectPath,  recursive=TRUE)
+
 
 ##
 ##########################
 
-cpString1 <- paste0("cp -r ",pathCP,"/* ", shinyProjectPath)
-
-
-#cpString1 <- paste0("cp assets/template_sc_app/ui.r ", shinyProjectPath)
-system(cpString1)
 
 
 
@@ -593,10 +554,6 @@ dfID <- data.frame(
 
 FN <- paste0(shinyDataPath, "db.txt")
 write.table(dfID, FN, row.names = F, sep="\t")
-# cpString2 <- paste0("cp assets/template_sc_app/server.r ", shinyProjectPath)
-# system(cpString2)
-## Done creating app ##
-
 
 ##                                                                           ##
 ###############################################################################
