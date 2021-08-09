@@ -7,13 +7,9 @@ As input we need only your analysed Seurat object. The app can be used in two mo
 
 Let's get started and install the required R-packges. 
 ```
+install.packages("devtools")
 devtools::install_github("decusInLabore/biologicSeqTools")
 devtools::install_github("decusinlabore/biologicViewerSC")
-
-
-library(biologicViewerSC)
-library(biologicSeqTools)
-library(Seurat)
 
 ```
 
@@ -23,43 +19,29 @@ library(Seurat)
 ## Step 1: Load Seurat object                                                ##
 
 library(Seurat)
-testObj <- pbmc_small
-all.genes <- rownames(testObj)
-testObj <- ScaleData(testObj, features = all.genes)
-testObj <- RunPCA(testObj, npcs = 3)
-testObj <- RunUMAP(testObj, dims = 1:3)
+library(dplyr)
+library(biologicViewerSC)
+library(biologicSeqTools)
 
-testObj <- FindNeighbors(testObj, dims = 1:3)
-testObj <- FindClusters(testObj, resolution = 0.5)
 
-testObj@meta.data[["all"]] <- "all"
+all.genes <- rownames(pbmc_small)
 
-testObj@meta.data[["sampleName"]] <- "SampleA"
-testObj@meta.data[["sampleColor"]] <- "#009900"
+testObj <- ScaleData(pbmc_small, testObj, features = all.genes)
 
-testObj@meta.data[["clusterName"]] <- paste0("Cluster_", as.vector(testObj@meta.data$seurat_clusters))
+testObj <- pbmc_small %>% 
+    ScaleData(features = all.genes) %>% 
+    RunPCA(npcs = 3) %>%
+    RunUMAP(dims = 1:3)  %>%
+    FindNeighbors(dims = 1:3) %>%
+    FindClusters(resolution = 0.5)
 
-clusterVec <- unique(testObj@meta.data$clusterName)
-clusterCols <- scales::hue_pal()(length(clusterVec))
-dfCol <- data.frame(clusterVec, clusterCols)
 
-dfCell <- data.frame(cellID = row.names(testObj@meta.data), clusterName = testObj@meta.data$clusterName) 
-dfCell <- merge(dfCell, dfCol, by.x = "clusterName", by.y = "clusterVec")
-
-addVec <- dfCell$clusterCols
-names(addVec) <- row.names(dfCell)
-
-testObj <- Seurat::AddMetaData(
-                object = testObj, 
-                metadata = addVec, 
-                "clusterColor"
-)
 
 testObj@meta.data[["meta_Region"]] <- "Tumor"
 testObj@meta.data[1:20,"meta_Region"] <- "Normal"
 
 OsC <- testObj
-names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
+
 
   
 
@@ -76,7 +58,8 @@ If you have a Seurat object containing a single-cell experiment already, just re
 # OsC <- YourSeuratObjectHere
 
 OsC@meta.data[["clusterName"]] <- paste0("C", OsC@meta.data$seurat_clusters)
-OsC@meta.data[["sampleName"]] <- paste0("C", OsC@meta.data$orig.ident)
+OsC@meta.data[["sampleName"]] <- paste0("S", OsC@meta.data$orig.ident)
+names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
 
 ##                                                                           ##
 ###############################################################################
@@ -95,8 +78,10 @@ params
 ```
 
 <b>Step2 Create app 
+Depending on the size of your Seurat object, it might take a couple of minutes for the seuratObjectToLocalViewer function to run. Very large single cell objects might have to be processed on a high-performance computing system. 
+
 ```
-project_id <- "test_PBMC"
+project_id <- "test_zf"
 
 projectPath = "./"
 
