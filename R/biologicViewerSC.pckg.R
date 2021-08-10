@@ -1,4 +1,131 @@
 ###############################################################################
+## Add to Seurat metadata                                                    ##
+
+#' @title addDf2seuratMetaData
+#'
+#'
+#' @param obj Seurat object
+#' @return paramerer list
+#' @import Seurat
+#' @export
+
+setGeneric(
+  name="addDf2seuratMetaData",
+  def=function(obj, dfAdd) {
+    #print(paste0("Dims before addition: ", dim(obj@meta.data)))
+    
+    for (i in 1:ncol(dfAdd)){
+      addVec <- as.vector(dfAdd[,i])
+      names(addVec) <- row.names(dfAdd)
+      colName <- as.vector(names(dfAdd)[i])
+      obj <- Seurat::AddMetaData(
+        object = obj,
+        metadata = addVec,
+        colName
+      )
+    }
+    
+    #print(paste0("Dims after addition: ", dim(obj@meta.data)))
+    #print(paste0("Meta data column names: ", paste(names(obj@meta.data), collapse = ", ")))
+    return(obj)
+  }
+)
+
+## Done adding to Seurat metadata                                            ##
+###############################################################################
+
+###############################################################################
+#' Scan Parameters
+#'
+#' @title createDfCoord
+#'
+#' @param obj Seurat object
+#' @return paramerer list
+#' @import Seurat
+#' @export
+
+setGeneric(
+  name="createDfCoord",
+  def=function(
+    obj,
+    params = NULL
+  ) {
+    if (is.null(params)){
+      params <- biologicSeqTools::scanObjParams(obj)
+    }
+    
+    ## Add reductions ##
+    reds <- names(obj@reductions)
+    
+    for (i in 1:length(reds)){
+      dfAdd <- data.frame(obj@reductions[[reds[i]]]@cell.embeddings)
+      if (nrow(dfAdd) > 0){
+        obj <- biologicSeqTools::addDf2seuratMetaData(obj = obj, dfAdd = dfAdd)
+      }
+    }
+    
+    ##
+    dfdbTable <- obj@meta.data
+    dfdbTable[["cellID"]] <- row.names(dfdbTable)
+    pos <- grep("sampleID", names(dfdbTable))
+    pos2 <- grep("orig.ident", names(dfdbTable))
+    if (length(pos) == 0 | length(pos2) == 1){
+      dfdbTable[["sampleID"]] <- dfdbTable[["orig.ident"]]
+    } else {
+      dfdbTable[["sampleID"]] <- "sampleID_TBD"
+    }
+    
+    return(dfdbTable)
+    
+  }
+)
+
+###############################################################################
+
+###############################################################################
+#' Scan Parameters
+#'
+#' TBD.
+#' @title createDfExpr
+#' @param obj Seurat object
+#' @return paramerer list
+#' @import Seurat
+#' @export
+
+
+setGeneric(
+  name="createDfExpr",
+  def=function(
+    obj,
+    assay = "RNA",
+    #slot = "data",
+    geneSel = NULL
+  ) {
+    Seurat::DefaultAssay(obj) <- assay
+    dfExpr <- data.frame(obj[[assay]]@data)
+    dfExpr[["gene"]] <- row.names(dfExpr)
+    
+    if (!is.null(geneSel)){
+      dfExpr <- dfExpr[dfExpr$gene %in% geneSel, ]
+    }
+    
+    dfExpr <- tidyr::gather(
+      dfExpr,
+      condition,
+      expr, 1:(ncol(dfExpr)-1),
+      factor_key=TRUE
+    )
+    dfExpr <- dfExpr[dfExpr$expr != 0,]
+    names(dfExpr) <- gsub("condition", "cellID", names(dfExpr))
+    names(dfExpr) <- gsub("expr", "lg10Expr", names(dfExpr))
+    return(dfExpr)
+  }
+)
+
+
+###############################################################################
+
+###############################################################################
 ## Scan Seurat Parameters                                                    ##
 
 
@@ -474,13 +601,6 @@ seuratObjectToLocalViewer <- function(
       mutate(lg10Expr = round(lg10Expr, 3)) %>% 
       arrange(gene) 
     
-    
-    
-    
-    
-    
-    
-    
     ## Upload expression table to database 
     
     print(paste0("Database to be used: ", primDataDB))
@@ -813,3 +933,4 @@ seuratObjectToLocalViewer <- function(
 
 ## End                                                                       ##
 ###############################################################################
+

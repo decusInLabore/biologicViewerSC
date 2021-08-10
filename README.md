@@ -36,8 +36,8 @@ testObj <- pbmc_small %>%
 
 
 
-testObj@meta.data[["meta_Region"]] <- "Tumor"
-testObj@meta.data[1:20,"meta_Region"] <- "Normal"
+testObj@meta.data[["meta_Region"]] <- "RandomAcat"
+testObj@meta.data[1:20,"meta_Region"] <- "RandomBcat"
 
 
 ##                                                                           ##
