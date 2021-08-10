@@ -20,13 +20,12 @@ devtools::install_github("decusinlabore/biologicViewerSC")
 
 library(Seurat)
 library(dplyr)
+library(maggitr)
 library(biologicViewerSC)
 library(biologicSeqTools)
 
 
 all.genes <- rownames(pbmc_small)
-
-testObj <- ScaleData(pbmc_small, testObj, features = all.genes)
 
 testObj <- pbmc_small %>% 
     ScaleData(features = all.genes) %>% 
@@ -40,10 +39,6 @@ testObj <- pbmc_small %>%
 testObj@meta.data[["meta_Region"]] <- "Tumor"
 testObj@meta.data[1:20,"meta_Region"] <- "Normal"
 
-OsC <- testObj
-
-
-  
 
 ##                                                                           ##
 ###############################################################################
@@ -55,7 +50,11 @@ If you have a Seurat object containing a single-cell experiment already, just re
 ###############################################################################
 ## Prepare your Seurat Object                                                ##
 
-# OsC <- YourSeuratObjectHere
+## We are inserting here as an example the small Seurat test object we've created above.
+OsC <- testObj
+
+## To use your analysed Seurat object, and rename it to OsC. 
+# OsC <- YourAnalysedSeuratObject
 
 OsC@meta.data[["clusterName"]] <- paste0("C", OsC@meta.data$seurat_clusters)
 OsC@meta.data[["sampleName"]] <- paste0("S", OsC@meta.data$orig.ident)
@@ -70,7 +69,7 @@ And now we create the app in two steps: In a first step we create a list with pr
 <b>Step 1 Create Parameter List</b>
 ```
 
-params <- biologicSC::scanObjParams(OsC)
+params <- biologicSeqTools::scanObjParams(OsC)
 
 ## Review the default app settings and colors:
 params
@@ -81,12 +80,12 @@ params
 Depending on the size of your Seurat object, it might take a couple of minutes for the seuratObjectToLocalViewer function to run. Very large single cell objects might have to be processed on a high-performance computing system. 
 
 ```
-project_id <- "test_zf"
+project_id <- "test11314"
 
 projectPath = "./"
 
 
-seuratObjectToLocalViewer(
+biologicViewerSC::seuratObjectToLocalViewer(
     #params = params,
     project_id = project_id,
     projectPath = projectPath,

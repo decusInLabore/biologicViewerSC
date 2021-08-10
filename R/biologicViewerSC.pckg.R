@@ -1,4 +1,345 @@
+###############################################################################
+## Scan Seurat Parameters                                                    ##
 
+
+
+#' Scan Parameters
+#'
+#' TBD.
+#'
+#' @param obj Seurat object
+#' @param NmaxSplit Maximum number of group members for a column/category to be listed in the splitBy column
+#' @param NcatColorMax Value above which a numeric column is displayed as color gradient
+#' @return paramerer list
+#' @import Seurat scales
+#' @export
+
+setGeneric(
+  name="scanObjParams",
+  def=function(
+    obj,
+    NmaxSplit = 25,
+    NcatColorMax = 25
+  ) {
+    
+    ###########################################################################
+    ## Helper function                                                       ##
+    firstup <- function(x) {
+      substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+      x
+    }
+    ## Done                                                                  ##
+    ###########################################################################
+    
+    obj@meta.data[["all"]] <- "all"
+    
+    addReductions <- function(red = "pca", obj, paramList){
+      reds <- names(obj@reductions)
+      pos <- grep(red, reds)
+      if (length(pos) > 0){
+        dfTemp <- data.frame(obj@reductions[[red]]@cell.embeddings)
+        if (nrow(dfTemp) > 0){
+          paramList[[red]] <- names(dfTemp)
+          
+        }
+      }
+      return(paramList)
+    }
+    
+    tempList <- list()
+    
+    tempList[["meta.data"]] <- c(names(obj@meta.data))
+    names(tempList[["meta.data"]]) <- gsub("[.]", "_",gsub("meta.data", "", c(names(obj@meta.data))))
+    reds <- names(obj@reductions)
+    
+    for (i in 1:length(reds)){
+      tempList <- addReductions(
+        red = reds[i],
+        obj = obj,
+        paramList = tempList
+      )
+    }
+    
+    allOptions <- unlist(tempList, use.names = F)
+    allOptions <- allOptions[allOptions != "all"]
+    
+    uPos <- allOptions[grep("UMAP", toupper(allOptions))]
+    tPos <- allOptions[grep("TSNE", toupper(allOptions))]
+    tPos <- allOptions[grep("^PC", toupper(allOptions))]
+    clustPos <- allOptions[grep("CLUSTER", toupper(allOptions))]
+    
+    rmPos <- c(uPos, tPos, clustPos)
+    
+    restPos <- allOptions[!(allOptions %in% rmPos)]
+    allOptions <- unique(c(uPos, tPos, clustPos, restPos))
+    names(allOptions) <- gsub("[.]", "_", allOptions)
+    
+    
+    rmNameVec <-c(
+      "^DC",
+      "uniquecellID",
+      "hmIdent",
+      "old_ident",
+      "cellID", 
+      "sample_group",
+      "DF_pANN",
+      "clusterColor",
+      "sampleColor",
+      "clustIdent",
+      "G2M_Score",
+      #"DM_Pseudotime",
+      "^Sub_clusters_ExNeurons$",
+      "sample_group_colors",
+      "row_names",
+      "sampleID"
+    )
+    
+    rmVec <- as.vector(NULL, mode = "numeric")
+    for (i in 1:length(rmNameVec)){
+      rmVec <- c(
+        rmVec,
+        grep(rmNameVec[i], allOptions)
+      )
+    }
+    
+    XYsel <- allOptions
+    if (length(rmVec) > 0){
+      XYsel <- XYsel[-rmVec]
+    }
+    
+    XYorder <- c(
+      XYsel[grep("UMAP_", toupper(XYsel))],
+      XYsel[grep("TSNE_", toupper(XYsel))],
+      XYsel[grep("SAMPLENAME", toupper(XYsel))],
+      XYsel[grep("CLUSTERNAME", toupper(XYsel))],
+      XYsel[grep("CLUSTERTEST", toupper(XYsel))],
+      XYsel[grep("PC_", toupper(XYsel))],
+      XYsel[grep("DM_PSEUDOTIME", toupper(XYsel))],
+      XYsel[grep("META_", toupper(XYsel))],
+      #XYsel[grep("DF_Classification", XYsel)],
+      XYsel[grep("NFEATURES", toupper(XYsel))],
+      XYsel[grep("PERCENT", toupper(XYsel))],
+      XYsel[grep("nCount", toupper(XYsel))]
+    )
+    
+    XYrest <- sort(XYsel[!(XYsel %in% XYorder)])
+    
+    XYsel <- c(
+        XYorder, 
+        XYrest
+    )
+    
+    names(XYsel) <- sapply(gsub("_", " ", names(XYsel)), firstup)
+    
+    paramList <- list()
+    paramList[["x_axis"]] <- c("log10 Expr" = "lg10Expr", XYsel)
+    paramList[["y_axis"]] <- c("log10 Expr" = "lg10Expr", XYsel)
+    
+    
+    ## Now cretate split by options ##
+    
+    catOptions <- as.vector(NULL, mode = "character")
+    for (i in 1:ncol(obj@meta.data)){
+      if (length(unique(obj@meta.data[,i])) <= NmaxSplit){
+        catOptions <- c(
+          catOptions,
+          names(obj@meta.data)[i]
+        )
+      }
+    }
+    
+    
+    
+    splitOptions <- catOptions
+    
+    rmVec <- c(
+      grep("orig_", splitOptions),
+      grep("sampleID", splitOptions),
+      grep("old_ident", splitOptions),
+      grep("hmIdent", splitOptions),
+      grep("color", tolower(splitOptions))
+      
+    )
+    
+    if (length(rmVec) > 0){
+      splitOptions <- splitOptions[-rmVec]
+    }
+    
+    
+    ## Remove all split options with more than 20 options ##
+    Nopt <- apply(obj@meta.data[,splitOptions], 2, function(x) length(unique(x)))
+    Nopt <- sort(Nopt[Nopt < NmaxSplit], decreasing = F)
+    
+    splitOptions <- as.vector(names(Nopt))
+    
+    Nsamples <- length(unique(obj@meta.data$sampleName))
+    
+    if (Nsamples > 3 | nrow(obj@meta.data) < 5000){
+      headVec <- c(
+        grep("all", splitOptions),
+        grep("sampleName", splitOptions),
+        grep("meta_", tolower(splitOptions)),
+        grep("clusterName", splitOptions),
+        grep("subClusterName", splitOptions)
+      )  
+    } else {
+      headVec <- c(
+        grep("sampleName", splitOptions),
+        grep("meta_", tolower(splitOptions)),
+        grep("all", splitOptions),
+        grep("clusterName", splitOptions),
+        grep("subClusterName", splitOptions)
+      )  
+    }
+    
+    
+    
+    if (length(headVec) > 0){
+      headOptions <- splitOptions[headVec]
+      restVec <- splitOptions[-headVec]
+      splitOptions <- c(
+        headOptions,
+        restVec
+      )
+    }
+    
+    names(splitOptions) <- splitOptions
+    names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
+    names(splitOptions) <- gsub("META_", "", names(splitOptions) )
+    names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
+    names(splitOptions) <- gsub("sampleName", "Sample Name", names(splitOptions) )
+    names(splitOptions) <- gsub("clusterName", "Cluster Name", names(splitOptions) )
+    names(splitOptions) <- gsub("all", "None", names(splitOptions) )
+    
+    names(splitOptions) <- sapply(names(splitOptions), firstup)
+    
+    paramList[["splitPlotsBy"]] <- splitOptions
+    
+    
+    Nopt <- apply(obj@meta.data[,splitOptions], 2, function(x) length(unique(x)))
+    Nopt <- sort(Nopt[Nopt < NcatColorMax], decreasing = F)
+    
+    numOptions <- names(obj@meta.data)[!(names(obj@meta.data)) %in% splitOptions]
+    numOptions <- c(
+      "lg10Expr",
+      numOptions
+    )
+    
+    ###############################################################################
+    ## Select colorBy options                                                    ##
+    
+    
+    ## Default all non-numeric columns
+    numCols <- unlist(lapply(obj@meta.data, is.numeric))
+    chrCols <- unlist(lapply(obj@meta.data, is.character))
+    
+    colorByOptions <- sort(names(obj@meta.data))
+    
+    ## Columns not to show in the color selection
+    rmVec <- c(
+      grep("^UMAP", toupper(colorByOptions)),
+      grep("^TSNE", toupper(colorByOptions)),
+      grep("^PC", toupper(colorByOptions)),
+      grep("orig.ident", toupper(colorByOptions)),
+      grep("cellID", toupper(colorByOptions))
+      
+    )
+    
+    if (length(rmVec) > 0){
+      colorByOptions <- colorByOptions[-rmVec]
+    }
+    
+    colorByOptionsPart1 <- c(
+      grep("clusterName", colorByOptions),
+      grep("seurat_clusters", colorByOptions),
+      grep("sampleName", colorByOptions)
+    )
+    
+    if (length(colorByOptionsPart1) > 0){
+      colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+    }
+    
+    colorDisplayOptions <- c(
+      "lg10Expr",
+      colorByOptions[colorByOptionsPart1],
+      sort(colorByOptionsPart2)
+    )
+    
+    names(colorDisplayOptions) <- colorDisplayOptions
+    names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
+    names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
+    
+    firstup <- function(x) {
+      substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+      x
+    }
+    
+    names(colorDisplayOptions) <- sapply(names(colorDisplayOptions), function(x) firstup(x))
+    names(colorDisplayOptions) <- sapply(gsub("_", " ", names(colorDisplayOptions)), firstup)
+    names(colorDisplayOptions) <- gsub("NFeature", "nFeature", names(colorDisplayOptions))
+    names(colorDisplayOptions) <- gsub("NCount", "nCount", names(colorDisplayOptions))
+    
+    paramList[["colorPlotsBy"]] <- colorDisplayOptions
+    
+    ##                                                                           ##
+    ###############################################################################
+    
+    
+    ###############################################################################
+    ## Create color list                                                         ## 
+    sampleColorList <- list()
+    
+    colorVec <- paramList[["colorPlotsBy"]]
+    
+    Nopt <- apply(obj@meta.data[,splitOptions], 2, function(x) length(unique(x)))
+    Nopt <- sort(Nopt[Nopt < NcatColorMax], decreasing = F)
+    
+    numOptions <- names(obj@meta.data)[!(names(obj@meta.data)) %in% splitOptions]
+    numOptions <- c(
+      "lg10Expr",
+      numOptions
+    )
+    
+    colorVec <- colorVec[!(colorVec %in% numOptions)]
+    
+    for (i in 1:length(colorVec)){
+        tag <-colorVec[i]
+        
+        
+        sampleVec <- as.vector(sort(unique(obj@meta.data[,tag])))
+        sampleVec <- na.omit(sampleVec)
+        sampleVec <- sampleVec[sampleVec != ""]
+        
+        if (length(sampleVec) == 1){
+          sampleColVec <- "black"
+        }  else if (length(sampleVec) == 2){
+          l1 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[1],tag])
+          l2 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[2],tag])
+          if (l1 > l2){
+            sampleColVec <- c("black", "red")
+          } else {
+            sampleColVec <- c("red", "black")
+          }
+          
+        } else {
+          library(scales)
+          sampleColVec <- scales::hue_pal()(length(sampleVec))
+          
+        }
+        
+        names(sampleColVec) <- sampleVec
+        sampleColorList[[names(colorVec)[i]]] <-  sampleColVec
+      }
+      paramList[["catColorList"]] <- sampleColorList
+      ## Done creating color list
+      
+      return(paramList)
+    
+  }
+  
+)
+
+###############################################################################
 
 ###############################################################################
 ## seuratObjectToLocalViewer                                                 ##
@@ -13,6 +354,7 @@
 #' @export
 
 seuratObjectToLocalViewer <- function(
+  params = NULL,
   project_id = "testApp",
   projectPath = "./",
   OsC = NULL,
@@ -22,7 +364,7 @@ seuratObjectToLocalViewer <- function(
   #password = db.pwd
   
     
-){
+){  
     ###############################################################################
     ## Create Single-cell Application                                            ##
     
@@ -225,16 +567,17 @@ seuratObjectToLocalViewer <- function(
     ###############################################################################
     
     ###############################################################################
-    ## Menu Options                                                              ##
-    paramList <- biologicSeqTools::scanObjParams(OsC)
-    
-    ## Done                                                                      ##
+    ## Create params if they don't exist                                         ##
+    if (is.null(params)){
+      params <- scanObjParams(OsC)
+    }
+    ##                                                                           ##
     ###############################################################################
     
     ###############################################################################
     ## Select default splitBy options                                            ##
     
-    ## Default all non-numeric columns
+    
     numCols <- unlist(lapply(dfCoord, is.numeric))
     chrCols <- unlist(lapply(dfCoord, is.character))
     
