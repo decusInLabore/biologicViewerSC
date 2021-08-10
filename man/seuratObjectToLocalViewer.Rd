@@ -5,6 +5,7 @@
 \title{seuratObjectToLocalViewer}
 \usage{
 seuratObjectToLocalViewer(
+  params = NULL,
   project_id = "testApp",
   projectPath = "./",
   OsC = NULL,
