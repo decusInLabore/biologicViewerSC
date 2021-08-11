@@ -51,7 +51,7 @@ setGeneric(
     params = NULL
   ) {
     if (is.null(params)){
-      params <- biologicSeqTools::scanObjParams(obj)
+      params <- biologicViewerSC::scanObjParams(obj)
     }
     
     ## Add reductions ##
@@ -60,7 +60,7 @@ setGeneric(
     for (i in 1:length(reds)){
       dfAdd <- data.frame(obj@reductions[[reds[i]]]@cell.embeddings)
       if (nrow(dfAdd) > 0){
-        obj <- biologicSeqTools::addDf2seuratMetaData(obj = obj, dfAdd = dfAdd)
+        obj <- biologicViewerSC::addDf2seuratMetaData(obj = obj, dfAdd = dfAdd)
       }
     }
     
@@ -688,7 +688,7 @@ seuratObjectToLocalViewer <- function(
     print("Rendering expression data...")
     ## Running this function may take a minute or two, depending on the number of cells in your dataset
     
-    dfExpr <-  biologicSeqTools::createDfExpr(
+    dfExpr <-  biologicViewerSC::createDfExpr(
       obj = OsC,
       assay = "RNA",
       #slot = "data",
@@ -766,7 +766,7 @@ seuratObjectToLocalViewer <- function(
     print("Rendering Metadata...")
     
     
-    dfCoord <- biologicSeqTools::createDfCoord(OsC)
+    dfCoord <- biologicViewerSC::createDfCoord(OsC)
     
     
     dupTest <- duplicated(toupper(names(dfCoord)))

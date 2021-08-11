@@ -63,12 +63,12 @@ names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
 ###############################################################################
 ```
 
-And now we create the app in two steps: In a first step we create a list with project parameters (which you can customise before proceding) and in a second step the single-cell shiny app. 
+And now we create the app in two steps: In a first step we create a list with project parameters (which you can customise before proceding) and in a second step the single-cell shiny app. You also can later on customise display options in the parameter files in the parameter folder. 
 
 <b>Step 1 Create Parameter List</b>
 ```
 
-params <- biologicSeqTools::scanObjParams(OsC)
+params <- biologicViewerSC::scanObjParams(OsC)
 
 ## Review the default app settings and colors:
 params
