@@ -458,12 +458,12 @@ if (length(headVec) > 0){
 }
 
 names(splitOptions) <- splitOptions
-# names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
-# names(splitOptions) <- gsub("META_", "", names(splitOptions) )
-# names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
-# names(splitOptions) <- gsub("sampleName", "Sample", names(splitOptions) )
-# names(splitOptions) <- gsub("clusterName", "Cluster", names(splitOptions) )
-# names(splitOptions) <- gsub("all", "None", names(splitOptions) )
+names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
+names(splitOptions) <- gsub("META_", "", names(splitOptions) )
+names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
+names(splitOptions) <- gsub("sampleName", "Sample", names(splitOptions) )
+names(splitOptions) <- gsub("clusterName", "Cluster", names(splitOptions) )
+names(splitOptions) <- gsub("all", "None", names(splitOptions) )
 
 numOptions <- names(dfCoordSel)[!(names(dfCoordSel)) %in% splitOptions]
 numOptions <- c(

@@ -131,10 +131,10 @@ plot_prep_server <- function(
         
         
         p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-        ) + ggplot2::geom_point(
+        )+ ggplot2::geom_point(
             shape = 16,
             size = as.numeric(dotsize)
-        ) + xlab(x_axis) + ylab(y_axis)
+        ) + ggplot2::xlab(x_axis) + ggplot2::ylab(y_axis)
         
         if (colorBy %in% splitOptions ){
             dfCol <- unique(df[,c(colorBy, "dotColor")])
@@ -502,27 +502,55 @@ plot_prep_server_dl <- function(
 ##                                                                           ##
 ###############################################################################
 
+
+
+###############################################################################
+## Load parameter file if available                                          ##
+FNparameters <- "parameters/menuParameters.txt"
+
+if (file.exists(FNparameters)){
+  dfParam <- read.delim(
+    FNparameters, 
+    header = T, 
+    sep = "\t",
+    stringsAsFactors = F
+  )
+  
+  parameterFileLoaded <- TRUE
+  ## Check file integrity ##
+  if (!(sum(names(dfParam) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
+    rm(dfParam)
+    parameterFileLoaded <- FALSE
+  }
+  
+} else {
+  parameterFileLoaded <- FALSE
+}
+
+## Done                                                                      ##
+###############################################################################
+
 ###############################################################################
 ## Load category color file if available                                     ##
 FNcolParameters <- "parameters/colorParameters.txt"
 
 if (file.exists(FNparameters)){
-    dfColOptions <- read.delim(
-        FNcolParameters, 
-        header = T, 
-        sep = "\t",
-        stringsAsFactors = F
-    )
-    
-    colorFileLoaded <- TRUE
-    ## Check file integrity ##
-    if (!(sum(names(dfColOptions) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
-        rm(dfColOptions)
-        colorFileLoaded <- FALSE
-    }
-    
-} else {
+  dfCol <- read.delim(
+    FNcolParameters, 
+    header = T, 
+    sep = "\t",
+    stringsAsFactors = F
+  )
+  
+  colorFileLoaded <- TRUE
+  ## Check file integrity ##
+  if (!(sum(names(dfCol) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
+    rm(dfCol)
     colorFileLoaded <- FALSE
+  }
+  
+} else {
+  colorFileLoaded <- FALSE
 }
 
 
@@ -648,9 +676,45 @@ if (length(pos) > 0){
 Nsamples <- length(conditionVec)
 
 
-allOptions <- names(dfCoordSel)
+###############################################################################
+## Create order in which samples are displayed                               ##
 
-rmNameVec <-c(
+if (colorFileLoaded){
+  dfSO <- dfCol[grep("^SAMPLENAME$", toupper(dfCol$menuName)), ]  
+  if (nrow(dfSO) > 0){
+    dfSO <- unique(dfSO[,c("colOption", "displayOrder")])
+    dfSO <- dfSO[order(dfSO$displayOrder, decreasing = F),]
+    conditionVec <- as.vector(dfSO$colOption)
+  } else {
+    conditionVec <- unique(sort(dfCoordSel$sampleName))  
+  }
+} else {
+  pos <- grep("sampleOrder", names(dfCoordSel))
+  
+  if (length(pos) > 0){
+    dfCoordSel <- unique(dfCoordSel[,c("sampleName", "sampleOrder")])
+    dfCoordSel <- dfCoordSel[order(dfCoordSel$sampleOrder, decreasing = F),]
+    conditionVec <- as.vector(dfCoordSel$sampleName)
+  } else {
+    conditionVec <- unique(sort(dfCoordSel$sampleName))  
+  }
+}
+
+
+Nsamples <- length(conditionVec)
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Select Display options                                                    ##       
+
+## Create x and y axis selections if no parameterfile is loaded ##
+if (!parameterFileLoaded){
+  allOptions <- names(dfCoordSel)
+  
+  ## Remove common undesirable colums ##
+  rmNameVec <-c(
     "^DC",
     "uniquecellID",
     "hmIdent",
@@ -667,23 +731,23 @@ rmNameVec <-c(
     "sample_group_colors",
     "row_names",
     "sampleID"
-)
-
-rmVec <- as.vector(NULL, mode = "numeric")
-for (i in 1:length(rmNameVec)){
+  )
+  
+  rmVec <- as.vector(NULL, mode = "numeric")
+  for (i in 1:length(rmNameVec)){
     rmVec <- c(
-        rmVec,
-        grep(rmNameVec[i], names(dfCoordSel))
+      rmVec,
+      grep(rmNameVec[i], names(dfCoordSel))
     )
-}
-
-XYsel <- allOptions
-if (length(rmVec) > 0){
+  }
+  
+  XYsel <- allOptions
+  if (length(rmVec) > 0){
     XYsel <- XYsel[-rmVec]
-}
-
-## Reorder
-XYsel <- c(
+  }
+  
+  ## Reorder
+  XYsel <- c(
     XYsel[grep("UMAP_", XYsel)],
     XYsel[grep("tSNE_", XYsel)],
     XYsel[grep("sampleName", XYsel)],
@@ -700,90 +764,286 @@ XYsel <- c(
     XYsel[grep("percent", XYsel)],
     XYsel[grep("nCount", XYsel)],
     XYsel[grep("nCount", XYsel)]
+  )
+  
+  Xsel <- XYsel
+  Ysel <- XYsel
+  xDisplayName <- "Choose a X-axis"
+  yDisplayName <- "Choose a Y-axis"
+} else {
+  Xsel <- as.vector(dfParam[dfParam$displayName == "x_axis","colSel"])
+  Ysel <- as.vector(dfParam[dfParam$displayName == "y_axis","colSel"])
+  
+  xDisplayName <- gsub("_", " ", unique(dfParam[dfParam$displayName == "x_axis", "menuName"]))
+  yDisplayName <- gsub("_", " ", unique(dfParam[dfParam$displayName == "y_axis", "menuName"]))
+}
+
+## check if all column names are valid ##
+check <- c("lg10Expr", names(dfCoordSel))
+Xsel <- Xsel[Xsel %in% check]
+Ysel <- Ysel[Ysel %in% check]
+
+defaultX <- "UMAP_1"
+if (length(defaultX %in% Xsel) != 1){
+  defaultX <- XYsel[2]
+}
+
+defaultY <- "UMAP_2"
+if (length(defaultX %in% Ysel) != 1){
+  defaultX <- XYsel[3]
+}
+
+
+## Add to dropdownlist 
+dropDownList <- list()
+
+dropDownList[["x_axis"]] <- list(
+  "displayName" = xDisplayName,
+  "selOptions" = Xsel,
+  "selDisplayOptions" = gsub("_", " ", Xsel),
+  "default" = defaultX
+)
+
+## Add to dropdownlist 
+dropDownList[["y_axis"]] <- list(
+  "displayName" = yDisplayName,
+  "selOptions" = Ysel,
+  "selDisplayOptions" = gsub("_", " ", Ysel),
+  "default" = defaultY
 )
 
 
-#############################################
-## Make Color Selections 
-## Get color selection ##
-allColorOptions <- c(
-    #"Log10 Expresson" = "lg10Expr",
-    #"DM Pseudotime"  = "DM_Pseudotime",
-    "Sample" = "sampleName",
-    "Cluster" = "clusterName",
-    "Subcluster" = "subClusterName",
-    # "WT vs. IDH" = "WT_IDH",
-    "Gender" = "Gender",
-    #  "Norm vs Hyp" = "Norm_Hyp",
-    #  "Con Prad AZ" = "Con_Prad_AZ",
-    "Cells From Tumor" = "CellFromTumor",
-    "Patient" = "Patient",
-    "Region" = "Region",
-    "Article Cell Type" = "Article_Cell_Type",
-    "Doublet Classification" = "DF_Classification" ,
-    "nCount_RNA" = "nCount_RNA",
-    "nFeature_RNA" = "nFeature_RNA",
-    "percent_mt" = "percent_mt",
-    "S Phase Score" = "S_Score",
-    "G2M Score" = "G2M_Score",
-    "Cell Cycle Phase" = "Phase",
-    "Uniform" = "all"
+##                                                                           ##
+###############################################################################
+
+
+###############################################################################
+## Set color options                                                         ##
+
+if(!parameterFileLoaded){
+  allColorOptions <- c(
+    "log10 Expression" = "lg10Expr",
+    names(dfCoordSel)
+  )
+  
+  if (!parameterFileLoaded){
+    #############################################
+    ## Make Color Selections 
+    ## Get color selection ##
+    allColorOptions <- c(
+      #"Log10 Expresson" = "lg10Expr",
+      #"DM Pseudotime"  = "DM_Pseudotime",
+      "Sample" = "sampleName",
+      "Cluster" = "clusterName",
+      "Subcluster" = "subClusterName",
+      # "WT vs. IDH" = "WT_IDH",
+      "Gender" = "Gender",
+      #  "Norm vs Hyp" = "Norm_Hyp",
+      #  "Con Prad AZ" = "Con_Prad_AZ",
+      "Cells From Tumor" = "CellFromTumor",
+      "Patient" = "Patient",
+      "Region" = "Region",
+      "Article Cell Type" = "Article_Cell_Type",
+      "Doublet Classification" = "DF_Classification" ,
+      "nCount_RNA" = "nCount_RNA",
+      "nFeature_RNA" = "nFeature_RNA",
+      "percent_mt" = "percent_mt",
+      "S Phase Score" = "S_Score",
+      "G2M Score" = "G2M_Score",
+      "Cell Cycle Phase" = "Phase",
+      "Uniform" = "all"
+    )
+    
+    colAddvec <- c(
+      XYsel[grep("meta_", XYsel)],
+      XYsel[grep("ClusterTestRes", XYsel)]
+    )
+    
+    names(colAddvec) <- colAddvec
+    
+    allColorOptions <- c(
+      allColorOptions, 
+      colAddvec
+    )
+    
+    
+    allColorOptions <- allColorOptions[allColorOptions %in% names(dfCoordSel)]
+    
+    c(
+      "Log10 Expression" = "lg10Expr",
+      allColorOptions
+    )
+    
+  } 
+  
+} else {
+  ## If paramsfile is loaded 
+  allColorOptions <- unique(dfParam[dfParam$displayName == "Color Plots By", "colSel"])
+  names(allColorOptions) <- gsub("_", " ", unique(dfParam[dfParam$displayName == "Color Plots By", "colSel"]))
+}
+
+
+## Organise order ##
+headVec <- unique(
+  c(
+    grep("LG10EXPR", toupper(allColorOptions)),
+    grep("CLUSTERNAME", toupper(allColorOptions)),
+    grep("CLUSTER", toupper(allColorOptions)),
+    grep("SAMPLENAME", toupper(allColorOptions)),
+    grep("META_", toupper(allColorOptions)),
+    grep("CLUSTERNAME", toupper(allColorOptions)),
+    grep("subClusterName", toupper(allColorOptions))
+  )
 )
 
-colAddvec <- c(
-    XYsel[grep("meta_", XYsel)],
-    XYsel[grep("ClusterTestRes", XYsel)]
+if (length(headVec) > 0){
+  headOptions <- allColorOptions[headVec]
+  restVec <- allColorOptions[-headVec]
+  allColorOptions <- c(
+    headOptions,
+    restVec
+  )
+}
+
+if (length(allColorOptions[allColorOptions == "all"]) > 0){
+  names(allColorOptions[allColorOptions == "all"]) <- "Unicolor"
+}
+
+## check if all column names are valid ##
+check <- c("lg10Expr", names(dfCoordSel))
+allColorOptions <- allColorOptions[allColorOptions %in% check]
+
+
+defaultCol <- "lg10Expr"
+if (length(defaultCol %in% allColorOptions) != 1){
+  defaultCol <- allColorOptions[1]
+}
+
+## Add to dropdownlist 
+dropDownList[["colorBy"]] <- list(
+  "displayName" = xDisplayName,
+  "selOptions" = allColorOptions,
+  "selDisplayOptions" = gsub("_", " ", names(allColorOptions)),
+  "default" = defaultCol
 )
-
-names(colAddvec) <- colAddvec
-
-allColorOptions <- c(
-    allColorOptions, 
-    colAddvec
-)
+## Done with color options                                                   ##
+###############################################################################
 
 
-allColorOptions <- allColorOptions[allColorOptions %in% names(dfCoordSel)]
-
-
-
-splitOptions <- names(dfCoordSel)
-
-rmVec <- c(
+###############################################################################
+## Set split options                                                         ##
+if (!parameterFileLoaded){
+  splitOptions <- names(dfCoordSel)
+  
+  rmVec <- c(
     grep("orig_", splitOptions),
     grep("sampleID", splitOptions),
     grep("old_ident", splitOptions),
     grep("hmIdent", splitOptions),
     grep("color", tolower(splitOptions))
     
-)
-
-if (length(rmVec) > 0){
+  )
+  
+  if (length(rmVec) > 0){
     splitOptions <- splitOptions[-rmVec]
+  }
+  
+} else {
+  ## If paramsfile is loaded 
+  splitOptions <- unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"])
+  names( splitOptions) <- gsub("_", " ", unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"]))
 }
 
 
-## Remove all split options with more than 50 options ##
+## Remove all split options with more than 20 options ##
 Nopt <- apply(dfCoordSel[,splitOptions], 2, function(x) length(unique(x)))
-Nopt <- sort(Nopt[Nopt < 51], decreasing = F)
+Nopt <- sort(Nopt[Nopt < 42], decreasing = F)
 
 
 splitOptions <- as.vector(names(Nopt))
 
-factorOptions <- splitOptions
-numericOptions <- allColorOptions[!(allColorOptions %in% factorOptions)]
 
-    
-numericRes <- as.vector(NULL, mode = "character")
-for (i in 1:length(numericOptions)){
-    if (is.numeric(dfCoordSel[,numericOptions[i]])){
-        numericRes <- c(
-            numericRes,
-            numericOptions[i]
-        )
-    }
+Nsamples <- length(unique(dfCoordSel$sampleName))
+
+if (Nsamples > 3 | nrow(dfCoordSel) < 5000){
+  headVec <- c(
+    grep("all", splitOptions),
+    grep("sampleName", splitOptions),
+    grep("meta_", tolower(splitOptions)),
+    grep("clusterName", splitOptions),
+    grep("subClusterName", splitOptions)
+  )  
+} else {
+  headVec <- c(
+    grep("sampleName", splitOptions),
+    grep("meta_", tolower(splitOptions)),
+    grep("all", splitOptions),
+    grep("clusterName", splitOptions),
+    grep("subClusterName", splitOptions)
+  )  
 }
-numericOptions <- numericRes
+
+
+
+if (length(headVec) > 0){
+  headOptions <- splitOptions[headVec]
+  restVec <- splitOptions[-headVec]
+  splitOptions <- c(
+    headOptions,
+    restVec
+  )
+}
+
+names(splitOptions) <- splitOptions
+names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
+names(splitOptions) <- gsub("META_", "", names(splitOptions) )
+names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
+names(splitOptions) <- gsub("sampleName", "Sample", names(splitOptions) )
+names(splitOptions) <- gsub("clusterName", "Cluster", names(splitOptions) )
+names(splitOptions) <- gsub("all", "None", names(splitOptions) )
+
+numOptions <- names(dfCoordSel)[!(names(dfCoordSel)) %in% splitOptions]
+numOptions <- c(
+  "lg10Expr",
+  numOptions
+)
+
+if (length(splitOptions[splitOptions == "all"]) > 0){
+  names(splitOptions[splitOptions == "all"]) <- "None"
+}
+
+## check if all column names are valid ##
+check <- c(names(dfCoordSel))
+splitOptions <- splitOptions[splitOptions %in% check]
+
+
+defaultS <- splitOptions[1]
+
+sDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "colorPlotsBy", "displayName"]))
+
+## Add to dropdownlist 
+dropDownList[["colorBy"]] <- list(
+  "displayName" = sDisplayName,
+  "selOptions" = splitOptions,
+  "selDisplayOptions" = gsub("_", " ", names(splitOptions)),
+  "default" = defaultS
+)
+## Done setting split options                                                ##
+###############################################################################
+
+
+
+numOptions <- names(dfCoordSel)[!(names(dfCoordSel)) %in% splitOptions]
+numOptions <- c(
+  "lg10Expr",
+  numOptions
+)
+
+
+##                                                                           ##
+###############################################################################
+
+
 
 
 ## Done                                                                      ##
@@ -838,6 +1098,8 @@ app_server <- function(input, output, session) {
         dfCoordSel$cellID <- gsub("[.]", "-", dfCoordSel$cellID)
         dfCoordSel$cellID <- gsub("-", "_", dfCoordSel$cellID)
         
+        dfCoordSel$row.names <- NULL
+        
         dfCoordSel
         
     })
@@ -852,44 +1114,7 @@ app_server <- function(input, output, session) {
     dfColorTable <- reactive({
         dfDL <- createDfCoord()
         
-        #######################################################################
-        ## Check if colors are available                                     ##
-        colorAnnoFound <- FALSE
-        
-        if (colorFileLoaded){
-            dfPlotCols <- dfColOptions[dfColOptions$menuName == input$colorBy, c("colOption", "colSel")]
-            
-            if (nrow(dfPlotCols) > 0){
-                checkDLvec <- sort(na.omit(as.vector(unique(dfDL[,input$colorBy]))))
-                checkColvec <- sort(na.omit(unique(dfPlotCols$colOption)))
-                if (identical(checkDLvec, checkColvec)){
-                    dfAddCol <- unique(dfPlotCols)
-                    names(dfAddCol) <- gsub("colOption", input$colorBy, names(dfAddCol))
-                    names(dfAddCol) <- gsub("colSel", "dotColor", names(dfAddCol))
-                    
-                    dfDL <- merge(
-                        dfDL, 
-                        dfAddCol, 
-                        by.x = input$colorBy,
-                        by.y = input$colorBy, 
-                        all = TRUE
-                    )
-                    dfDL[is.na(dfDL)] <- ""
-                    selVec <- c(input$colorBy, "dotColor")
-                    dfDL <- unique(dfDL[,selVec])
-                    colorAnnoFound <- TRUE
-                }
-                
-            }
-            
-        } 
-        
-        
-        ## Done                                                              ##
-        #######################################################################
-        
-        
-       
+        dfDL[["dotColor"]] <- ""
         dfDL[["lg10Expr"]] <- "A1"
         
         # if (input$colorBy == "sampleName"){
@@ -902,15 +1127,12 @@ app_server <- function(input, output, session) {
         #     dfDL <- unique(dfDL[,selVec])
         #     dfDL$dotColor <- dfDL$clusterColor
         # } else {
-        if(!colorAnnoFound) {
-            dfDL[["dotColor"]] <- "#000000"
             selVec <- c(input$colorBy, "dotColor")
             dfDL <- unique(dfDL[,selVec])
             dfDL <- dfDL[order(dfDL[,1], decreasing = F),]
             dfDL[,input$colorBy] <- factor(dfDL[,input$colorBy])
-                
+            
             dfDL[["dotColor"]] <- scales::hue_pal()(nrow(dfDL))
-        }
             
         #}
         
@@ -973,6 +1195,7 @@ app_server <- function(input, output, session) {
         dfExprSel$cellID <- gsub("[.]", "-", dfExprSel$cellID)
         dfExprSel$cellID <- gsub("-", "_", dfExprSel$cellID)
         dfExprSel$cellID <- gsub("^X", "", dfExprSel$cellID)
+        dfExprSel$row_names <- NULL
         dfExprSel
     })
     
@@ -1001,11 +1224,11 @@ app_server <- function(input, output, session) {
         
         dfTemp[["dotColor"]] <- "#000000"
         
-        #if (input$colorBy == "clusterName"){
-        #    dfTemp[["dotColor"]] <- dfTemp[["clusterColor"]]
-        #} else if (input$colorBy == "sampleName"){
-        #    dfTemp[["dotColor"]] <- dfTemp[["sampleColor"]]
-        #}
+        # if (input$colorBy == "clusterName"){
+        #     dfTemp[["dotColor"]] <- dfTemp[["clusterColor"]]
+        # } else if (input$colorBy == "sampleName"){
+        #     dfTemp[["dotColor"]] <- dfTemp[["sampleColor"]]
+        # }
         
         inInput <- names(input)[names(input) %in% unique(dfTemp[[input$colorBy]])]
         if (length(inInput) > 0){
@@ -1076,7 +1299,7 @@ app_server <- function(input, output, session) {
     
     
     observe({
-        if (!(input$colorBy %in% numericOptions)){
+        if (!(input$colorBy %in% numOptions)){
             dfColorTable <-  dfColorTable()
             
             nameCol <- names(dfColorTable)[1]
