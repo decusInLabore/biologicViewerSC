@@ -130,7 +130,7 @@ setGeneric(
 
 
 
-#' Scan Parameters
+#' @title scanObjParams
 #'
 #' TBD.
 #'

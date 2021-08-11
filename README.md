@@ -5,7 +5,7 @@ As input we need only your analysed Seurat object. The app can be used in two mo
 
 ## Option 1 Create App with local data storage. 
 
-Let's get started and install the required R-packges. 
+Let's start by installing required R-packages:
 ```
 install.packages("devtools")
 devtools::install_github("decusInLabore/biologicSeqTools")
@@ -20,7 +20,6 @@ devtools::install_github("decusinlabore/biologicViewerSC")
 
 library(Seurat)
 library(dplyr)
-library(maggitr)
 library(biologicViewerSC)
 library(biologicSeqTools)
 
@@ -80,7 +79,7 @@ params
 Depending on the size of your Seurat object, it might take a couple of minutes for the seuratObjectToLocalViewer function to run. Very large single cell objects might have to be processed on a high-performance computing system. 
 
 ```
-project_id <- "test11314"
+project_id <- "testExperiment"
 
 projectPath = "./"
 
