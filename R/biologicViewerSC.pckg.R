@@ -468,6 +468,142 @@ setGeneric(
 
 ###############################################################################
 
+
+###############################################################################
+## Create parameter file                                                     ##
+
+
+#' @title writeAppParameterFiles
+#'
+#'
+#' @param project_id Project id
+#' @param projectPath Path to project
+#' @param params biologic parameterList
+#' 
+#' @import Seurat RMySQL RSQLite biologicSeqTools
+#' @export
+
+
+writeAppParameterFiles <- function(
+    project_id = "testApp",
+    projectPath = "./",
+    params,
+    menuParametersFN = "menuParameters.txt",
+    colorParametersFN = "colorParameters.txt"
+){
+    ###########################################################################
+    ## Write menu ParameterFile                                              ##
+    pos <- grep("sampleColorList", names(params))
+    
+    menuList <- params
+    if (length(pos) > 0){
+        menuList <- menuList[-pos]
+    }
+    
+    mList <- menuList
+    for (i in 1:length(menuList)){
+        mList[[i]] <- rbind(data.frame(
+          menuName = rep(names(menuList)[i], length(menuList[[i]])),
+          colSel = menuList[[i]],
+          displayOrder = 1:length(menuList[[i]])
+        ))
+    }
+    
+    
+    dfM <- data.frame(do.call(rbind,mList), stringsAsFactors = F)
+    row.names(dfM) <- NULL
+    
+    dfM[["displayName"]] <- dfM$menuName
+    dfM$displayName <- gsub("x_axis", "Choose a X-axis", dfM$displayName)
+    dfM$displayName <- gsub("y_axis", "Choose a Y-axis", dfM$displayName)
+    dfM$displayName <- gsub("splitPlotsBy", "Split Plots By", dfM$displayName)
+    dfM$displayName <- gsub("colorPlotsBy", "Color Plots By", dfM$displayName)
+    
+    dfM <- dfM[, c("menuName", "displayName", "colSel", "displayOrder")]
+    
+    outDir <- paste0(
+      projectPath,
+      project_id, "_app/parameters"
+    )
+    
+    if (!dir.exists(outDir)){
+        dir.create(outDir, recursive = T)
+    }
+    
+    FNout <- paste0(
+      outDir, "/",
+      menuParametersFN
+    )
+    
+    
+    write.table(
+        dfM, 
+        FNout, 
+        row.names = F, 
+        sep = "\t"
+    )
+    
+    print(paste0("Saved Menuoption parameter file in ",FNout,"."))
+    
+    ## Done writing menu parameterfile                                       ##
+    ###########################################################################
+    
+    ###########################################################################
+    ## save sample color list                                                ##
+    
+    colorList <- params[[pos]]
+    
+    
+    menuList <- colorList
+    mList <- list()
+    for (i in 1:length(menuList)){
+      mList[[i]] <- rbind(data.frame(
+        menuName = rep(names(menuList)[i], length(menuList[[i]])),
+        colOption = names(menuList[[i]]),
+        colOptionName = gsub("_", " ", names(menuList[[i]])),
+        colSel = menuList[[i]],
+        displayOrder = 1:length(menuList[[i]])
+      ))
+    }
+    
+    
+    dfC <- data.frame(do.call(rbind,mList), stringsAsFactors = F)
+    row.names(dfC) <- NULL
+    
+    dfC <- dfC[, c("menuName", "colOption", "colOptionName", "colSel", "displayOrder")]
+    
+    outDir <- paste0(
+      projectPath,
+      project_id, "_app/parameters"
+    )
+    
+    if (!dir.exists(outDir)){
+      dir.create(outDir, recursive = T)
+    }
+    
+    FNoutC <- paste0(
+      outDir, "/",
+      colorParametersFN
+    )
+    
+    
+    write.table(
+      dfC, 
+      FNoutC, 
+      row.names = F, 
+      sep = "\t"
+    )
+    
+    print(paste0("Saved color options file in ",FNoutC ,"."))
+    ## done                                                                  ##
+    ###########################################################################
+}
+
+
+
+## Done                                                                      ##
+###############################################################################
+
 ###############################################################################
 ## seuratObjectToLocalViewer                                                 ##
 
@@ -544,6 +680,8 @@ seuratObjectToLocalViewer <- function(
     ## Done                                                                      ##
     ###############################################################################
     
+    
+      
     ###############################################################################
     ## Create Expr table                                                         ##
     
@@ -787,109 +925,24 @@ seuratObjectToLocalViewer <- function(
     ##                                                                           ##
     ###############################################################################
     
-    ###############################################################################
-    ## Edit x-axis                                                               ##
-    
-    ## Done                                                                      ##
-    ###############################################################################
     
     ###############################################################################
-    ## Edit y-axis                                                               ##
+    ## Create sample order and color specification files                         ##
     
-    ## Done                                                                      ##
-    ###############################################################################
-    
-    
-    ###############################################################################
-    ## Helper function                                                           ##
-    
-    createListChunk <- function(
-      optionName = "Choose_an_X-axis",
-      pList = paramList,
-      listItem = "x_axis"
-    ){
-      dfTemp <- data.frame(
-        menuName = rep( optionName,length(pList[listItem])), 
-        displayName = names(pList[listItem]), 
-        colSel=pList[[listItem]],
-        displayOrder = 1:length(pList[[listItem]])
-      )
-      return(dfTemp)
-    }
-    
-    ##                                                                           ##
-    ###############################################################################
-    
-    dfTemp <- createListChunk(
-      optionName = "Choose_an_X-axis",
-      pList = paramList,
-      listItem = "x_axis"
+    writeAppParameterFiles(
+      project_id = project_id,
+      projectPath = "./",
+      params = params,
+      menuParametersFN = "menuParameters.txt",
+      colorParametersFN = "colorParameters.txt"
     )
-    
-    df <- dfTemp
-    
-    dfTemp <- createListChunk(
-      optionName = "Choose_an_Y-axis",
-      pList = paramList,
-      listItem = "y_axis"
-    )
-    
-    df <- rbind(
-      dfTemp,
-      df
-    )
-    
-    dfTemp <- createListChunk(
-      optionName = "Split_Plots_By",
-      pList = paramList,
-      listItem = "splitPlotsBy"
-    )
-    
-    df <- rbind(
-      dfTemp,
-      df
-    )
-    
-    dfTemp <- createListChunk(
-      optionName = "Color_Plots_By",
-      pList = paramList,
-      listItem = "colorPlotsBy"
-    )
-    
-    df <- rbind(
-      dfTemp,
-      df
-    )
-    
-    write.table(
-      df,
-      paste0(shinyParamPath, "menuParameters.txt"),
-      sep = "\t",
-      row.names = F
-    )
-    
-    ##                                                                           ##
-    ###############################################################################
-    
-    ###############################################################################
-    ## Make color table                                                          ##
-    
-    ## Done                                                                      ##
-    ###############################################################################
     
     ## Done 
-    ###############################################################################
+    ###########################################################################
     
     
-    
-    
-    
-    
-    
-    
-    
-    ########################
-    ## Temp section
+    ###########################################################################
+    ## Temp section                                                          ##
     
     copyVec <- paste0(
       system.file("scAppTemplate/",package="biologicViewerSC"),
@@ -897,13 +950,13 @@ seuratObjectToLocalViewer <- function(
       list.files(system.file("scAppTemplate/",package="biologicViewerSC"))
     )
     
-    file.copy(copyVec, shinyProjectPath,  recursive=TRUE)
+    a <- file.copy(copyVec, shinyProjectPath,  recursive=TRUE)
     
-    ##
-    ##########################
+    ##                                                                       ##
+    ###########################################################################
     
-    ################################
-    ## 
+    ###########################################################################
+    ##                                                                       ##
     
     dfID <- data.frame(
       dataMode = dataMode,
