@@ -2,7 +2,9 @@
 % Please edit documentation in R/biologicViewerSC.pckg.R
 \name{scanObjParams}
 \alias{scanObjParams}
-\title{Scan Parameters}
+\title{scanObjParams
+
+TBD.}
 \usage{
 scanObjParams(obj, NmaxSplit = 25, NcatColorMax = 25)
 }
@@ -17,5 +19,7 @@ scanObjParams(obj, NmaxSplit = 25, NcatColorMax = 25)
 paramerer list
 }
 \description{
+scanObjParams
+
 TBD.
 }
