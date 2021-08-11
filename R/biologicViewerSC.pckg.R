@@ -854,6 +854,9 @@ seuratObjectToLocalViewer <- function(
     names(splitOptions) <- sapply(names(splitOptions), function(x) firstup(x))
     
     
+    if (!(exists("paramList"))){
+        paramList <- list()
+    }
     paramList$splitPlotsBy <- NULL
     
     paramList$splitPlotsBy <- splitOptions

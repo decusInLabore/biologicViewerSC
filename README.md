@@ -85,7 +85,7 @@ projectPath = "./"
 
 
 biologicViewerSC::seuratObjectToLocalViewer(
-    #params = params,
+    params = params,
     project_id = project_id,
     projectPath = projectPath,
     OsC = OsC,
