@@ -429,6 +429,7 @@ setGeneric(
     
     colorVec <- colorVec[!(colorVec %in% numOptions)]
     
+    
     for (i in 1:length(colorVec)){
         tag <-colorVec[i]
         
@@ -455,7 +456,7 @@ setGeneric(
         }
         
         names(sampleColVec) <- sampleVec
-        sampleColorList[[names(colorVec)[i]]] <-  sampleColVec
+        sampleColorList[[colorVec[i]]] <-  sampleColVec
       }
       paramList[["catColorList"]] <- sampleColorList
       ## Done creating color list
