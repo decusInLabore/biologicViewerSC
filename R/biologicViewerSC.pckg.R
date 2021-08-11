@@ -493,7 +493,7 @@ writeAppParameterFiles <- function(
 ){
     ###########################################################################
     ## Write menu ParameterFile                                              ##
-    pos <- grep("sampleColorList", names(params))
+    pos <- grep("catColorList", names(params))
     
     menuList <- params
     if (length(pos) > 0){
@@ -934,7 +934,7 @@ seuratObjectToLocalViewer <- function(
     
     writeAppParameterFiles(
       project_id = project_id,
-      projectPath = "./",
+      projectPath = projectPath,
       params = params,
       menuParametersFN = "menuParameters.txt",
       colorParametersFN = "colorParameters.txt"
