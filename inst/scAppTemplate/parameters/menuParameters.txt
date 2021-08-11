@@ -1,143 +1,65 @@
 "menuName"	"displayName"	"colSel"	"displayOrder"
-"Split_Plots_By"	"splitPlotsBy"	"all"	1
-"Split_Plots_By"	"splitPlotsBy"	"batch"	2
-"Split_Plots_By"	"splitPlotsBy"	"cellID"	3
-"Split_Plots_By"	"splitPlotsBy"	"cluster"	4
-"Split_Plots_By"	"splitPlotsBy"	"clusterName"	5
-"Split_Plots_By"	"splitPlotsBy"	"condition"	6
-"Choose_an_Y-axis"	"y_axis"	"lg10Expr"	1
-"Choose_an_Y-axis"	"y_axis"	"UMAP_1"	2
-"Choose_an_Y-axis"	"y_axis"	"UMAP_2"	3
-"Choose_an_Y-axis"	"y_axis"	"seurat_clusters"	4
-"Choose_an_Y-axis"	"y_axis"	"cluster"	5
-"Choose_an_Y-axis"	"y_axis"	"clusterName"	6
-"Choose_an_Y-axis"	"y_axis"	"orig_ident"	7
-"Choose_an_Y-axis"	"y_axis"	"nCount_RNA"	8
-"Choose_an_Y-axis"	"y_axis"	"nFeature_RNA"	9
-"Choose_an_Y-axis"	"y_axis"	"percent_mt"	10
-"Choose_an_Y-axis"	"y_axis"	"condition"	11
-"Choose_an_Y-axis"	"y_axis"	"batch"	12
-"Choose_an_Y-axis"	"y_axis"	"RNA_snn_res_0_1"	13
-"Choose_an_Y-axis"	"y_axis"	"RNA_snn_res_0_8"	14
-"Choose_an_Y-axis"	"y_axis"	"condition_label"	15
-"Choose_an_Y-axis"	"y_axis"	"response_to_ifn_scaled"	16
-"Choose_an_Y-axis"	"y_axis"	"response_to_ifn"	17
-"Choose_an_Y-axis"	"y_axis"	"sampleName"	18
-"Choose_an_Y-axis"	"y_axis"	"PC_1"	19
-"Choose_an_Y-axis"	"y_axis"	"PC_2"	20
-"Choose_an_Y-axis"	"y_axis"	"PC_3"	21
-"Choose_an_Y-axis"	"y_axis"	"PC_4"	22
-"Choose_an_Y-axis"	"y_axis"	"PC_5"	23
-"Choose_an_Y-axis"	"y_axis"	"PC_6"	24
-"Choose_an_Y-axis"	"y_axis"	"PC_7"	25
-"Choose_an_Y-axis"	"y_axis"	"PC_8"	26
-"Choose_an_Y-axis"	"y_axis"	"PC_9"	27
-"Choose_an_Y-axis"	"y_axis"	"PC_10"	28
-"Choose_an_Y-axis"	"y_axis"	"PC_11"	29
-"Choose_an_Y-axis"	"y_axis"	"PC_12"	30
-"Choose_an_Y-axis"	"y_axis"	"PC_13"	31
-"Choose_an_Y-axis"	"y_axis"	"PC_14"	32
-"Choose_an_Y-axis"	"y_axis"	"PC_15"	33
-"Choose_an_Y-axis"	"y_axis"	"PC_16"	34
-"Choose_an_Y-axis"	"y_axis"	"PC_17"	35
-"Choose_an_Y-axis"	"y_axis"	"PC_18"	36
-"Choose_an_Y-axis"	"y_axis"	"PC_19"	37
-"Choose_an_Y-axis"	"y_axis"	"PC_20"	38
-"Choose_an_Y-axis"	"y_axis"	"PC_21"	39
-"Choose_an_Y-axis"	"y_axis"	"PC_22"	40
-"Choose_an_Y-axis"	"y_axis"	"PC_23"	41
-"Choose_an_Y-axis"	"y_axis"	"PC_24"	42
-"Choose_an_Y-axis"	"y_axis"	"PC_25"	43
-"Choose_an_Y-axis"	"y_axis"	"PC_26"	44
-"Choose_an_Y-axis"	"y_axis"	"PC_27"	45
-"Choose_an_Y-axis"	"y_axis"	"PC_28"	46
-"Choose_an_Y-axis"	"y_axis"	"PC_29"	47
-"Choose_an_Y-axis"	"y_axis"	"PC_30"	48
-"Choose_an_Y-axis"	"y_axis"	"PC_31"	49
-"Choose_an_Y-axis"	"y_axis"	"PC_32"	50
-"Choose_an_Y-axis"	"y_axis"	"PC_33"	51
-"Choose_an_Y-axis"	"y_axis"	"PC_34"	52
-"Choose_an_Y-axis"	"y_axis"	"PC_35"	53
-"Choose_an_Y-axis"	"y_axis"	"PC_36"	54
-"Choose_an_Y-axis"	"y_axis"	"PC_37"	55
-"Choose_an_Y-axis"	"y_axis"	"PC_38"	56
-"Choose_an_Y-axis"	"y_axis"	"PC_39"	57
-"Choose_an_Y-axis"	"y_axis"	"PC_40"	58
-"Choose_an_Y-axis"	"y_axis"	"PC_41"	59
-"Choose_an_Y-axis"	"y_axis"	"PC_42"	60
-"Choose_an_Y-axis"	"y_axis"	"PC_43"	61
-"Choose_an_Y-axis"	"y_axis"	"PC_44"	62
-"Choose_an_Y-axis"	"y_axis"	"PC_45"	63
-"Choose_an_Y-axis"	"y_axis"	"PC_46"	64
-"Choose_an_Y-axis"	"y_axis"	"PC_47"	65
-"Choose_an_Y-axis"	"y_axis"	"PC_48"	66
-"Choose_an_Y-axis"	"y_axis"	"PC_49"	67
-"Choose_an_Y-axis"	"y_axis"	"PC_50"	68
-"Choose_an_X-axis"	"x_axis"	"lg10Expr"	1
-"Choose_an_X-axis"	"x_axis"	"UMAP_1"	2
-"Choose_an_X-axis"	"x_axis"	"UMAP_2"	3
-"Choose_an_X-axis"	"x_axis"	"seurat_clusters"	4
-"Choose_an_X-axis"	"x_axis"	"cluster"	5
-"Choose_an_X-axis"	"x_axis"	"clusterName"	6
-"Choose_an_X-axis"	"x_axis"	"orig_ident"	7
-"Choose_an_X-axis"	"x_axis"	"nCount_RNA"	8
-"Choose_an_X-axis"	"x_axis"	"nFeature_RNA"	9
-"Choose_an_X-axis"	"x_axis"	"percent_mt"	10
-"Choose_an_X-axis"	"x_axis"	"condition"	11
-"Choose_an_X-axis"	"x_axis"	"batch"	12
-"Choose_an_X-axis"	"x_axis"	"RNA_snn_res_0_1"	13
-"Choose_an_X-axis"	"x_axis"	"RNA_snn_res_0_8"	14
-"Choose_an_X-axis"	"x_axis"	"condition_label"	15
-"Choose_an_X-axis"	"x_axis"	"response_to_ifn_scaled"	16
-"Choose_an_X-axis"	"x_axis"	"response_to_ifn"	17
-"Choose_an_X-axis"	"x_axis"	"sampleName"	18
-"Choose_an_X-axis"	"x_axis"	"PC_1"	19
-"Choose_an_X-axis"	"x_axis"	"PC_2"	20
-"Choose_an_X-axis"	"x_axis"	"PC_3"	21
-"Choose_an_X-axis"	"x_axis"	"PC_4"	22
-"Choose_an_X-axis"	"x_axis"	"PC_5"	23
-"Choose_an_X-axis"	"x_axis"	"PC_6"	24
-"Choose_an_X-axis"	"x_axis"	"PC_7"	25
-"Choose_an_X-axis"	"x_axis"	"PC_8"	26
-"Choose_an_X-axis"	"x_axis"	"PC_9"	27
-"Choose_an_X-axis"	"x_axis"	"PC_10"	28
-"Choose_an_X-axis"	"x_axis"	"PC_11"	29
-"Choose_an_X-axis"	"x_axis"	"PC_12"	30
-"Choose_an_X-axis"	"x_axis"	"PC_13"	31
-"Choose_an_X-axis"	"x_axis"	"PC_14"	32
-"Choose_an_X-axis"	"x_axis"	"PC_15"	33
-"Choose_an_X-axis"	"x_axis"	"PC_16"	34
-"Choose_an_X-axis"	"x_axis"	"PC_17"	35
-"Choose_an_X-axis"	"x_axis"	"PC_18"	36
-"Choose_an_X-axis"	"x_axis"	"PC_19"	37
-"Choose_an_X-axis"	"x_axis"	"PC_20"	38
-"Choose_an_X-axis"	"x_axis"	"PC_21"	39
-"Choose_an_X-axis"	"x_axis"	"PC_22"	40
-"Choose_an_X-axis"	"x_axis"	"PC_23"	41
-"Choose_an_X-axis"	"x_axis"	"PC_24"	42
-"Choose_an_X-axis"	"x_axis"	"PC_25"	43
-"Choose_an_X-axis"	"x_axis"	"PC_26"	44
-"Choose_an_X-axis"	"x_axis"	"PC_27"	45
-"Choose_an_X-axis"	"x_axis"	"PC_28"	46
-"Choose_an_X-axis"	"x_axis"	"PC_29"	47
-"Choose_an_X-axis"	"x_axis"	"PC_30"	48
-"Choose_an_X-axis"	"x_axis"	"PC_31"	49
-"Choose_an_X-axis"	"x_axis"	"PC_32"	50
-"Choose_an_X-axis"	"x_axis"	"PC_33"	51
-"Choose_an_X-axis"	"x_axis"	"PC_34"	52
-"Choose_an_X-axis"	"x_axis"	"PC_35"	53
-"Choose_an_X-axis"	"x_axis"	"PC_36"	54
-"Choose_an_X-axis"	"x_axis"	"PC_37"	55
-"Choose_an_X-axis"	"x_axis"	"PC_38"	56
-"Choose_an_X-axis"	"x_axis"	"PC_39"	57
-"Choose_an_X-axis"	"x_axis"	"PC_40"	58
-"Choose_an_X-axis"	"x_axis"	"PC_41"	59
-"Choose_an_X-axis"	"x_axis"	"PC_42"	60
-"Choose_an_X-axis"	"x_axis"	"PC_43"	61
-"Choose_an_X-axis"	"x_axis"	"PC_44"	62
-"Choose_an_X-axis"	"x_axis"	"PC_45"	63
-"Choose_an_X-axis"	"x_axis"	"PC_46"	64
-"Choose_an_X-axis"	"x_axis"	"PC_47"	65
-"Choose_an_X-axis"	"x_axis"	"PC_48"	66
-"Choose_an_X-axis"	"x_axis"	"PC_49"	67
-"Choose_an_X-axis"	"x_axis"	"PC_50"	68
+"x_axis"	"Choose a X-axis"	"lg10Expr"	1
+"x_axis"	"Choose a X-axis"	"UMAP_1"	2
+"x_axis"	"Choose a X-axis"	"UMAP_2"	3
+"x_axis"	"Choose a X-axis"	"tSNE_1"	4
+"x_axis"	"Choose a X-axis"	"tSNE_2"	5
+"x_axis"	"Choose a X-axis"	"sampleName"	6
+"x_axis"	"Choose a X-axis"	"clusterName"	7
+"x_axis"	"Choose a X-axis"	"PC_1"	8
+"x_axis"	"Choose a X-axis"	"PC_2"	9
+"x_axis"	"Choose a X-axis"	"PC_3"	10
+"x_axis"	"Choose a X-axis"	"meta_Region"	11
+"x_axis"	"Choose a X-axis"	"groups"	12
+"x_axis"	"Choose a X-axis"	"letter_idents"	13
+"x_axis"	"Choose a X-axis"	"nCount_RNA"	14
+"x_axis"	"Choose a X-axis"	"nFeature_RNA"	15
+"x_axis"	"Choose a X-axis"	"orig_ident"	16
+"x_axis"	"Choose a X-axis"	"RNA_snn_res_0_5"	17
+"x_axis"	"Choose a X-axis"	"RNA_snn_res_0_8"	18
+"x_axis"	"Choose a X-axis"	"RNA_snn_res_1"	19
+"x_axis"	"Choose a X-axis"	"seurat_clusters"	20
+"y_axis"	"Choose a Y-axis"	"lg10Expr"	1
+"y_axis"	"Choose a Y-axis"	"UMAP_1"	2
+"y_axis"	"Choose a Y-axis"	"UMAP_2"	3
+"y_axis"	"Choose a Y-axis"	"tSNE_1"	4
+"y_axis"	"Choose a Y-axis"	"tSNE_2"	5
+"y_axis"	"Choose a Y-axis"	"sampleName"	6
+"y_axis"	"Choose a Y-axis"	"clusterName"	7
+"y_axis"	"Choose a Y-axis"	"PC_1"	8
+"y_axis"	"Choose a Y-axis"	"PC_2"	9
+"y_axis"	"Choose a Y-axis"	"PC_3"	10
+"y_axis"	"Choose a Y-axis"	"meta_Region"	11
+"y_axis"	"Choose a Y-axis"	"groups"	12
+"y_axis"	"Choose a Y-axis"	"letter_idents"	13
+"y_axis"	"Choose a Y-axis"	"nCount_RNA"	14
+"y_axis"	"Choose a Y-axis"	"nFeature_RNA"	15
+"y_axis"	"Choose a Y-axis"	"orig_ident"	16
+"y_axis"	"Choose a Y-axis"	"RNA_snn_res_0_5"	17
+"y_axis"	"Choose a Y-axis"	"RNA_snn_res_0_8"	18
+"y_axis"	"Choose a Y-axis"	"RNA_snn_res_1"	19
+"y_axis"	"Choose a Y-axis"	"seurat_clusters"	20
+"splitPlotsBy"	"Split Plots By"	"all"	1
+"splitPlotsBy"	"Split Plots By"	"sampleName"	2
+"splitPlotsBy"	"Split Plots By"	"meta_Region"	3
+"splitPlotsBy"	"Split Plots By"	"clusterName"	4
+"splitPlotsBy"	"Split Plots By"	"RNA_snn_res_0_8"	5
+"splitPlotsBy"	"Split Plots By"	"letter_idents"	6
+"splitPlotsBy"	"Split Plots By"	"groups"	7
+"splitPlotsBy"	"Split Plots By"	"RNA_snn_res_0_5"	8
+"splitPlotsBy"	"Split Plots By"	"seurat_clusters"	9
+"splitPlotsBy"	"Split Plots By"	"RNA_snn_res_1"	10
+"colorPlotsBy"	"Color Plots By"	"lg10Expr"	1
+"colorPlotsBy"	"Color Plots By"	"clusterName"	2
+"colorPlotsBy"	"Color Plots By"	"seurat_clusters"	3
+"colorPlotsBy"	"Color Plots By"	"sampleName"	4
+"colorPlotsBy"	"Color Plots By"	"all"	5
+"colorPlotsBy"	"Color Plots By"	"groups"	6
+"colorPlotsBy"	"Color Plots By"	"letter_idents"	7
+"colorPlotsBy"	"Color Plots By"	"meta_Region"	8
+"colorPlotsBy"	"Color Plots By"	"nCount_RNA"	9
+"colorPlotsBy"	"Color Plots By"	"nFeature_RNA"	10
+"colorPlotsBy"	"Color Plots By"	"orig_ident"	11
+"colorPlotsBy"	"Color Plots By"	"RNA_snn_res_0_5"	12
+"colorPlotsBy"	"Color Plots By"	"RNA_snn_res_0_8"	13
+"colorPlotsBy"	"Color Plots By"	"RNA_snn_res_1"	14
