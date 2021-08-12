@@ -1,0 +1,493 @@
+###############################################################################
+## Create plot namespace                                                     ##
+
+plot_prep_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    plotOutput(ns("my_plot"), 
+               width = "100%")
+  )
+}
+
+##                                                                           ##
+###############################################################################
+
+
+###############################################################################
+##                                                                           ##
+
+
+plot_prep_server <- function(
+  input,
+  output,
+  session, 
+  df,
+  plot_name,
+  colorBy = "lg10Expr",
+  dotsize = "dotsize",
+  lowColor = "grey", 
+  dotcolor = "darkblue",
+  x_axis = "UMAP_1",
+  y_axis = "UMAP_2",
+  background = "grey",
+  maxX = NULL,
+  minX = NULL,
+  maxY = NULL,
+  minY = NULL,
+  geneSel = NULL,
+  maxExpr = NULL,
+  showPlotLegend = FALSE
+) {
+  #library(ggplot2)
+  
+  
+  
+  if (is.null(maxX)){
+    maxX <- 1.1*max(df$x_axis, na.rm = T)  
+  } 
+  
+  if (is.null(maxY)){
+    maxY <- 1.1*max(df$y_axis, na.rm = T)  
+  }
+  
+  if (is.null(minX)){
+    minX <- 1.1*min(df$x_axis, na.rm = T)  
+  } 
+  
+  if (is.null(minY)){
+    minY <- 1.1*min(df$y_axis, na.rm = T)  
+  }
+  
+  ###########################################################################
+  ## Determine split options                                               ##
+  splitOptions <- names(df)
+  
+  rmVec <- c(
+    grep("orig_", splitOptions),
+    grep("sampleID", splitOptions),
+    grep("old_ident", splitOptions),
+    grep("hmIdent", splitOptions),
+    grep("color", tolower(splitOptions)),
+    grep("lg10expr", tolower(splitOptions))
+    
+  )
+  
+  if (length(rmVec) > 0){
+    splitOptions <- splitOptions[-rmVec]
+  }
+  
+  
+  ## Remove all split options with more than 20 options ##
+  Nopt <- apply(df[,splitOptions], 2, function(x) length(unique(x)))
+  Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
+  
+  
+  splitOptions <- as.vector(names(Nopt))
+  ## Done                                                                  ##
+  ###########################################################################
+  
+  
+  nCellsTotal <- nrow(df)
+  nExpr <- nrow(df[df$gene != 0,])
+  percExpr <- 100*round(nrow(df[df$gene != 0,])/nCellsTotal, 3)
+  qGene <- unique(na.omit(df$gene))
+  qGene <- qGene[qGene != 0]
+  
+  plotInput <- reactive({
+    
+    if (colorBy %in% splitOptions ){
+      df$Dcolor[df$Dcolor == ""] <- "Rest"
+      df$Dcolor <- factor(df$Dcolor)
+    } else if( is.numeric( df$Dcolor ) ) {
+      minExpr <- floor(min(df$Dcolor, na.rm = T))
+      
+      if (is.null(maxExpr)){
+        maxExpr <- ceiling(max(df$Dcolor, na.rm = T))   
+        if (maxExpr == 1){
+          ceiling_dec <- function(x, level=1) round(x + 5*10^(-level-1), level)
+          maxExpr <- ceiling_dec(max(df$Dcolor, na.rm = T),2)   
+        }
+      }
+      
+    } else {
+      df$Dcolor[df$Dcolor == ""] <- "Rest"
+      df$Dcolor <- factor(df$Dcolor)
+    }     
+    
+    
+    
+    
+    p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+    ) + ggplot2::geom_point(
+      shape = 16,
+      size = as.numeric(dotsize)
+    ) + xlab(x_axis) + ylab(y_axis)
+    
+    if (colorBy %in% splitOptions ){
+      dfCol <- unique(df[,c(colorBy, "dotColor")])
+      colVec <- dfCol$dotColor
+      names(colVec) <- as.character(dfCol[,colorBy])
+      colVec <- colVec[colVec != ""]
+      
+      
+      p <- p + ggplot2::scale_colour_manual(colorBy ,values = colVec
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+    } else if (is.numeric( df$Dcolor )){
+      if (minExpr < 0){
+        p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
+        )
+        
+      } else {
+        p <- p + ggplot2::scale_color_gradient("Expr",low= lowColor, high= dotcolor, limits=c(minExpr,maxExpr)
+        )
+      }
+      
+    } else if (colorBy == "DF_Classification" & length(unique(df$Dcolor)) == 2) {
+      p <- p + ggplot2::scale_colour_manual("Doublet Class",values = c("red","black")
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+    } else if (colorBy == "all") {
+      p <- p + ggplot2::scale_colour_manual("All",values = c("black")
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+    }  else if (colorBy == "clusterName"){
+      dfCol <- unique(df[,c("clusterName", "dotColor")])
+      colVec <- dfCol$dotColor
+      names(colVec) <- dfCol$clusterName
+      colVec <- colVec[colVec != ""]
+      
+      
+      p <- p + ggplot2::scale_colour_manual("Cluster Names" ,values = colVec
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+    } else if (colorBy == "subClusterName"){  
+      df$subClusterName <- gsub("^$", "Rest",df$subClusterName)
+      dfCol <- unique(df[,c("subClusterName", "subClusterColor")])
+      dfCol[dfCol$subClusterName == "Rest", "subClusterColor"] <- "#d3d3d3"
+      colVec <- dfCol$subClusterColor
+      names(colVec) <- dfCol$subClusterName
+      
+      colVec <- colVec[colVec != ""]
+      p <- p + ggplot2::scale_colour_manual("Sub-cluster Names" ,values = colVec
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+      
+    } else if (colorBy == "sampleName"){  
+      dfCol <- unique(df[,c("sampleName", "dotColor")])
+      colVec <- dfCol$dotColor
+      names(colVec) <- dfCol$sampleName
+      colVec <- colVec[colVec != ""]
+      p <- p + ggplot2::scale_colour_manual("Sample Names" ,values = colVec
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+      
+    }
+    
+    
+    ## Create Violinplot
+    if (!is.numeric(df$x_axis)){
+      p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
+      )+ ggplot2::geom_jitter(height = 0) 
+    }
+    
+    
+    
+    if (background == "white"){
+      p <- p + ggplot2::theme_bw()
+    } else if (background == "minimal"){
+      p <- p + ggplot2::theme_minimal()
+    } else if (background == "plain"){
+      p <- p + ggplot2::theme_void()
+    } else {
+      p <- p + ggplot2::theme(
+        panel.background = ggplot2::element_rect(fill = "lightgrey")
+      )
+    }
+    
+    p <- p + ggplot2::theme(
+      axis.text.y   = ggplot2::element_text(size=8),
+      axis.text.x   = ggplot2::element_text(size=8),
+      axis.title.y  = ggplot2::element_text(size=8),
+      axis.title.x  = ggplot2::element_text(size=8),
+      axis.line = ggplot2::element_line(colour = "black"),
+      panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1),
+      plot.title = ggplot2::element_text(hjust = 0.5, size = 12)
+    ) 
+    
+    if (is.numeric(df$x_axis)){
+      p <- p + ggplot2::xlim(minX, maxX) 
+    }
+    
+    if (is.numeric(df$y_axis)){
+      p <- p + ggplot2::ylim(minY, maxY) 
+    }
+    
+    if (colorBy == "lg10Expr" | x_axis == "lg10Expr" | y_axis == "lg10Expr") {
+      titleString <- paste0("Sample: ", plot_name, " ", nExpr, "/", nCellsTotal, " cells (",percExpr,"%) express ", geneSel)
+    } else {
+      titleString <-paste0("Sample: ", plot_name)
+    }
+    
+    p <- p + ggplot2::ggtitle(titleString) 
+    #+ ggtitle(paste0("Gene ", input$gene, " in sample ", conditionVec[i], " (E:",cellsExpressingGene[i],"/NE:",cellsNotExpressingGene[i], ", ",percE[i],"%)")) + scale_size_continuous(limits = c(0, maxExpr)
+    #) #+ xlim(minX, maxX) + ylim(minY, maxY)
+    
+    posX <- grep("UMAP", x_axis)
+    posY <- grep("UMAP", y_axis)
+    if ( (length(posX) == 1) & (length(posY) == 1)){
+      p <-  p + ggplot2::coord_fixed()
+    }
+    
+    if (!showPlotLegend){
+      p <- p + theme(legend.position = "none")
+    } 
+    
+    
+    p
+  })
+  
+  output$my_plot <- renderPlot({
+    
+    print(plotInput())
+    
+  })
+  
+  
+  
+  
+}
+
+
+plot_prep_server_dl <- function(
+  input,
+  output,
+  session, 
+  df,
+  plot_name,
+  colorBy = "lg10Expr",
+  dotsize = "dotsize",
+  lowColor = "grey", 
+  dotcolor = "darkblue",
+  x_axis = "UMAP_1",
+  y_axis = "UMAP_2",
+  background = "grey",
+  maxX = NULL,
+  minX = NULL,
+  maxY = NULL,
+  minY = NULL,
+  geneSel = NULL,
+  maxExpr = NULL,
+  showPlotLegend = FALSE
+) {
+  #library(ggplot2)
+  
+  if (is.null(maxX)){
+    maxX <- 1.1*max(df$x_axis, na.rm = T)  
+  } 
+  
+  if (is.null(maxY)){
+    maxY <- 1.1*max(df$y_axis, na.rm = T)  
+  }
+  
+  if (is.null(minX)){
+    minX <- 1.1*min(df$x_axis, na.rm = T)  
+  } 
+  
+  if (is.null(minY)){
+    minY <- 1.1*min(df$y_axis, na.rm = T)  
+  }
+  
+  ###########################################################################
+  ## Determine split options                                               ##
+  splitOptions <- names(df)
+  
+  rmVec <- c(
+    grep("orig_", splitOptions),
+    grep("sampleID", splitOptions),
+    grep("old_ident", splitOptions),
+    grep("hmIdent", splitOptions),
+    grep("color", tolower(splitOptions))
+    
+  )
+  
+  if (length(rmVec) > 0){
+    splitOptions <- splitOptions[-rmVec]
+  }
+  
+  
+  ## Remove all split options with more than 20 options ##
+  Nopt <- apply(df[,splitOptions], 2, function(x) length(unique(x)))
+  Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
+  
+  
+  splitOptions <- as.vector(names(Nopt))
+  splitOptions <- splitOptions[splitOptions != "lg10Expr"]
+  ## Done                                                                  ##
+  ###########################################################################
+  
+  
+  nCellsTotal <- nrow(df)
+  nExpr <- nrow(df[df$gene != 0,])
+  percExpr <- 100*round(nrow(df[df$gene != 0,])/nCellsTotal, 3)
+  qGene <- unique(na.omit(df$gene))
+  qGene <- qGene[qGene != 0]
+  
+  #plotInput <- reactive({
+  
+  if (colorBy %in% splitOptions ){
+    df$Dcolor[df$Dcolor == ""] <- "Rest"
+    df$Dcolor <- factor(df$Dcolor)
+  } else if( is.numeric( df$Dcolor ) ) {
+    minExpr <- floor(min(df$Dcolor, na.rm = T))
+    
+    if (is.null(maxExpr)){
+      maxExpr <- ceiling(max(df$Dcolor, na.rm = T))   
+      if (maxExpr == 1){
+        ceiling_dec <- function(x, level=1) round(x + 5*10^(-level-1), level)
+        maxExpr <- ceiling_dec(max(df$Dcolor, na.rm = T),2)   
+      }
+    }
+    
+  } else {
+    df$Dcolor[df$Dcolor == ""] <- "Rest"
+    df$Dcolor <- factor(df$Dcolor)
+  }     
+  
+  
+  
+  
+  p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+  )+ ggplot2::geom_point(
+    shape = 16,
+    size = as.numeric(dotsize)
+  ) + xlab(x_axis) + ylab(y_axis)
+  
+  if (colorBy %in% splitOptions ){
+    dfCol <- unique(df[,c(colorBy, "dotColor")])
+    colVec <- dfCol$dotColor
+    names(colVec) <- as.character(dfCol[,colorBy])
+    colVec <- colVec[colVec != ""]
+    
+    
+    p <- p + ggplot2::scale_colour_manual(colorBy ,values = colVec
+    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+    )
+  } else if (is.numeric( df$Dcolor )){
+    if (minExpr < 0){
+      p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
+      )
+      
+    } else {
+      p <- p + ggplot2::scale_color_gradient("Expr",low= lowColor, high= dotcolor, limits=c(minExpr,maxExpr)
+      )
+    }
+    
+  } else if (colorBy == "DF_Classification" & length(unique(df$Dcolor)) == 2) {
+    p <- p + ggplot2::scale_colour_manual("Doublet Class",values = c("red","black")
+    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+    )
+  } else if (colorBy == "all") {
+    p <- p + ggplot2::scale_colour_manual("All",values = c("black")
+    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+    )
+  }  else if (colorBy == "clusterName"){
+    dfCol <- unique(df[,c("clusterName", "dotColor")])
+    colVec <- dfCol$dotColor
+    names(colVec) <- dfCol$clusterName
+    colVec <- colVec[colVec != ""]
+    
+    
+    p <- p + ggplot2::scale_colour_manual("Cluster Names" ,values = colVec
+    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+    )
+  } else if (colorBy == "subClusterName"){  
+    df$subClusterName <- gsub("^$", "Rest",df$subClusterName)
+    dfCol <- unique(df[,c("subClusterName", "subClusterColor")])
+    dfCol[dfCol$subClusterName == "Rest", "subClusterColor"] <- "#d3d3d3"
+    colVec <- dfCol$subClusterColor
+    names(colVec) <- dfCol$subClusterName
+    
+    colVec <- colVec[colVec != ""]
+    p <- p + ggplot2::scale_colour_manual("Sub-cluster Names" ,values = colVec
+    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+    )
+    
+  } else if (colorBy == "sampleName"){  
+    dfCol <- unique(df[,c("sampleName", "dotColor")])
+    colVec <- dfCol$dotColor
+    names(colVec) <- dfCol$sampleName
+    colVec <- colVec[colVec != ""]
+    p <- p + ggplot2::scale_colour_manual("Sample Names" ,values = colVec
+    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+    )
+    
+  }
+  
+  
+  
+  ## Create Violinplot
+  if (!is.numeric(df$x_axis)){
+    p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
+        )+ ggplot2::geom_jitter(height = 0) 
+  }
+  
+  
+  
+  if (background == "white"){
+    p <- p + ggplot2::theme_bw()
+  } else if (background == "minimal"){
+    p <- p + ggplot2::theme_minimal()
+  } else if (background == "plain"){
+    p <- p + ggplot2::theme_void()
+  } else {
+    p <- p + ggplot2::theme(
+      panel.background = ggplot2::element_rect(fill = "lightgrey")
+    )
+  }
+  
+  p <- p + ggplot2::theme(
+    axis.text.y   = ggplot2::element_text(size=8),
+    axis.text.x   = ggplot2::element_text(size=8),
+    axis.title.y  = ggplot2::element_text(size=8),
+    axis.title.x  = ggplot2::element_text(size=8),
+    axis.line = ggplot2::element_line(colour = "black"),
+    panel.border = ggplot2::element_rect(colour = "black", fill=NA, size=1),
+    plot.title = ggplot2::element_text(hjust = 0.5, size = 12)
+  ) 
+  
+  if (is.numeric(df$x_axis)){
+    p <- p + ggplot2::xlim(minX, maxX) 
+  }
+  
+  if (is.numeric(df$y_axis)){
+    p <- p + ggplot2::ylim(minY, maxY) 
+  }
+  
+  if (colorBy == "lg10Expr" | x_axis == "lg10Expr" | y_axis == "lg10Expr") {
+    titleString <- paste0("Sample: ", plot_name, " ", nExpr, "/", nCellsTotal, " cells (",percExpr,"%) express ", geneSel)
+  } else {
+    titleString <-paste0("Sample: ", plot_name)
+  }
+  
+  p <- p + ggplot2::ggtitle(titleString) 
+  #+ ggtitle(paste0("Gene ", input$gene, " in sample ", conditionVec[i], " (E:",cellsExpressingGene[i],"/NE:",cellsNotExpressingGene[i], ", ",percE[i],"%)")) + scale_size_continuous(limits = c(0, maxExpr)
+  #) #+ xlim(minX, maxX) + ylim(minY, maxY)
+  
+  posX <- grep("UMAP", x_axis)
+  posY <- grep("UMAP", y_axis)
+  if ( (length(posX) == 1) & (length(posY) == 1)){
+    p <-  p + ggplot2::coord_fixed()
+  }
+  
+  if (!showPlotLegend){
+    p <- p + theme(legend.position = "none")
+  } 
+  
+  
+  p
+  # })
+  ## End of download functions   
+}
+##                                                                           ##
+###############################################################################
