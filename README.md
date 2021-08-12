@@ -45,23 +45,29 @@ testObj@meta.data[1:20,"meta_Region"] <- "RandomBcat"
 
 If you have a Seurat object containing a single-cell experiment already, just rename it to OsC and create two meta data columns by the name of 'clusterName' and 'sampleName'. The presence of these columns with these names is required. For example you could create them by following the example below. 
 
+<b>
 ```
 ###############################################################################
 ## Prepare your Seurat Object                                                ##
 
 ## We are inserting here as an example the small Seurat test object we've created above.
+
+
 OsC <- testObj
 
+
 ## To use your analysed Seurat object, and rename it to OsC. 
+
+
 # OsC <- YourAnalysedSeuratObject
 
-OsC@meta.data[["clusterName"]] <- paste0("C", OsC@meta.data$seurat_clusters)
-OsC@meta.data[["sampleName"]] <- paste0("S", OsC@meta.data$orig.ident)
 names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
+
 
 ##                                                                           ##
 ###############################################################################
 ```
+</b>
 
 And now we create the app in two steps: In a first step we create a list with project parameters (which you can customise before proceding) and in a second step the single-cell shiny app. You also can later on customise display options in the parameter files in the parameter folder. 
 
@@ -75,8 +81,9 @@ params
 
 ```
 
-<b>Step2 Create app 
-Depending on the size of your Seurat object, it might take a couple of minutes for the seuratObjectToLocalViewer function to run. Very large single cell objects might have to be processed on a high-performance computing system. 
+<b>Step2 Create app </b>
+Depending on the size of your Seurat object, it <b>might take a couple of minutes for the seuratObjectToLocalViewer function to run</b>. Very large single cell objects might have to be processed on a high-performance computing system. A dataset with 5000 cells should take less than a minute to render on your local system. 
+<b>
 
 ```
 project_id <- "testExperiment"
@@ -95,13 +102,14 @@ biologicViewerSC::seuratObjectToLocalViewer(
 
 
 ```
-
+</b>
 Run app locally, e.g. in Rstudio
 
+<b>
 ```
 shiny::runApp(paste0(projectPath, project_id, "_app"))
 ```
-
+</b>
 If you want to deploy the app on a shiny server, simply transfer the project folder, in the example case names test_PBMC_app onto the shiny server. 
 
 
