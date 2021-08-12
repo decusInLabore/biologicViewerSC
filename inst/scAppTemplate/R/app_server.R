@@ -7,10 +7,9 @@
 #' @import RMySQL
 #' @import ggplot2
 #' @import colourpicker
+#' @import scales
  
 
-
-library(RMySQL)
 ###############################################################################
 ## Create plot namespace                                                     ##
 
@@ -506,7 +505,7 @@ plot_prep_server_dl <- function(
 ## Load category color file if available                                     ##
 FNcolParameters <- "parameters/colorParameters.txt"
 
-if (file.exists(FNparameters)){
+if (file.exists(FNcolParameters)){
     dfColOptions <- read.delim(
         FNcolParameters, 
         header = T, 
