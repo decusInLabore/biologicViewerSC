@@ -115,13 +115,21 @@ plot_prep_server <- function(
     }     
     
     
-    
-    
     p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-    ) + ggplot2::geom_point(
-      shape = 16,
-      size = as.numeric(dotsize)
-    ) + xlab(x_axis) + ylab(y_axis)
+    )
+    
+    ## Decide between Violin or dotplot 
+    if (!is.numeric(df$x_axis)){
+      p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
+      )+ ggplot2::geom_jitter(height = 0) 
+    } else {
+      p <- p + ggplot2::geom_point(
+        shape = 16,
+        size = as.numeric(dotsize)
+      ) 
+    }
+    
+    p <- p + xlab(x_axis) + ylab(y_axis)
     
     if (colorBy %in% splitOptions ){
       dfCol <- unique(df[,c(colorBy, "dotColor")])
@@ -183,6 +191,7 @@ plot_prep_server <- function(
       )
       
     }
+    
     
     
     ## Create Violinplot
@@ -358,10 +367,20 @@ plot_prep_server_dl <- function(
   
   
   p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-  )+ ggplot2::geom_point(
-    shape = 16,
-    size = as.numeric(dotsize)
-  ) + xlab(x_axis) + ylab(y_axis)
+  )
+  
+  ## Decide between Violin or dotplot 
+  if (!is.numeric(df$x_axis)){
+    p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
+    )+ ggplot2::geom_jitter(height = 0) 
+  } else {
+    p <- p + ggplot2::geom_point(
+      shape = 16,
+      size = as.numeric(dotsize)
+    ) + xlab(x_axis) + ylab(y_axis)
+  }
+  
+  
   
   if (colorBy %in% splitOptions ){
     dfCol <- unique(df[,c(colorBy, "dotColor")])
@@ -424,13 +443,6 @@ plot_prep_server_dl <- function(
     
   }
   
-  
-  
-  ## Create Violinplot
-  if (!is.numeric(df$x_axis)){
-    p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
-        )+ ggplot2::geom_jitter(height = 0) 
-  }
   
   
   

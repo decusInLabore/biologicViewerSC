@@ -234,11 +234,11 @@ if (!parameterFileLoaded){
   xDisplayName <- "Choose a X-axis"
   yDisplayName <- "Choose a Y-axis"
 } else {
-  Xsel <- as.vector(dfParam[dfParam$displayName == "x_axis","colSel"])
-  Ysel <- as.vector(dfParam[dfParam$displayName == "y_axis","colSel"])
+  Xsel <- as.vector(dfParam[dfParam$menuName == "x_axis","colSel"])
+  Ysel <- as.vector(dfParam[dfParam$menuName == "y_axis","colSel"])
   
-  xDisplayName <- gsub("_", " ", unique(dfParam[dfParam$displayName == "x_axis", "menuName"]))
-  yDisplayName <- gsub("_", " ", unique(dfParam[dfParam$displayName == "y_axis", "menuName"]))
+  xDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "x_axis", "displayName"]))
+  yDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "y_axis", "displayName"]))
 }
 
 ## check if all column names are valid ##
@@ -382,9 +382,11 @@ if (length(defaultCol %in% allColorOptions) != 1){
   defaultCol <- allColorOptions[1]
 }
 
+cDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "colorPlotsBy", "displayName"]))
+
 ## Add to dropdownlist 
 dropDownList[["colorBy"]] <- list(
-  "displayName" = xDisplayName,
+  "displayName" = cDisplayName,
   "selOptions" = allColorOptions,
   "selDisplayOptions" = gsub("_", " ", names(allColorOptions)),
   "default" = defaultCol
@@ -482,10 +484,10 @@ numOptions <- c(
   
   defaultS <- splitOptions[1]
   
-  sDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "colorPlotsBy", "displayName"]))
+  sDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "splitPlotsBy", "displayName"]))
   
   ## Add to dropdownlist 
-  dropDownList[["colorBy"]] <- list(
+  dropDownList[["splitByColumn"]] <- list(
     "displayName" = sDisplayName,
     "selOptions" = splitOptions,
     "selDisplayOptions" = gsub("_", " ", names(splitOptions)),
