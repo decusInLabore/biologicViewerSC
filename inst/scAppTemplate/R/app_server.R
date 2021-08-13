@@ -10,7 +10,31 @@
 #' @import scales
  
 
+###############################################################################
+## Load parameter file if available                                          ##
+FNparameters <- "parameters/menuParameters.txt"
 
+if (file.exists(FNparameters)){
+    dfParam <- read.delim(
+        FNparameters, 
+        header = T, 
+        sep = "\t",
+        stringsAsFactors = F
+    )
+    
+    parameterFileLoaded <- TRUE
+    ## Check file integrity ##
+    if (!(sum(names(dfParam) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
+        rm(dfParam)
+        parameterFileLoaded <- FALSE
+    }
+    
+} else {
+    parameterFileLoaded <- FALSE
+}
+
+## Done                                                                      ##
+###############################################################################
 
 ###############################################################################
 ## Load category color file if available                                     ##
