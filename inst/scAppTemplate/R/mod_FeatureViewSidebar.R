@@ -26,28 +26,28 @@ mod_FeatureViewSidebar_ui <- function(id){
                    options = list(maxOptions = 50, create=TRUE))
     ),
     
+    #uiOutput("dropDownPanel"),
     
-    
-    selectInput("x_axis", 
-                label = "Choose an X-axis",
-                choices =unique(c("Log10 Expression" = "lg10Expr", allColorOptions, XYsel)),
+    selectInput("x_axis",
+                label = as.vector(dropDownList[["x_axis"]][["displayName"]]),
+                choices =unique(c("Log10 Expression" = "lg10Expr", allColorOptions, Xsel)),
                 selected = "UMAP_1"),
-    selectInput("y_axis", 
-                label = "Choose an Y-axis",
-                choices =unique(c("Log10 Expression" = "lg10Expr", XYsel)),
+    selectInput("y_axis",
+                label = as.vector(dropDownList[["y_axis"]][["displayName"]]),
+                choices =unique(c("Log10 Expression" = "lg10Expr", Ysel)),
                 selected = "UMAP_2"),
-    
-    
-    selectInput("splitByColumn", 
-                label = "Split Plots By",
+
+
+    selectInput("splitByColumn",
+                label = as.vector(dropDownList[["splitByColumn"]][["displayName"]]),
                 choices = splitOptions,
                 selected = splitOptions[1]),
-    
-    selectInput("colorBy", 
-                label = "Color Plots By",
+
+    selectInput("colorBy",
+                label = as.vector(dropDownList[["colorBy"]][["displayName"]]),
                 choices = allColorOptions,
                 selected = names(allColorOptions)[1]),
-    
+
     #####################################################################
     ## Query color input based on 'colorBy' selection                  ##
     conditionalPanel(
