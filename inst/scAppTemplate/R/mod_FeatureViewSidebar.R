@@ -34,7 +34,7 @@ mod_FeatureViewSidebar_ui <- function(id){
                 selected = "UMAP_1"),
     selectInput("y_axis",
                 label = as.vector(dropDownList[["y_axis"]][["displayName"]]),
-                choices =unique(c("Log10 Expression" = "lg10Expr", Ysel)),
+                choices =unique(c("Log10 Expression" = "lg10Expr",  "Densityplot" = "Densityplot",  "Histogram" = "Histogram", Ysel)),
                 selected = "UMAP_2"),
 
 
