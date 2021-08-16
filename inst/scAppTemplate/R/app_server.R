@@ -787,15 +787,25 @@ app_server <- function(input, output, session) {
         ## Done                                                              ##
         #######################################################################
         
+        pos <- grep(paste0("^", input$x_axis, "$"), names(dfTemp))
+        if (length(pos) > 0){
+            dfTemp[["x_axis"]] <- dfTemp[,input$x_axis]
+        } else {
+            dfTemp[["x_axis"]] <- input$x_axis
+        }
         
-        
-        dfTemp[["x_axis"]] <- dfTemp[,input$x_axis]   
         
         if (!is.numeric(dfTemp$x_axis)){
             dfTemp$x_axis <- factor(dfTemp$x_axis, levels = sort(unique(dfTemp$x_axis)))
         }
         
-        dfTemp[["y_axis"]] <- dfTemp[,input$y_axis]
+        
+        ## We need to consider cases like Densityplot and Histogram, where input$y_axis is not a column
+        if (input$y_axis %in% names(dfTemp)){
+            dfTemp[["y_axis"]] <- dfTemp[,input$y_axis]
+        } else {
+            dfTemp[["y_axis"]] <- input$y_axis
+        }
         
         
         #dfTemp <- dfTemp[,selVec]  
@@ -937,20 +947,20 @@ app_server <- function(input, output, session) {
         
         plot_select <- sort(as.vector(unique(dfTemp[, input$splitByColumn])))
         
-        wtPos <- unique(c(
-            grep("wt", plot_select),
-            grep("WT", plot_select),
-            grep("Wt", plot_select),
-            grep("Ctrl", plot_select),
-            grep("CTRL", plot_select)
-        ))
-        
-        if (length(wtPos) > 0){
-            plot_select <- c(
-                plot_select[wtPos],
-                plot_select[-wtPos]
-            )
-        }
+        # wtPos <- unique(c(
+        #     grep("wt", plot_select),
+        #     grep("WT", plot_select),
+        #     grep("Wt", plot_select),
+        #     grep("Ctrl", plot_select),
+        #     grep("CTRL", plot_select)
+        # ))
+        # 
+        # if (length(wtPos) > 0){
+        #     plot_select <- c(
+        #         plot_select[wtPos],
+        #         plot_select[-wtPos]
+        #     )
+        # }
         
         plot_select
     })

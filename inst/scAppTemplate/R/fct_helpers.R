@@ -115,32 +115,65 @@ plot_prep_server <- function(
     }     
     
     
-    p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-    )
     
-    ## Decide between Violin or dotplot 
-    if (!is.numeric(df$x_axis)){
-      p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
-      )+ ggplot2::geom_jitter(height = 0) 
+    ###########################################################################
+    ## Determine plot logic                                                  ##
+    if (is.numeric(df$x_axis)){
+        #######################################################################
+        ## Decide on factorial display logic                                 ##
+        if (df$y_axis[1] == "Densityplot"){
+          plotLogic <- "density"
+          p <- ggplot2::ggplot(
+            data = df, ggplot2::aes(x=x_axis, y=..density.., color=Dcolor,fill=Dcolor)
+          ) + ggplot2::geom_density(alpha=0.3, position="stack") 
+        } else if (df$y_axis[1] == "Histogram"){
+          plotLogic <- "histogram"
+          Nbin <- ceiling(length(df$x_axis)/5)
+          p <- ggplot2::ggplot(
+            data = df, ggplot2::aes(x=x_axis, color=Dcolor,fill=Dcolor)
+          ) + ggplot2::geom_histogram(alpha=0.3, position="stack", bins = Nbin) 
+        } else {
+          plotLogic <- "point"
+          p <- ggplot2::ggplot(
+            data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+          ) + ggplot2::geom_point(
+            shape = 16,
+            size = as.numeric(dotsize)
+          ) 
+        }
+      ## Done deciding factorial display logic
+      #########################################################################  
     } else {
-      p <- p + ggplot2::geom_point(
-        shape = 16,
-        size = as.numeric(dotsize)
-      ) 
+      
+      plotLogic <- "violin"
+      p <- ggplot2::ggplot(
+        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+      ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
+      )+ ggplot2::geom_jitter(height = 0)
     }
+    ## Done plot logic                                                       ##
+    ###########################################################################
     
-    p <- p + xlab(x_axis) + ylab(y_axis)
+    
+    p <- p + ggplot2::xlab(x_axis) + ggplot2::ylab(y_axis)
     
     if (colorBy %in% splitOptions ){
-      dfCol <- unique(df[,c(colorBy, "dotColor")])
-      colVec <- dfCol$dotColor
-      names(colVec) <- as.character(dfCol[,colorBy])
-      colVec <- colVec[colVec != ""]
-      
-      
-      p <- p + ggplot2::scale_colour_manual(colorBy ,values = colVec
-      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-      )
+        dfCol <- unique(df[,c(colorBy, "dotColor")])
+        colVec <- dfCol$dotColor
+        names(colVec) <- as.character(dfCol[,colorBy])
+        colVec <- colVec[colVec != ""]
+        
+        
+        p <- p + ggplot2::scale_colour_manual(colorBy ,values = colVec
+        ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+        )
+        
+        if (plotLogic %in% c("density", "histogram")){
+          p <- p + ggplot2::scale_fill_manual(colorBy ,values = colVec
+          ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+          )
+        }
+        
     } else if (is.numeric( df$Dcolor )){
       if (minExpr < 0){
         p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
@@ -151,55 +184,7 @@ plot_prep_server <- function(
         )
       }
       
-    } else if (colorBy == "DF_Classification" & length(unique(df$Dcolor)) == 2) {
-      p <- p + ggplot2::scale_colour_manual("Doublet Class",values = c("red","black")
-      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-      )
-    } else if (colorBy == "all") {
-      p <- p + ggplot2::scale_colour_manual("All",values = c("black")
-      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-      )
-    }  else if (colorBy == "clusterName"){
-      dfCol <- unique(df[,c("clusterName", "dotColor")])
-      colVec <- dfCol$dotColor
-      names(colVec) <- dfCol$clusterName
-      colVec <- colVec[colVec != ""]
-      
-      
-      p <- p + ggplot2::scale_colour_manual("Cluster Names" ,values = colVec
-      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-      )
-    } else if (colorBy == "subClusterName"){  
-      df$subClusterName <- gsub("^$", "Rest",df$subClusterName)
-      dfCol <- unique(df[,c("subClusterName", "subClusterColor")])
-      dfCol[dfCol$subClusterName == "Rest", "subClusterColor"] <- "#d3d3d3"
-      colVec <- dfCol$subClusterColor
-      names(colVec) <- dfCol$subClusterName
-      
-      colVec <- colVec[colVec != ""]
-      p <- p + ggplot2::scale_colour_manual("Sub-cluster Names" ,values = colVec
-      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-      )
-      
-    } else if (colorBy == "sampleName"){  
-      dfCol <- unique(df[,c("sampleName", "dotColor")])
-      colVec <- dfCol$dotColor
-      names(colVec) <- dfCol$sampleName
-      colVec <- colVec[colVec != ""]
-      p <- p + ggplot2::scale_colour_manual("Sample Names" ,values = colVec
-      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-      )
-      
-    }
-    
-    
-    
-    ## Create Violinplot
-    if (!is.numeric(df$x_axis)){
-      p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
-      )+ ggplot2::geom_jitter(height = 0) 
-    }
-    
+    } 
     
     
     if (background == "white"){
@@ -363,24 +348,46 @@ plot_prep_server_dl <- function(
     df$Dcolor <- factor(df$Dcolor)
   }     
   
-  
-  
-  
-  p <- ggplot2::ggplot( data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-  )
-  
-  ## Decide between Violin or dotplot 
-  if (!is.numeric(df$x_axis)){
-    p <- p + geom_violin(trim=FALSE, fill="#E8E8E8"
-    )+ ggplot2::geom_jitter(height = 0) 
+  ###########################################################################
+  ## Determine plot logic                                                  ##
+  if (is.numeric(df$x_axis)){
+    #######################################################################
+    ## Decide on factorial display logic                                 ##
+    if (df$y_axis[1] == "Densityplot"){
+      plotLogic <- "density"
+      p <- ggplot2::ggplot(
+        data = df, ggplot2::aes(x=x_axis, y=..density.., color=Dcolor,fill=Dcolor)
+      ) + ggplot2::geom_density(alpha=0.3, position="stack") 
+    } else if (df$y_axis[1] == "Histogram"){
+      plotLogic <- "histogram"
+      Nbin <- ceiling(length(df$x_axis)/5)
+      p <- ggplot2::ggplot(
+        data = df, ggplot2::aes(x=x_axis, color=Dcolor,fill=Dcolor)
+      ) + ggplot2::geom_histogram(alpha=0.3, position="stack", bins = Nbin) 
+    } else {
+      plotLogic <- "point"
+      p <- ggplot2::ggplot(
+        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+      ) + ggplot2::geom_point(
+        shape = 16,
+        size = as.numeric(dotsize)
+      ) 
+    }
+    ## Done deciding factorial display logic
+    #########################################################################  
   } else {
-    p <- p + ggplot2::geom_point(
-      shape = 16,
-      size = as.numeric(dotsize)
-    ) + xlab(x_axis) + ylab(y_axis)
+    
+    plotLogic <- "violin"
+    p <- ggplot2::ggplot(
+      data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+    ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
+    )+ ggplot2::geom_jitter(height = 0)
   }
+  ## Done plot logic                                                       ##
+  ###########################################################################
   
   
+  p <- p + ggplot2::xlab(x_axis) + ggplot2::ylab(y_axis)
   
   if (colorBy %in% splitOptions ){
     dfCol <- unique(df[,c(colorBy, "dotColor")])
@@ -392,6 +399,13 @@ plot_prep_server_dl <- function(
     p <- p + ggplot2::scale_colour_manual(colorBy ,values = colVec
     ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
     )
+    
+    if (plotLogic %in% c("density", "histogram")){
+      p <- p + ggplot2::scale_fill_manual(colorBy ,values = colVec
+      ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
+      )
+    }
+    
   } else if (is.numeric( df$Dcolor )){
     if (minExpr < 0){
       p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
@@ -402,48 +416,7 @@ plot_prep_server_dl <- function(
       )
     }
     
-  } else if (colorBy == "DF_Classification" & length(unique(df$Dcolor)) == 2) {
-    p <- p + ggplot2::scale_colour_manual("Doublet Class",values = c("red","black")
-    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-    )
-  } else if (colorBy == "all") {
-    p <- p + ggplot2::scale_colour_manual("All",values = c("black")
-    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-    )
-  }  else if (colorBy == "clusterName"){
-    dfCol <- unique(df[,c("clusterName", "dotColor")])
-    colVec <- dfCol$dotColor
-    names(colVec) <- dfCol$clusterName
-    colVec <- colVec[colVec != ""]
-    
-    
-    p <- p + ggplot2::scale_colour_manual("Cluster Names" ,values = colVec
-    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-    )
-  } else if (colorBy == "subClusterName"){  
-    df$subClusterName <- gsub("^$", "Rest",df$subClusterName)
-    dfCol <- unique(df[,c("subClusterName", "subClusterColor")])
-    dfCol[dfCol$subClusterName == "Rest", "subClusterColor"] <- "#d3d3d3"
-    colVec <- dfCol$subClusterColor
-    names(colVec) <- dfCol$subClusterName
-    
-    colVec <- colVec[colVec != ""]
-    p <- p + ggplot2::scale_colour_manual("Sub-cluster Names" ,values = colVec
-    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-    )
-    
-  } else if (colorBy == "sampleName"){  
-    dfCol <- unique(df[,c("sampleName", "dotColor")])
-    colVec <- dfCol$dotColor
-    names(colVec) <- dfCol$sampleName
-    colVec <- colVec[colVec != ""]
-    p <- p + ggplot2::scale_colour_manual("Sample Names" ,values = colVec
-    ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
-    )
-    
-  }
-  
-  
+  } 
   
   
   if (background == "white"){
