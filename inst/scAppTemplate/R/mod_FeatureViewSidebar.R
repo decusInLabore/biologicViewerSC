@@ -30,23 +30,47 @@ mod_FeatureViewSidebar_ui <- function(id){
     
     selectInput("x_axis",
                 label = as.vector(dropDownList[["x_axis"]][["displayName"]]),
-                choices =unique(c("Log10 Expression" = "lg10Expr", allColorOptions, Xsel)),
-                selected = "UMAP_1"),
+                choices =as.vector(dropDownList[["x_axis"]][["selOptions"]])[as.vector(dropDownList[["x_axis"]][["selOptions"]]) %in% numOptions],
+                selected = as.vector(dropDownList[["x_axis"]][["default"]])[as.vector(dropDownList[["x_axis"]][["selOptions"]]) %in% numOptions]
+    ),
+    
+    # conditionalPanel(
+    #     condition = "input.y_axis == 'Densityplot' || input.y_axis == 'Histogram'",
+    #     selectInput("x_axis",
+    #                 label = as.vector(dropDownList[["x_axis"]][["displayName"]]),
+    #                 choices =as.vector(dropDownList[["x_axis"]][["selOptions"]])[as.vector(dropDownList[["x_axis"]][["selOptions"]]) %in% numOptions],
+    #                 selected = as.vector(dropDownList[["x_axis"]][["default"]])[as.vector(dropDownList[["x_axis"]][["selOptions"]]) %in% numOptions]
+    #     )
+    # ),
+    # 
+    # conditionalPanel(
+    #   condition = "input.y_axis != 'Densityplot' & input.y_axis != 'Histogram'",
+    #   selectInput("x_axis",
+    #               label = as.vector(dropDownList[["x_axis"]][["displayName"]]),
+    #               choices =as.vector(dropDownList[["x_axis"]][["selOptions"]]),
+    #               selected = as.vector(dropDownList[["x_axis"]][["default"]])
+    #   )
+    # ),
+    
+    
     selectInput("y_axis",
                 label = as.vector(dropDownList[["y_axis"]][["displayName"]]),
-                choices =unique(c("Log10 Expression" = "lg10Expr",  "Densityplot" = "Densityplot",  "Histogram" = "Histogram", Ysel)),
-                selected = "UMAP_2"),
+                choices =as.vector(dropDownList[["y_axis"]][["selOptions"]]),
+                selected = as.vector(dropDownList[["y_axis"]][["default"]])
+    ),
 
 
     selectInput("splitByColumn",
                 label = as.vector(dropDownList[["splitByColumn"]][["displayName"]]),
-                choices = splitOptions,
-                selected = splitOptions[1]),
+                choices =as.vector(dropDownList[["splitByColumn"]][["selOptions"]]),
+                selected = as.vector(dropDownList[["splitByColumn"]][["default"]])
+    ),
 
     selectInput("colorBy",
                 label = as.vector(dropDownList[["colorBy"]][["displayName"]]),
-                choices = allColorOptions,
-                selected = names(allColorOptions)[1]),
+                choices =as.vector(dropDownList[["colorBy"]][["selOptions"]]),
+                selected = as.vector(dropDownList[["colorBy"]][["default"]])
+    ),
 
     #####################################################################
     ## Query color input based on 'colorBy' selection                  ##
