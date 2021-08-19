@@ -1101,14 +1101,14 @@ seuratObjectToViewer <- function(
   
   ## Upload expression table to database 
   
-  print(paste0("Database to be used: ", primDataDB))
+  print(paste0("Database to be used: ", dbname))
   print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
   
   biologicSeqTools::upload.datatable.to.database(
     host = host,
     user = db.user,
     password = db.pwd,
-    prim.data.db = primDataDB,
+    prim.data.db = dbname,
     dbTableName = geneTb,
     df.data = dfIDTable,
     db.col.parameter.list = list(
@@ -1131,7 +1131,7 @@ seuratObjectToViewer <- function(
   
   ## Upload expression table to database 
   
-  print(paste0("Database to be used: ", primDataDB))
+  print(paste0("Database to be used: ", dbname))
   print(paste0("Database table name to be used: ", expDbTable))
   
   colCatList <- biologicSeqTools::inferDBcategories(dfExpr)
@@ -1143,7 +1143,7 @@ seuratObjectToViewer <- function(
           host = host,
           user = db.user,
           password = db.pwd,
-          prim.data.db = primDataDB,
+          prim.data.db = dbname,
           dbTableName = expDbTable,
           df.data = dfExpr,
           db.col.parameter.list = colCatList,
@@ -1159,7 +1159,7 @@ seuratObjectToViewer <- function(
         host = host,
         user = db.user,
         password = db.pwd,
-        prim.data.db = primDataDB,
+        prim.data.db = dbname,
         dbTableName = expDbTable,
         df.data = dfExpr,
         db.col.parameter.list = colCatList,
@@ -1225,7 +1225,7 @@ seuratObjectToViewer <- function(
     host = host,
     user = db.user,
     password = db.pwd,
-    prim.data.db = primDataDB,
+    prim.data.db = dbname,
     dbTableName = PCAdbTableName,
     df.data = dfdbTable,
     db.col.parameter.list = columnDBcategoryList,
