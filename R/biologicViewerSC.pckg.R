@@ -1136,19 +1136,40 @@ seuratObjectToViewer <- function(
   
   colCatList <- biologicSeqTools::inferDBcategories(dfExpr)
   
-  biologicSeqTools::upload.datatable.to.database(
-    host = host,
-    user = db.user,
-    password = db.pwd,
-    prim.data.db = primDataDB,
-    dbTableName = expDbTable,
-    df.data = dfExpr,
-    db.col.parameter.list = colCatList,
-    new.table = T,
-    cols2Index = c("gene"),
-    #indexName = c("idx_gene_exp"),
-    mode = dataMode  # Options: "MySQL" and "SQLite"
-  )
+  
+  if (nrow(dfExpr) > 100000 & dataMode == "MySQL"){
+      ## load infile  
+      biologicSeqTools::uploadDbTableInfile(
+          host = host,
+          user = db.user,
+          password = db.pwd,
+          prim.data.db = primDataDB,
+          dbTableName = expDbTable,
+          df.data = dfExpr,
+          db.col.parameter.list = colCatList,
+          new.table = TRUE,
+          cols2Index = c("gene"),
+          indexName = "idx_gene",
+          mode = "MySQL",
+          tempFileName = "temp.upload.csv"
+          
+      )
+  } else {
+      biologicSeqTools::upload.datatable.to.database(
+        host = host,
+        user = db.user,
+        password = db.pwd,
+        prim.data.db = primDataDB,
+        dbTableName = expDbTable,
+        df.data = dfExpr,
+        db.col.parameter.list = colCatList,
+        new.table = T,
+        cols2Index = c("gene"),
+        #indexName = c("idx_gene_exp"),
+        mode = dataMode  # Options: "MySQL" and "SQLite"
+      )
+  }
+  
   
   
   ###############################################################################
