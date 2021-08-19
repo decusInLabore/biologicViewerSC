@@ -1390,7 +1390,7 @@ seuratObjectToViewer <- function(
   ###########################################################################
   
   
-  pFolder <- paste0(getwd(), gsub("./", "/", shinyProjectPath))
+  pFolder <- paste0("./", gsub("./", "/", shinyProjectPath))
   
   print(paste0("App generated in folder ", pFolder))
   
