@@ -84,7 +84,7 @@ params
 <b>Step2 Create app </b>
 Depending on the size of your Seurat object, it <b>might take a couple of minutes for the seuratObjectToLocalViewer function to run</b>. Very large single cell objects might have to be processed on a high-performance computing system. A dataset with 5000 cells should take less than a minute to render on your local system. 
 
-
+## Option 2A: Fully Local Version
 ```
 project_id <- "testExperiment"
 
@@ -113,10 +113,44 @@ shiny::runApp(paste0(projectPath, project_id, "_app"))
 If you want to deploy the app on a shiny server, simply transfer the project folder, in the example case names test_PBMC_app onto the shiny server. 
 
 
-## Option B: MySQL/MariaDB Database Version
+## Option 2B: MySQL/MariaDB Remote Database Version
+
+This option is particularly for large datasets. Also it can be useful to minimise the datafootprint, as data only needs to be stored in one place for world-wide availability. 
+
+For this option you need to have access to a MySQL/MariaDB database with permissions to GRANT access to project users. For the database upload we are using the administrator database privileges. For the app to access the database we will create a restricted user that will only be able to read tables for the project it works on. 
+
+### Setup database access credentials
+
+dbHostURL <- "10.27.241.82"
+dbAdminUser <- "boeings"
+
+FN <- "/camp/stp/babs/working/boeings/Projects/reference_data/documentation/BC.parameters.txt"
+dbTable <- read.delim(
+    FN, 
+    sep = "\t",
+    stringsAsFactors = F
+)
+dbAdminPassword <- as.vector(dbTable[1,1])
+
+```
+project_id <- "testDb"
+
+projectPath = "./"
+
+
+biologicViewerSC::seuratObjectToViewer(
+    params = params,
+    project_id = project_id,
+    projectPath = projectPath,
+    OsC = OsC,
+    dataMode = "MySQL",
+    host = "10.27.241.82",
+    dbname = "test_data",
+    db.pwd = dbAdminPassword,
+    db.user = "boeings",
+    appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%")
+)
 
 
 
-
-
-
+```
