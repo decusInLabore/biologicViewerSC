@@ -16,8 +16,8 @@
 uploadDbTableInfile <- function(
     data = "dataframe.to.upload",
     tempFileName = "temp.upload.csv",
-    host = ,
-    uploadUser = ,
+    host = "",
+    uploadUser = "",
     dbname = "",
     dbTableName = ""
 ){
