@@ -13,6 +13,29 @@ setGeneric(
   name="addDf2seuratMetaData",
   def=function(obj, dfAdd) {
     #print(paste0("Dims before addition: ", dim(obj@meta.data)))
+    ###########################################################################
+    ## Detach packages that interfere with AddMetaData                       ##
+    detach_package <- function(pkg, character.only = FALSE) {
+      if(!character.only) {
+        pkg <- deparse(substitute(pkg))
+      }
+      
+      search_item <- paste("package", pkg, sep = ":")
+      
+      while(search_item %in% search()){
+        detach(search_item, unload = TRUE, character.only = TRUE)
+      }
+    }
+    
+    interferenceVec <- c("SeuratDisk", "SeuratObject", "DESeq2")
+    detachPacks <- interferenceVec[paste0("package:", interferenceVec) %in% search()]
+    if (length(detachPacks) > 0){
+      for (n in 1:length(detachPacks)){
+        detach_package(detachPacks[n], character.only = TRUE)
+      }
+    }
+    ##
+    ###########################################################################
     
     for (i in 1:ncol(dfAdd)){
       addVec <- as.vector(dfAdd[,i])
@@ -53,6 +76,7 @@ setGeneric(
     if (is.null(params)){
       params <- biologicViewerSC::scanObjParams(obj)
     }
+    
     
     ## Add reductions ##
     reds <- names(obj@reductions)
@@ -629,6 +653,22 @@ seuratObjectToLocalViewer <- function(
   
     
 ){  
+  
+    ###############################################################################
+    ## Ensure no column is factor                                                ##
+    
+    for (i in 1:ncol(OsC@meta.data)){
+      if (is.factor(OsC@meta.data[,i])){
+        OsC@meta.data[,i] <- as.character(OsC@meta.data[,i])
+        print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
+      }
+      
+      # print(is.factor(OsC@meta.data[,i]))
+    }
+    
+    ##
+    ###############################################################################
+    
     ###############################################################################
     ## Create Single-cell Application                                            ##
     
@@ -1018,6 +1058,20 @@ seuratObjectToViewer <- function(
   
   
 ){  
+  ###############################################################################
+  ## Ensure no column is factor                                                ##
+  
+  for (i in 1:ncol(OsC@meta.data)){
+    if (is.factor(OsC@meta.data[,i])){
+      OsC@meta.data[,i] <- as.character(OsC@meta.data[,i])
+    }
+    print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
+    # print(is.factor(OsC@meta.data[,i]))
+  }
+  
+  ##
+  ###############################################################################
+  
   ###############################################################################
   ## Create Single-cell Application                                            ##
   
