@@ -658,6 +658,7 @@ seuratObjectToLocalViewer <- function(
     ## Ensure no column is factor                                                ##
     
     for (i in 1:ncol(OsC@meta.data)){
+      
       if (is.factor(OsC@meta.data[,i])){
         OsC@meta.data[,i] <- as.character(OsC@meta.data[,i])
         print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
@@ -1064,8 +1065,9 @@ seuratObjectToViewer <- function(
   for (i in 1:ncol(OsC@meta.data)){
     if (is.factor(OsC@meta.data[,i])){
       OsC@meta.data[,i] <- as.character(OsC@meta.data[,i])
+      print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
     }
-    print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
+    
     # print(is.factor(OsC@meta.data[,i]))
   }
   
