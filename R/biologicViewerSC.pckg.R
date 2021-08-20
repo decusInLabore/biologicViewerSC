@@ -1055,7 +1055,7 @@ seuratObjectToViewer <- function(
   }
   
   
-  primDataDB = dbname
+  
   
   
   PCAdbTableName <- paste0(
@@ -1390,9 +1390,9 @@ seuratObjectToViewer <- function(
   ###########################################################################
   
   
-  pFolder <- paste0("./", gsub("./", "/", shinyProjectPath))
   
-  print(paste0("App generated in folder ", pFolder))
+  
+  print(paste0("App generated in folder ", shinyProjectPath))
   
   
 }

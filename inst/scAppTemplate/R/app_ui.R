@@ -400,14 +400,6 @@ dropDownList[["colorBy"]] <- list(
 if (!parameterFileLoaded){
   splitOptions <- names(dfCoordSel)
   
-  rmVec <- c(
-    grep("orig_", splitOptions),
-    grep("sampleID", splitOptions),
-    grep("old_ident", splitOptions),
-    grep("hmIdent", splitOptions),
-    grep("color", tolower(splitOptions))
-    
-  )
   
   if (length(rmVec) > 0){
     splitOptions <- splitOptions[-rmVec]
@@ -419,6 +411,7 @@ if (!parameterFileLoaded){
   names( splitOptions) <- gsub("_", " ", unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"]))
 }
 
+splitOptions <- splitOptions[splitOptions %in% names(dfCoordSel)]
 
 ## Remove all split options with more than 20 options ##
 Nopt <- apply(dfCoordSel[,splitOptions], 2, function(x) length(unique(x)))
@@ -427,8 +420,17 @@ Nopt <- sort(Nopt[Nopt < 42], decreasing = F)
 
 splitOptions <- as.vector(names(Nopt))
 
+pos <- c(
+    grep("sampleName", names(dfCoordSel)),
+    grep("orig_ident", names(dfCoordSel))
+)
 
-Nsamples <- length(unique(dfCoordSel$sampleName))
+if (length(pos) > 0){
+  Nsamples <- length(unique(dfCoordSel[,pos[1]]))
+} else {
+  Nsamples <- 1000
+}
+
 
 if (Nsamples > 3 | nrow(dfCoordSel) < 5000){
   headVec <- c(
@@ -440,7 +442,7 @@ if (Nsamples > 3 | nrow(dfCoordSel) < 5000){
   )  
 } else {
   headVec <- c(
-    grep("sampleName", splitOptions),
+    grep(names(dfCoordSel)[pos[1]], splitOptions),
     grep("meta_", tolower(splitOptions)),
     grep("all", splitOptions),
     grep("clusterName", splitOptions),
@@ -460,6 +462,8 @@ if (length(headVec) > 0){
 }
 
 names(splitOptions) <- splitOptions
+names(splitOptions) <- gsub("all", "None", names(splitOptions) )
+
 # names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
 # names(splitOptions) <- gsub("META_", "", names(splitOptions) )
 # names(splitOptions) <- gsub("meta_", "", names(splitOptions) )
