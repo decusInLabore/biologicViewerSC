@@ -303,6 +303,8 @@ dropDownList[["x_axis"]] <- list(
 )
 
 ## Add to dropdownlist 
+Ysel <- c(Ysel, "Densityplot", "Histogram")
+
 dropDownList[["y_axis"]] <- list(
     "displayName" = yDisplayName,
     "selOptions" = Ysel,
