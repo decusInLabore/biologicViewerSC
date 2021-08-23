@@ -15,6 +15,7 @@
 mod_FeatureViewSidebar_ui <- function(id){
   ns <- NS(id)
   tagList(
+    sidebarPanel(
     helpText(paste0("To create a Violin Plot plot, select, for example, as x-axis: seurat clusters, as y-axis: log10Expr and as colorBy: seurat clusters. \n\n To view averaged expression values for signature gene categories, start typing cat_ in the search box to see category suggestions. ")),
     
     conditionalPanel(
@@ -112,7 +113,18 @@ mod_FeatureViewSidebar_ui <- function(id){
       condition = "input.colorBy != 'lg10Expr'",
       downloadButton("downloadData", "Download Color Selection")
     )
-    
+    ),mainPanel(
+      tagList(
+        fluidRow(
+          uiOutput("dev_text")
+        ),
+        fluidRow(
+          column(8,
+                 uiOutput("multi_plot_ui")
+          )
+        )
+      )
+    )
     
   )
 }
@@ -122,7 +134,10 @@ mod_FeatureViewSidebar_ui <- function(id){
 #' @noRd 
 mod_FeatureViewSidebar_server <- function(input, output, session){
   ns <- session$ns
- 
+  output$dev_text <- renderText({
+    print("foo");
+    "bar"
+  })
 }
     
 ## To be copied in the UI

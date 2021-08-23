@@ -58,34 +58,34 @@ plot_prep_server <- function(
     minY <- 1.1*min(df$y_axis, na.rm = T)  
   }
   
-  ###########################################################################
-  ## Determine split options                                               ##
-  splitOptions <- names(df)
-  
-  rmVec <- c(
-    grep("orig_", splitOptions),
-    grep("sampleID", splitOptions),
-    grep("old_ident", splitOptions),
-    grep("hmIdent", splitOptions),
-    grep("color", tolower(splitOptions)),
-    grep("lg10expr", tolower(splitOptions))
-    
-  )
-  
-  if (length(rmVec) > 0){
-    splitOptions <- splitOptions[-rmVec]
-  }
-  
-  
-  ## Remove all split options with more than 20 options ##
-  Nopt <- apply(df[,splitOptions], 2, function(x) length(unique(x)))
-  Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
-  
-  
-  splitOptions <- as.vector(names(Nopt))
-  ## Done                                                                  ##
-  ###########################################################################
-  
+  # ###########################################################################
+  # ## Determine split options                                               ##
+  # splitOptions <- names(df)
+  # 
+  # rmVec <- c(
+  #   grep("orig_", splitOptions),
+  #   grep("sampleID", splitOptions),
+  #   grep("old_ident", splitOptions),
+  #   grep("hmIdent", splitOptions),
+  #   grep("color", tolower(splitOptions)),
+  #   grep("lg10expr", tolower(splitOptions))
+  #   
+  # )
+  # 
+  # if (length(rmVec) > 0){
+  #   splitOptions <- splitOptions[-rmVec]
+  # }
+  # 
+  # 
+  # ## Remove all split options with more than 20 options ##
+  # Nopt <- apply(df[,splitOptions], 2, function(x) length(unique(x)))
+  # Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
+  # 
+  # 
+  # splitOptions <- as.vector(names(Nopt))
+  # ## Done                                                                  ##
+  # ###########################################################################
+  # 
   
   nCellsTotal <- nrow(df)
   nExpr <- nrow(df[df$gene != 0,])
@@ -149,7 +149,7 @@ plot_prep_server <- function(
       p <- ggplot2::ggplot(
         data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
       ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
-      )+ ggplot2::geom_jitter(height = 0)
+      )+ ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
     }
     ## Done plot logic                                                       ##
     ###########################################################################
@@ -294,29 +294,29 @@ plot_prep_server_dl <- function(
   
   ###########################################################################
   ## Determine split options                                               ##
-  splitOptions <- names(df)
-  
-  rmVec <- c(
-    grep("orig_", splitOptions),
-    grep("sampleID", splitOptions),
-    grep("old_ident", splitOptions),
-    grep("hmIdent", splitOptions),
-    grep("color", tolower(splitOptions))
-    
-  )
-  
-  if (length(rmVec) > 0){
-    splitOptions <- splitOptions[-rmVec]
-  }
-  
-  
-  ## Remove all split options with more than 20 options ##
-  Nopt <- apply(df[,splitOptions], 2, function(x) length(unique(x)))
-  Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
-  
-  
-  splitOptions <- as.vector(names(Nopt))
-  splitOptions <- splitOptions[splitOptions != "lg10Expr"]
+  # splitOptions <- names(df)
+  # 
+  # rmVec <- c(
+  #   grep("orig_", splitOptions),
+  #   grep("sampleID", splitOptions),
+  #   grep("old_ident", splitOptions),
+  #   grep("hmIdent", splitOptions),
+  #   grep("color", tolower(splitOptions))
+  #   
+  # )
+  # 
+  # if (length(rmVec) > 0){
+  #   splitOptions <- splitOptions[-rmVec]
+  # }
+  # 
+  # 
+  # ## Remove all split options with more than 20 options ##
+  # Nopt <- apply(df[,splitOptions], 2, function(x) length(unique(x)))
+  # Nopt <- sort(Nopt[Nopt < 25], decreasing = F)
+  # 
+  # 
+  # splitOptions <- as.vector(names(Nopt))
+  # splitOptions <- splitOptions[splitOptions != "lg10Expr"]
   ## Done                                                                  ##
   ###########################################################################
   
@@ -381,7 +381,7 @@ plot_prep_server_dl <- function(
     p <- ggplot2::ggplot(
       data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
     ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
-    )+ ggplot2::geom_jitter(height = 0)
+    )+ ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
   }
   ## Done plot logic                                                       ##
   ###########################################################################

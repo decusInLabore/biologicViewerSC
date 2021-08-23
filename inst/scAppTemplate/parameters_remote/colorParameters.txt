@@ -1,0 +1,36 @@
+"menuName"	"colOption"	"colOptionName"	"colSel"	"displayOrder"
+"all"	"all"	"all"	"black"	1
+"genotype"	"KO"	"KO"	"black"	1
+"genotype"	"WT"	"WT"	"red"	2
+"isOld"	"FALSE"	"FALSE"	"red"	1
+"isOld"	"TRUE"	"TRUE"	"black"	2
+"longTag"	"PRO513A1_KO_infected"	"PRO513A1 KO infected"	"#F8766D"	1
+"longTag"	"PRO513A2_WT_uninfected"	"PRO513A2 WT uninfected"	"#CD9600"	2
+"longTag"	"PRO513A3_KO_uninfected"	"PRO513A3 KO uninfected"	"#7CAE00"	3
+"longTag"	"PRO513A4_WT_infected"	"PRO513A4 WT infected"	"#00BE67"	4
+"longTag"	"PRO513A5_WT_infected"	"PRO513A5 WT infected"	"#00BFC4"	5
+"longTag"	"PRO513A6_KO_infected"	"PRO513A6 KO infected"	"#00A9FF"	6
+"longTag"	"PRO513A7_WT_uninfected"	"PRO513A7 WT uninfected"	"#C77CFF"	7
+"longTag"	"PRO513A8_KO_uninfected"	"PRO513A8 KO uninfected"	"#FF61CC"	8
+"orig.ident"	"PRO513A1"	"PRO513A1"	"#F8766D"	1
+"orig.ident"	"PRO513A2"	"PRO513A2"	"#CD9600"	2
+"orig.ident"	"PRO513A3"	"PRO513A3"	"#7CAE00"	3
+"orig.ident"	"PRO513A4"	"PRO513A4"	"#00BE67"	4
+"orig.ident"	"PRO513A5"	"PRO513A5"	"#00BFC4"	5
+"orig.ident"	"PRO513A6"	"PRO513A6"	"#00A9FF"	6
+"orig.ident"	"PRO513A7"	"PRO513A7"	"#C77CFF"	7
+"orig.ident"	"PRO513A8"	"PRO513A8"	"#FF61CC"	8
+"quadrant"	"KO_infected"	"KO infected"	"#F8766D"	1
+"quadrant"	"KO_uninfected"	"KO uninfected"	"#7CAE00"	2
+"quadrant"	"WT_infected"	"WT infected"	"#00BFC4"	3
+"quadrant"	"WT_uninfected"	"WT uninfected"	"#C77CFF"	4
+"tag"	"PRO513A1"	"PRO513A1"	"#F8766D"	1
+"tag"	"PRO513A2"	"PRO513A2"	"#CD9600"	2
+"tag"	"PRO513A3"	"PRO513A3"	"#7CAE00"	3
+"tag"	"PRO513A4"	"PRO513A4"	"#00BE67"	4
+"tag"	"PRO513A5"	"PRO513A5"	"#00BFC4"	5
+"tag"	"PRO513A6"	"PRO513A6"	"#00A9FF"	6
+"tag"	"PRO513A7"	"PRO513A7"	"#C77CFF"	7
+"tag"	"PRO513A8"	"PRO513A8"	"#FF61CC"	8
+"treatment"	"infected"	"infected"	"black"	1
+"treatment"	"uninfected"	"uninfected"	"red"	2

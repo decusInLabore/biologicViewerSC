@@ -567,8 +567,7 @@ numericOptions <- numericRes
 ###############################################################################
 
 app_server <- function(input, output, session) {
-    
-    
+  
     
     
     
@@ -644,13 +643,19 @@ app_server <- function(input, output, session) {
                     names(dfAddCol) <- gsub("colOption", input$colorBy, names(dfAddCol))
                     names(dfAddCol) <- gsub("colSel", "dotColor", names(dfAddCol))
                     
-                    dfDL <- merge(
-                        dfDL, 
-                        dfAddCol, 
-                        by.x = input$colorBy,
-                        by.y = input$colorBy, 
-                        all = TRUE
+                    dfDL <- dplyr::full_join(
+                        dfDL,
+                        dfAddCol,
+                        by=setNames(input$colorBy)
                     )
+                    
+                    # dfDL <- merge(
+                    #     dfDL,
+                    #     dfAddCol,
+                    #     by.x = input$colorBy,
+                    #     by.y = input$colorBy,
+                    #     all = TRUE
+                    # )
                     dfDL[is.na(dfDL)] <- ""
                     selVec <- c(input$colorBy, "dotColor")
                     dfDL <- unique(dfDL[,selVec])
@@ -763,8 +768,14 @@ app_server <- function(input, output, session) {
     ## Create dfTemp                                                             ##       
     createDfTemp <- reactive({
         
+        dfTemp <- dplyr::full_join(
+            createDfCoord(), 
+            createDfExprSel(), 
+            by="cellID"
+        )
         
-        dfTemp <- merge(createDfCoord(), createDfExprSel(), by.x = "cellID", by.y="cellID", all=TRUE)
+        
+        #dfTemp2 <- merge(createDfCoord(), createDfExprSel(), by.x = "cellID", by.y="cellID", all=TRUE)
         dfTemp[is.na(dfTemp)] <- 0
         dfTemp <- data.frame(dfTemp, stringsAsFactors = FALSE)
         dfTemp$gene <- as.character(dfTemp$gene)
@@ -819,17 +830,102 @@ app_server <- function(input, output, session) {
         
         #dfTemp <- dfTemp[,selVec]  
         dfTemp <- dfTemp[(dfTemp$x_axis != 0 | dfTemp$y_axis != 0),] 
-        dfTemp
+        #dfTemp
+        
+        #################
+        ## Create plot select
+        #plot_select <- reactive({
+        df <- dfTemp
+        df[["all"]] <- "all"
+        plot_select <-  as.vector(unique(df[, input$splitByColumn]))
+        #})
+        ## Done Creating plot select
+        ####################
+        
+        ####################
+        ## Create plot data names
+        plot_data_names <- sort(as.vector(unique(dfTemp[, input$splitByColumn])))
+        ##
+        ####################
+        
+        ###################
+        ## get max expr
+        #maxExpr <- reactive({
+        #  dfTemp <- createDfTemp()
+          
+          if (is.numeric(dfTemp$Dcolor)){
+            maxExpr <- max(as.vector(dfTemp$Dcolor))
+          } else{
+            maxExpr <- NULL
+          }
+      #    return(maxExpr)
+      #  })
+        
+        ##
+        ####################
+        
+        ###################
+        ## plot data
+        #plot_data <- reactive({
+        #  dfTemp <- createDfTemp()
+          
+          #plot_select <- plot_data_names()
+          
+          plot_data <- lapply(plot_data_names, function(x) dfTemp[dfTemp[,input$splitByColumn] == x,])
+        #})
+        ##
+        ###################
+        
+        ######################
+        ## min/max
+        #determinePlotDims <- reactive({
+        #  dfTemp <- createDfTemp()
+          
+          if (!is.numeric(dfTemp$x_axis)){
+            minX <- 0
+            maxX <- length(unique(dfTemp$x_axis)) + 1
+          } else {
+            maxX <- 1.1*max(dfTemp$x_axis, na.rm = T)
+            minX <- 1.1*min(dfTemp$x_axis, na.rm = T)
+          }
+          
+          if (!is.numeric(dfTemp$y_axis)){
+            minY <- 0
+            maxY <- length(unique(dfTemp$y_axis)) + 1
+          } else {
+            minY <- 1.1*min(dfTemp$y_axis, na.rm = T)
+            maxY <- 1.1*max(dfTemp$y_axis, na.rm = T)
+          }
+          
+          
+          dimVec <- c(minX, maxX, minY, maxY)
+          dimVec
+        #})
+        
+        ##
+        #######################
+        
+        returnList <- list(
+            "dfTemp" = dfTemp,
+            "plot_select" = plot_select,
+            "plot_data_names" = plot_data_names,
+            "plot_data" = plot_data,
+            "maxExpr" = maxExpr,
+            "dimVec" = dimVec
+        )
+        
+        return(returnList)
+        
     })
     ##                                                                           ##
     ###############################################################################
     
     
-    plot_select <- reactive({
-        df <- createDfTemp()
-        df[["all"]] <- "all"
-        as.vector(unique(df[, input$splitByColumn]))
-    })
+    # plot_select <- reactive({
+    #     df <- createDfTemp()
+    #     df[["all"]] <- "all"
+    #     as.vector(unique(df[, input$splitByColumn]))
+    # })
     
     
     
@@ -951,74 +1047,74 @@ app_server <- function(input, output, session) {
     # })
     
     
-    plot_data_names <- reactive({
-        dfTemp <- createDfTemp()
-        
-        plot_select <- sort(as.vector(unique(dfTemp[, input$splitByColumn])))
-        
-        # wtPos <- unique(c(
-        #     grep("wt", plot_select),
-        #     grep("WT", plot_select),
-        #     grep("Wt", plot_select),
-        #     grep("Ctrl", plot_select),
-        #     grep("CTRL", plot_select)
-        # ))
-        # 
-        # if (length(wtPos) > 0){
-        #     plot_select <- c(
-        #         plot_select[wtPos],
-        #         plot_select[-wtPos]
-        #     )
-        # }
-        
-        plot_select
-    })
+    # plot_data_names <- reactive({
+    #     dfTemp <- createDfTemp()
+    #     
+    #     plot_select <- sort(as.vector(unique(dfTemp[, input$splitByColumn])))
+    #     
+    #     # wtPos <- unique(c(
+    #     #     grep("wt", plot_select),
+    #     #     grep("WT", plot_select),
+    #     #     grep("Wt", plot_select),
+    #     #     grep("Ctrl", plot_select),
+    #     #     grep("CTRL", plot_select)
+    #     # ))
+    #     # 
+    #     # if (length(wtPos) > 0){
+    #     #     plot_select <- c(
+    #     #         plot_select[wtPos],
+    #     #         plot_select[-wtPos]
+    #     #     )
+    #     # }
+    #     
+    #     plot_select
+    # })
     
-    maxExpr <- reactive({
-        dfTemp <- createDfTemp()
-        
-        if (is.numeric(dfTemp$Dcolor)){
-            maxExpr <- max(as.vector(dfTemp$Dcolor))
-        } else{
-            maxExpr <- NULL
-        }
-        return(maxExpr)
-    })
+    # maxExpr <- reactive({
+    #     dfTemp <- createDfTemp()
+    #     
+    #     if (is.numeric(dfTemp$Dcolor)){
+    #         maxExpr <- max(as.vector(dfTemp$Dcolor))
+    #     } else{
+    #         maxExpr <- NULL
+    #     }
+    #     return(maxExpr)
+    # })
     
-    plot_data <- reactive({
-        dfTemp <- createDfTemp()
-        
-        plot_select <- plot_data_names()
-        
-        lapply(plot_select, function(x) dfTemp[dfTemp[,input$splitByColumn] == x,])
-    })
-    
-    
+    # plot_data <- reactive({
+    #     dfTemp <- createDfTemp()
+    #     
+    #     plot_select <- plot_data_names()
+    #     
+    #     lapply(plot_select, function(x) dfTemp[dfTemp[,input$splitByColumn] == x,])
+    # })
     
     
-    determinePlotDims <- reactive({
-        dfTemp <- createDfTemp()
-        
-        if (!is.numeric(dfTemp$x_axis)){
-            minX <- 0
-            maxX <- length(unique(dfTemp$x_axis)) + 1
-        } else {
-            maxX <- 1.1*max(dfTemp$x_axis, na.rm = T)
-            minX <- 1.1*min(dfTemp$x_axis, na.rm = T)
-        }
-        
-        if (!is.numeric(dfTemp$y_axis)){
-            minY <- 0
-            maxY <- length(unique(dfTemp$y_axis)) + 1
-        } else {
-            minY <- 1.1*min(dfTemp$y_axis, na.rm = T)
-            maxY <- 1.1*max(dfTemp$y_axis, na.rm = T)
-        }
-        
-        
-        dimVec <- c(minX, maxX, minY, maxY)
-        dimVec
-    })
+    
+    
+    # determinePlotDims <- reactive({
+    #     dfTemp <- createDfTemp()
+    #     
+    #     if (!is.numeric(dfTemp$x_axis)){
+    #         minX <- 0
+    #         maxX <- length(unique(dfTemp$x_axis)) + 1
+    #     } else {
+    #         maxX <- 1.1*max(dfTemp$x_axis, na.rm = T)
+    #         minX <- 1.1*min(dfTemp$x_axis, na.rm = T)
+    #     }
+    #     
+    #     if (!is.numeric(dfTemp$y_axis)){
+    #         minY <- 0
+    #         maxY <- length(unique(dfTemp$y_axis)) + 1
+    #     } else {
+    #         minY <- 1.1*min(dfTemp$y_axis, na.rm = T)
+    #         maxY <- 1.1*max(dfTemp$y_axis, na.rm = T)
+    #     }
+    #     
+    #     
+    #     dimVec <- c(minX, maxX, minY, maxY)
+    #     dimVec
+    # })
     
     
     
@@ -1026,10 +1122,20 @@ app_server <- function(input, output, session) {
     observeEvent(reactiveValuesToList(input), {
     #observeEvent(toListen(), {
         #req(!is.null(input$splitByColumn))
-        req(plot_data())
+        plotList <- createDfTemp()
         
+        print(names(plotList))
+        print(lapply(plotList, dim))
         
-        dimVec <- determinePlotDims()
+        plot_data <- plotList[["plot_data"]]
+        #dimVec <- plotList[["dimVec"]]
+        plot_data_names <- plotList[["plot_data_names"]]
+        maxExpr <- plotList[["maxExpr"]]
+        
+        req(plot_data)
+        
+        dimVec <- plotList[["dimVec"]]
+        #dimVec <- determinePlotDims()
         maxX = dimVec[2]
         minX = dimVec[1]
         maxY = dimVec[4]
@@ -1038,7 +1144,7 @@ app_server <- function(input, output, session) {
         
         output$multi_plot_ui <- renderUI({
             
-            lapply(seq_along(plot_data() ),
+            lapply(seq_along(plot_data),
                    function(n) {
                        return(plot_prep_ui(paste0("n", n)))
                    })
@@ -1047,12 +1153,12 @@ app_server <- function(input, output, session) {
         
         
         
-        lapply(seq_along(plot_data()),
+        lapply(seq_along(plot_data),
                function(i){
                    callModule(plot_prep_server,
                               paste0("n", i),
-                              df = plot_data()[[i]],
-                              plot_name = paste0(plot_data_names()[i]), 
+                              df = plot_data[[i]],
+                              plot_name = paste0(plot_data_names[i]), 
                               colorBy = input$colorBy,
                               dotsize = input$dotsize,
                               lowColor = input$lowColor, 
@@ -1065,19 +1171,19 @@ app_server <- function(input, output, session) {
                               maxY = maxY,
                               minY = minY,
                               geneSel = input$gene,
-                              maxExpr = maxExpr(),
+                              maxExpr = maxExpr,
                               showPlotLegend = input$showPlotLegend
                    )
                }
         )
         
         ## Make plot list for download
-        res <- lapply(seq_along(plot_data()),
+        res <- lapply(seq_along(plot_data),
                       function(i){
                           callModule(plot_prep_server_dl,
                                      paste0("n", i),
-                                     df = plot_data()[[i]],
-                                     plot_name = paste0(plot_data_names()[i]), 
+                                     df = plot_data[[i]],
+                                     plot_name = paste0(plot_data_names[i]), 
                                      colorBy = input$colorBy,
                                      dotsize = input$dotsize,
                                      lowColor = input$lowColor, 
@@ -1090,7 +1196,7 @@ app_server <- function(input, output, session) {
                                      maxY = maxY,
                                      minY = minY,
                                      geneSel = input$gene,
-                                     maxExpr = maxExpr(),
+                                     maxExpr = maxExpr,
                                      showPlotLegend = input$showPlotLegend
                           )
                       }
