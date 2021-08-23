@@ -538,20 +538,9 @@ app_ui <- function(request) {
         "biologic SC",   
         
         tabPanel("FeatureView", 
-            sidebarPanel(
-                mod_FeatureViewSidebar_ui("FeatureViewSidebar_ui_1")
-                
-            ),
-            mainPanel(
-                fluidRow(
-                    textOutput("dev_text")
-                ),
-                fluidRow(
-                    column(8,
-                        uiOutput("multi_plot_ui")
-                    )
-                )
-            )
+            # sidebarPanel(
+                mod_FeatureViewSidebar_ui("FeatureViewSidebar_ui_1"),
+            
         ),
         # tabPanel("Downloads", 
         #         sidebarPanel("sidebar panel 2"),
@@ -560,9 +549,11 @@ app_ui <- function(request) {
         #         )
         # ),
         # tabPanel("CategoryView", "three"),
+        tabPanel("About this Dataviewer", mod_about_ui("about_ui_1")),
+        
         navbarMenu("Settings", 
-                   tabPanel("Set Colors", "four-a"),
-                   tabPanel("About", "four-b")
+                   tabPanel("Color Setting", "Color Settings"),
+                   tabPanel("Other Settings", "Other Settings")
         )
     ) ## End Navbar Parge
     ## End new
@@ -593,14 +584,32 @@ golem_add_external_resources <- function(){
     'www', app_sys('app/www')
   )
  
+
+  
   tags$head(
     tags$link(rel="shortcut icon", href="www/favicon.ico"),
     bundle_resources(
-      path = app_sys('app/www'),
-      app_title = 'biologicSC'
-    )
-    # Add here other external resources
-    # for example, you can add shinyalert::useShinyalert() 
+      app_title = "biologicSC",
+      path = app_sys('app/www')
+    ),
+    
+    # Add here all the external resources
+    # If you have a custom.css in the inst/app/www
+    # Or for example, you can add shinyalert::useShinyalert() here
+    # tags$link(
+    #   rel="stylesheet", 
+    #   type="text/css", 
+    #   href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
+    #   integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T",
+    #   crossorigin="anonymous"
+    # ), 
+     
+    tags$link(
+      rel="stylesheet", 
+      type="text/css", 
+      href="www/custom.css"
+    ) 
+    
   )
 }
 
