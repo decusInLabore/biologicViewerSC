@@ -1,2 +1,0 @@
-"type"	"dataMode"	"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"S100b"
-"main"	"MySQL"	"10.27.241.82"	"GliaIfngrKO_aUs"	"LQs2hGDX"	"vpl_data"	"GliaIfngrKO_PCA"	"GliaIfngrKO_gene_expr_tb"	"GliaIfngrKO_geneID_tb"	"SILI"
