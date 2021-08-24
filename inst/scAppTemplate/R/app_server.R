@@ -646,7 +646,7 @@ app_server <- function(input, output, session) {
                     dfDL <- dplyr::full_join(
                         dfDL,
                         dfAddCol,
-                        by=setNames(input$colorBy)
+                        by= input$colorBy
                     )
                     
                     # dfDL <- merge(

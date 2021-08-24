@@ -24,7 +24,11 @@ mod_FeatureViewSidebar_ui <- function(id){
                    label = "Gene or Category Selection",
                    choices = NULL, #c(as.vector(sort(unique(allGenes)))),
                    selected = geneDefault,
-                   options = list(maxOptions = 50, create=TRUE))
+                   options = list(
+                     maxOptions = 50 #, 
+                     # create=TRUE
+                   )
+      )
     ),
     
     #uiOutput("dropDownPanel"),
