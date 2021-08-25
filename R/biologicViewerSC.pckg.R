@@ -170,7 +170,7 @@ setGeneric(
   def=function(
     obj,
     NmaxSplit = 25,
-    NcatColorMax = 25
+    NcatColorMax = 40
   ) {
     
     ###########################################################################
@@ -226,32 +226,32 @@ setGeneric(
     names(allOptions) <- gsub("[.]", "_", allOptions)
     
     
-    rmNameVec <-c(
-      "^DC",
-      "uniquecellID",
-      "hmIdent",
-      "old_ident",
-      "cellID", 
-      "sample_group",
-      "DF_pANN",
-      "clusterColor",
-      "sampleColor",
-      "clustIdent",
-      "G2M_Score",
-      #"DM_Pseudotime",
-      "^Sub_clusters_ExNeurons$",
-      "sample_group_colors",
-      "row_names",
-      "sampleID"
-    )
+    # rmNameVec <-c(
+    #   "^DC",
+    #   "uniquecellID",
+    #   "hmIdent",
+    #   "old_ident",
+    #   "cellID", 
+    #   "sample_group",
+    #   "DF_pANN",
+    #   "clusterColor",
+    #   "sampleColor",
+    #   "clustIdent",
+    #   "G2M_Score",
+    #   #"DM_Pseudotime",
+    #   "^Sub_clusters_ExNeurons$",
+    #   "sample_group_colors",
+    #   "row_names",
+    #   "sampleID"
+    # )
     
-    rmVec <- as.vector(NULL, mode = "numeric")
-    for (i in 1:length(rmNameVec)){
-      rmVec <- c(
-        rmVec,
-        grep(rmNameVec[i], allOptions)
-      )
-    }
+    # rmVec <- as.vector(NULL, mode = "numeric")
+    # for (i in 1:length(rmNameVec)){
+    #   rmVec <- c(
+    #     rmVec,
+    #     grep(rmNameVec[i], allOptions)
+    #   )
+    # }
     
     XYsel <- allOptions
     if (length(rmVec) > 0){
@@ -290,6 +290,7 @@ setGeneric(
     ## Now cretate split by options ##
     
     catOptions <- as.vector(NULL, mode = "character")
+    fullCatOptions <- names(obj@meta.data)
     for (i in 1:ncol(obj@meta.data)){
       if (length(unique(obj@meta.data[,i])) <= NmaxSplit){
         catOptions <- c(
@@ -297,6 +298,8 @@ setGeneric(
           names(obj@meta.data)[i]
         )
       }
+      
+      
     }
     
     
@@ -400,20 +403,19 @@ setGeneric(
       colorByOptions <- colorByOptions[-rmVec]
     }
     
-    colorByOptionsPart1 <- c(
-      grep("clusterName", colorByOptions),
-      grep("seurat_clusters", colorByOptions),
-      grep("sampleName", colorByOptions)
-    )
-    
-    if (length(colorByOptionsPart1) > 0){
-      colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-    }
+    # colorByOptionsPart1 <- c(
+    #   grep("clusterName", colorByOptions),
+    #   grep("seurat_clusters", colorByOptions),
+    #   grep("sampleName", colorByOptions)
+    # )
+    # # 
+    # if (length(colorByOptionsPart1) > 0){
+    #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+    # }
     
     colorDisplayOptions <- c(
       "lg10Expr",
-      colorByOptions[colorByOptionsPart1],
-      sort(colorByOptionsPart2)
+      colorByOptions
     )
     
     names(colorDisplayOptions) <- colorDisplayOptions
@@ -442,10 +444,12 @@ setGeneric(
     
     colorVec <- paramList[["colorPlotsBy"]]
     
-    Nopt <- apply(obj@meta.data[,splitOptions], 2, function(x) length(unique(x)))
+    Nopt <- apply(obj@meta.data, 2, function(x) length(unique(x)))
     Nopt <- sort(Nopt[Nopt < NcatColorMax], decreasing = F)
     
-    numOptions <- names(obj@meta.data)[!(names(obj@meta.data)) %in% splitOptions]
+    
+    
+    numOptions <- names(obj@meta.data)[unlist(lapply(obj@meta.data, is.numeric))]
     numOptions <- c(
       "lg10Expr",
       numOptions
