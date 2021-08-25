@@ -936,25 +936,30 @@ seuratObjectToLocalViewer <- function(
       colorByOptions <- colorByOptions[-rmVec]
     }
     
-    colorByOptionsPart1 <- c(
-      grep("clusterName", colorByOptions),
-      grep("seurat_clusters", colorByOptions),
-      grep("sampleName", colorByOptions)
+    colorDisplayOptions <- c(
+      "lg10Expr",
+      colorByOptions
     )
     
-    if (length(colorByOptionsPart1) > 0){
-      colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-      colorDisplayOptions <- c(
-        "lg10Expr",
-        colorByOptions[colorByOptionsPart1],
-        colorByOptionsPart2
-      )
-    } else {
-      colorDisplayOptions <- c(
-        "lg10Expr",
-        colorByOptions[colorByOptionsPart1]
-      )
-    }
+    # colorByOptionsPart1 <- c(
+    #   grep("clusterName", colorByOptions),
+    #   grep("seurat_clusters", colorByOptions),
+    #   grep("sampleName", colorByOptions)
+    # )
+    # 
+    # if (length(colorByOptionsPart1) > 0){
+    #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+    #   colorDisplayOptions <- c(
+    #     "lg10Expr",
+    #     colorByOptions[colorByOptionsPart1],
+    #     colorByOptionsPart2
+    #   )
+    # } else {
+    #   colorDisplayOptions <- c(
+    #     "lg10Expr",
+    #     colorByOptions[colorByOptionsPart1]
+    #   )
+    # }
     
     
     
@@ -1368,26 +1373,32 @@ seuratObjectToViewer <- function(
     colorByOptions <- colorByOptions[-rmVec]
   }
   
-  colorByOptionsPart1 <- c(
-    grep("clusterName", colorByOptions),
-    grep("seurat_clusters", colorByOptions),
-    grep("sampleName", colorByOptions)
+  
+  colorDisplayOptions <- c(
+      "lg10Expr",
+      colorByOptions
   )
   
-  
-  if (length(colorByOptionsPart1) > 0){
-    colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-    colorDisplayOptions <- c(
-      "lg10Expr",
-      colorByOptions[colorByOptionsPart1],
-      colorByOptionsPart2
-    )
-  } else {
-    colorDisplayOptions <- c(
-      "lg10Expr",
-      colorByOptions[colorByOptionsPart1]
-    )
-  }
+  # colorByOptionsPart1 <- c(
+  #   grep("clusterName", colorByOptions),
+  #   grep("seurat_clusters", colorByOptions),
+  #   grep("sampleName", colorByOptions)
+  # )
+  # 
+  # 
+  # if (length(colorByOptionsPart1) > 0){
+  #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+  #   colorDisplayOptions <- c(
+  #     "lg10Expr",
+  #     colorByOptions[colorByOptionsPart1],
+  #     colorByOptionsPart2
+  #   )
+  # } else {
+  #   colorDisplayOptions <- c(
+  #     "lg10Expr",
+  #     colorByOptions[colorByOptionsPart1]
+  #   )
+  # }
   
   # if (length(colorByOptionsPart1) > 0){
   #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
