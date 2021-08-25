@@ -254,9 +254,9 @@ setGeneric(
     # }
     
     XYsel <- allOptions
-    if (length(rmVec) > 0){
-      XYsel <- XYsel[-rmVec]
-    }
+    # if (length(rmVec) > 0){
+    #   XYsel <- XYsel[-rmVec]
+    # }
     
     XYorder <- c(
       XYsel[grep("UMAP_", toupper(XYsel))],
