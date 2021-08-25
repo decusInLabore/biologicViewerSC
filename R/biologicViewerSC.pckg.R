@@ -947,7 +947,7 @@ seuratObjectToLocalViewer <- function(
       colorDisplayOptions <- c(
         "lg10Expr",
         colorByOptions[colorByOptionsPart1],
-        sort(colorByOptionsPart2)
+        colorByOptionsPart2
       )
     } else {
       colorDisplayOptions <- c(
@@ -1380,7 +1380,7 @@ seuratObjectToViewer <- function(
     colorDisplayOptions <- c(
       "lg10Expr",
       colorByOptions[colorByOptionsPart1],
-      sort(colorByOptionsPart2)
+      colorByOptionsPart2
     )
   } else {
     colorDisplayOptions <- c(
