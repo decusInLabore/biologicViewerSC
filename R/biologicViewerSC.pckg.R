@@ -1374,15 +1374,32 @@ seuratObjectToViewer <- function(
     grep("sampleName", colorByOptions)
   )
   
+  
   if (length(colorByOptionsPart1) > 0){
     colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+    colorDisplayOptions <- c(
+      "lg10Expr",
+      colorByOptions[colorByOptionsPart1],
+      sort(colorByOptionsPart2)
+    )
+  } else {
+    colorDisplayOptions <- c(
+      "lg10Expr",
+      sort(colorByOptionsPart2)
+    )
   }
   
-  colorDisplayOptions <- c(
-    "lg10Expr",
-    colorByOptions[colorByOptionsPart1],
-    sort(colorByOptionsPart2)
-  )
+  # if (length(colorByOptionsPart1) > 0){
+  #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
+  # }
+  # 
+  # 
+  # 
+  # colorDisplayOptions <- c(
+  #   "lg10Expr",
+  #   colorByOptions[colorByOptionsPart1],
+  #   sort(colorByOptionsPart2)
+  # )
   
   names(colorDisplayOptions) <- colorDisplayOptions
   names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
