@@ -136,6 +136,8 @@ DBI::dbDisconnect(dbDB)
 
 ## Add column for all values
 dfCoordSel[["all"]] <- "all"
+
+numCols <- c("lg10Expr", names(dfCoordSel)[unlist(lapply(dfCoordSel, is.numeric))])
 ##                                                                           ##
 ###############################################################################
 

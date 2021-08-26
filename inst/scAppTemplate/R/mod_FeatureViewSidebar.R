@@ -80,14 +80,14 @@ mod_FeatureViewSidebar_ui <- function(id){
     #####################################################################
     ## Query color input based on 'colorBy' selection                  ##
     conditionalPanel(
-      condition = paste0("input.colorBy == '",numOptions,"'", collapse = "||"),
+      condition = paste0("input.colorBy == '",numCols[numCols %in% as.vector(dropDownList[["colorBy"]][["selOptions"]])],"'", collapse = "||"),
       colourInput("dotcolor", "Select Low Color", "darkblue"),
       colourInput("lowColor", "Select High color", "#D3D3D3")
     ),
     
     
     conditionalPanel(
-      condition = paste0("input.colorBy == '",splitOptions,"'", collapse = "||"),
+      condition = paste0("input.colorBy != '",numCols[numCols %in% as.vector(dropDownList[["colorBy"]][["selOptions"]])],"'", collapse = "&"),
       
       uiOutput("clusterColorPanel")
       
