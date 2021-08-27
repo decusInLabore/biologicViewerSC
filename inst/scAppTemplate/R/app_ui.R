@@ -474,7 +474,7 @@ names(splitOptions) <- gsub("all", "None", names(splitOptions) )
 # names(splitOptions) <- gsub("clusterName", "Cluster", names(splitOptions) )
 # names(splitOptions) <- gsub("all", "None", names(splitOptions) )
 
-numOptions <- names(dfCoordSel)[!(names(dfCoordSel)) %in% splitOptions]
+numOptions <- c("lg10Expr", names(dfCoordSel)[unlist(lapply(dfCoordSel, is.numeric))])
 numOptions <- c(
   "lg10Expr",
   numOptions

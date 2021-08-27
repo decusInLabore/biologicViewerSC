@@ -8,7 +8,13 @@
 #' @import ggplot2
 #' @import colourpicker
 #' @import scales
- 
+
+
+###############################################################################
+###############################################################################
+## Chapter I - Loading Parameters                                            ##
+###############################################################################
+###############################################################################
 
 ###############################################################################
 ## Load parameter file if available                                          ##
@@ -70,10 +76,12 @@ FNkey <- "data/connect/db.txt"
 FNrda <- "data/dfkey.rda"
 
 if (file.exists(FNkey)){
+    ## Option to be used if installed as local app ##
     dfkey <- read.delim(FNkey, stringsAsFactors = F, sep="\t")
 } else if (file.exists(FNrda)){
     load(FNrda)
 } else {
+    ## Option to be used if this is installed as R-package ##
     data("dfkey")
 } 
 
@@ -87,6 +95,7 @@ coordinateTbName <- as.character(dfkey$coordTb)
 exprTbName <- as.character(dfkey$exprTb)
 geneID_TbName <- as.character(dfkey$geneTb)
 
+## Decide on database mode ##
 pos <- grep("dataMode", names(dfkey))
 if (length(pos) == 1){
     if (dfkey$dataMode == "SQLite"){
@@ -172,6 +181,15 @@ dfCoordSel <- DBI::dbGetQuery(dbDB, query)
 DBI::dbDisconnect(dbDB)
 
 dfCoordSel[["all"]] <- "all"
+
+numOptions <- c("lg10Expr", names(dfCoordSel)[unlist(lapply(dfCoordSel, is.numeric))])
+numOptions <- c(
+  "lg10Expr",
+  numOptions
+)
+
+
+
 
 ###############################################################################
 ## Create order in which samples are displayed                               ##
@@ -510,11 +528,6 @@ names(splitOptions) <- gsub("all", "None", names(splitOptions) )
 # names(splitOptions) <- gsub("clusterName", "Cluster", names(splitOptions) )
 # names(splitOptions) <- gsub("all", "None", names(splitOptions) )
 
-numOptions <- names(dfCoordSel)[!(names(dfCoordSel)) %in% splitOptions]
-numOptions <- c(
-    "lg10Expr",
-    numOptions
-)
 
 if (length(splitOptions[splitOptions == "all"]) > 0){
     names(splitOptions[splitOptions == "all"]) <- "None"
@@ -548,33 +561,27 @@ Nopt <- sort(Nopt[Nopt < 51], decreasing = F)
 
 
 factorOptions <- splitOptions
-numericOptions <- allColorOptions[!(allColorOptions %in% factorOptions)]
-numericOptions <- numericOptions[numericOptions != "lg10Expr"]
-    
-numericRes <- as.vector(NULL, mode = "character")
-for (i in 1:length(numericOptions)){
-    if (is.numeric(dfCoordSel[,numericOptions[i]])){
-        numericRes <- c(
-            numericRes,
-            numericOptions[i]
-        )
-    }
-}
-numericOptions <- numericRes
+numericOptions <- numOptions
+# numericOptions <- numericOptions[numericOptions != "lg10Expr"]
+#     
+# numericRes <- as.vector(NULL, mode = "character")
+# for (i in 1:length(numericOptions)){
+#     if (is.numeric(dfCoordSel[,numericOptions[i]])){
+#         numericRes <- c(
+#             numericRes,
+#             numericOptions[i]
+#         )
+#     }
+# }
+# numericOptions <- numericRes
 
 
 ## Done                                                                      ##
 ###############################################################################
 
 app_server <- function(input, output, session) {
-  
-    
-    
-    
-    
-    ###############################################################################
-    ## Load dfCoord from db                                                      ##
-    
+###############################################################################
+## Load dfCoord from db                                                      ##
     createDfCoord <- reactive({
         oldw <- getOption("warn")
         options(warn = -1)
@@ -617,17 +624,18 @@ app_server <- function(input, output, session) {
         dfCoordSel
         
     })
-    #end_time <- Sys.time()
-    #print(paste0("Q S1 DBQ Coordinates: ",end_time - start_time))
-    ##                                                                           ##
-    ###############################################################################
+#end_time <- Sys.time()
+#print(paste0("Q S1 DBQ Coordinates: ",end_time - start_time))
+##                                                                           ##
+###############################################################################
     
-    ###############################################################################
-    ## Create Color Table                                                        ##
+###############################################################################
+## Create Color Table                                                        ##
     
     dfColorTable <- reactive({
         dfDL <- createDfCoord()
-        
+        ## Create dummy log10 Expr
+        dfDL[["lg10Expr"]] <- "A1"
         #######################################################################
         ## Check if colors are available                                     ##
         colorAnnoFound <- FALSE
@@ -649,13 +657,6 @@ app_server <- function(input, output, session) {
                         by= input$colorBy
                     )
                     
-                    # dfDL <- merge(
-                    #     dfDL,
-                    #     dfAddCol,
-                    #     by.x = input$colorBy,
-                    #     by.y = input$colorBy,
-                    #     all = TRUE
-                    # )
                     dfDL[is.na(dfDL)] <- ""
                     selVec <- c(input$colorBy, "dotColor")
                     dfDL <- unique(dfDL[,selVec])
@@ -667,23 +668,11 @@ app_server <- function(input, output, session) {
         } 
         
         
+        
         ## Done                                                              ##
         #######################################################################
         
         
-       
-        dfDL[["lg10Expr"]] <- "A1"
-        
-        # if (input$colorBy == "sampleName"){
-        #     selVec <- unique(c("sampleName", "sampleColor", "dotColor"))
-        #     dfDL <- unique(dfDL[,selVec])
-        #     dfDL$dotColor <- dfDL$sampleColor
-        #     
-        # } else if (input$colorBy == "clusterName"){
-        #     selVec <- unique(c("clusterName", "seurat_clusters", "clusterColor", "dotColor"))
-        #     dfDL <- unique(dfDL[,selVec])
-        #     dfDL$dotColor <- dfDL$clusterColor
-        # } else {
         if(!colorAnnoFound) {
             dfDL[["dotColor"]] <- "#000000"
             selVec <- c(input$colorBy, "dotColor")
@@ -693,8 +682,6 @@ app_server <- function(input, output, session) {
                 
             dfDL[["dotColor"]] <- scales::hue_pal()(nrow(dfDL))
         }
-            
-        #}
         
         dfDL <- dfDL[dfDL[,input$colorBy] != "", ]
         dfDL <- dfDL[!is.na(dfDL[,input$colorBy]), ]
@@ -711,10 +698,10 @@ app_server <- function(input, output, session) {
     ## Done retrieving Coordinates
     #########################################################################
     
-    ###########################################################################
-    ## Database query for dfExpr                                             ##
-    ## create agl315_gene_expr_tb
-    #start_time <- Sys.time()
+###############################################################################
+## Database query for dfExpr                                                 ##
+## create agl315_gene_expr_tb
+#start_time <- Sys.time()
     createDfExprSel <- reactive({
         oldw <- getOption("warn")
         options(warn = -1)
@@ -761,11 +748,11 @@ app_server <- function(input, output, session) {
     #end_time <- Sys.time()
     #print(paste0("Q S2 agl315_gene_expr_tb: ",end_time - start_time))
     #paste0("SELECT DISTINCT gene, condition, expr FROM agl315_gene_expr_tb WHERE gene = '",input$gene,"'" )
-    ## Done db query                                                         ##
-    ###########################################################################
+## Done db query                                                             ##
+###############################################################################
     
-    ###############################################################################
-    ## Create dfTemp                                                             ##       
+###############################################################################
+## Create dfTemp                                                             ##       
     createDfTemp <- reactive({
         
         dfTemp <- dplyr::full_join(
@@ -773,6 +760,18 @@ app_server <- function(input, output, session) {
             createDfExprSel(), 
             by="cellID"
         )
+        
+        dfTemp[["Dcolor"]] <- dfTemp[,input$colorBy]
+        
+        if (!(input$colorBy %in% numOptions)){
+            dfTemp <- dplyr::full_join(
+              dfTemp, 
+              dfColorTable(), 
+              by= input$colorBy
+            )
+        } else {
+            dfTemp[["dotColor"]] <- "#000000"
+        }
         
         
         #dfTemp2 <- merge(createDfCoord(), createDfExprSel(), by.x = "cellID", by.y="cellID", all=TRUE)
@@ -784,28 +783,6 @@ app_server <- function(input, output, session) {
         
         #######################################################################
         ## Check if custom colors are to be used                             ##
-        
-        dfTemp[["Dcolor"]] <- dfTemp[,input$colorBy]
-        
-        dfTemp[["dotColor"]] <- "#000000"
-        
-        #if (input$colorBy == "clusterName"){
-        #    dfTemp[["dotColor"]] <- dfTemp[["clusterColor"]]
-        #} else if (input$colorBy == "sampleName"){
-        #    dfTemp[["dotColor"]] <- dfTemp[["sampleColor"]]
-        #}
-        
-        inInput <- names(input)[names(input) %in% unique(dfTemp[[input$colorBy]])]
-        if (length(inInput) > 0){
-            for (k in 1:length(inInput)){
-                dfTemp[dfTemp[,input$colorBy] == inInput[k], "dotColor"] <- input[[inInput[[k]]]]
-            }
-
-        }
-        
-       
-        ## Done                                                              ##
-        #######################################################################
         
         pos <- grep(paste0("^", input$x_axis, "$"), names(dfTemp))
         if (length(pos) > 0){
@@ -921,41 +898,14 @@ app_server <- function(input, output, session) {
     ###############################################################################
     
     
-    # plot_select <- reactive({
-    #     df <- createDfTemp()
-    #     df[["all"]] <- "all"
-    #     as.vector(unique(df[, input$splitByColumn]))
-    # })
     
-    
-    
-    
-    
-    # library(DT)
-    # 
-    # output$table5 <- DT::renderDataTable({
-    #     plot_data()[[1]]
-    # }) 
     observe({
         updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE, selected=geneDefault) 
     })
     
-    
-    # onBookmarked(function(url) {
-    #     updateQueryString(url)
-    # })
-    
     onRestored(function(state) {
         updateSelectizeInput(session, "gene", selected=state$input$gene, choices=allGenes, server=TRUE)
     })
-    #https://github.com/rstudio/shiny/issues/1375
-    # onRestore(function(state) {
-    #     if (!is.null(state$input$addButton) && state$input$addButton > 0) {
-    #         updateSelectizeInput(session, "gene", choices = allGenes,
-    #                              selected = state$input$gene, server = TRUE)
-    #     }
-    # })
-    # 
     
     
     ###################################################################
@@ -996,7 +946,7 @@ app_server <- function(input, output, session) {
     ###################################################################
     
     observe({
-        if (!(input$colorBy %in% numericOptions)){
+        if (!(input$colorBy %in% numOptions)){
             dfColorTable <-  dfColorTable()
             
             nameCol <- names(dfColorTable)[1]
@@ -1028,154 +978,59 @@ app_server <- function(input, output, session) {
     
     
     
-    
-    
-    
-    # toListen <- reactive({
-    #     list(
-    #         input$gene,
-    #         input$x_axis,
-    #         input$y_axis,
-    #         input$splitByColumn,
-    #         input$dotsize,
-    #         input$colorBy,
-    #         input$lowColor, 
-    #         input$dotcolor,
-    #         input$background,
-    #         input$Epip6
-    #     )
-    # })
-    
-    
-    # plot_data_names <- reactive({
-    #     dfTemp <- createDfTemp()
-    #     
-    #     plot_select <- sort(as.vector(unique(dfTemp[, input$splitByColumn])))
-    #     
-    #     # wtPos <- unique(c(
-    #     #     grep("wt", plot_select),
-    #     #     grep("WT", plot_select),
-    #     #     grep("Wt", plot_select),
-    #     #     grep("Ctrl", plot_select),
-    #     #     grep("CTRL", plot_select)
-    #     # ))
-    #     # 
-    #     # if (length(wtPos) > 0){
-    #     #     plot_select <- c(
-    #     #         plot_select[wtPos],
-    #     #         plot_select[-wtPos]
-    #     #     )
-    #     # }
-    #     
-    #     plot_select
-    # })
-    
-    # maxExpr <- reactive({
-    #     dfTemp <- createDfTemp()
-    #     
-    #     if (is.numeric(dfTemp$Dcolor)){
-    #         maxExpr <- max(as.vector(dfTemp$Dcolor))
-    #     } else{
-    #         maxExpr <- NULL
-    #     }
-    #     return(maxExpr)
-    # })
-    
-    # plot_data <- reactive({
-    #     dfTemp <- createDfTemp()
-    #     
-    #     plot_select <- plot_data_names()
-    #     
-    #     lapply(plot_select, function(x) dfTemp[dfTemp[,input$splitByColumn] == x,])
-    # })
-    
-    
-    
-    
-    # determinePlotDims <- reactive({
-    #     dfTemp <- createDfTemp()
-    #     
-    #     if (!is.numeric(dfTemp$x_axis)){
-    #         minX <- 0
-    #         maxX <- length(unique(dfTemp$x_axis)) + 1
-    #     } else {
-    #         maxX <- 1.1*max(dfTemp$x_axis, na.rm = T)
-    #         minX <- 1.1*min(dfTemp$x_axis, na.rm = T)
-    #     }
-    #     
-    #     if (!is.numeric(dfTemp$y_axis)){
-    #         minY <- 0
-    #         maxY <- length(unique(dfTemp$y_axis)) + 1
-    #     } else {
-    #         minY <- 1.1*min(dfTemp$y_axis, na.rm = T)
-    #         maxY <- 1.1*max(dfTemp$y_axis, na.rm = T)
-    #     }
-    #     
-    #     
-    #     dimVec <- c(minX, maxX, minY, maxY)
-    #     dimVec
-    # })
-    
-    
-    
-    
     observeEvent(reactiveValuesToList(input), {
-    #observeEvent(toListen(), {
-        #req(!is.null(input$splitByColumn))
+        
         plotList <- createDfTemp()
-        
-        print(names(plotList))
-        print(lapply(plotList, dim))
-        
         plot_data <- plotList[["plot_data"]]
-        #dimVec <- plotList[["dimVec"]]
         plot_data_names <- plotList[["plot_data_names"]]
         maxExpr <- plotList[["maxExpr"]]
         
         req(plot_data)
         
         dimVec <- plotList[["dimVec"]]
-        #dimVec <- determinePlotDims()
+        
         maxX = dimVec[2]
         minX = dimVec[1]
         maxY = dimVec[4]
         minY = dimVec[3]
         
-        
+        ## Call UI module
         output$multi_plot_ui <- renderUI({
             
-            lapply(seq_along(plot_data),
+        lapply(seq_along(plot_data),
                    function(n) {
                        return(plot_prep_ui(paste0("n", n)))
                    })
         })
         
-        
-        
-        
-        lapply(seq_along(plot_data),
-               function(i){
-                   callModule(plot_prep_server,
-                              paste0("n", i),
-                              df = plot_data[[i]],
-                              plot_name = paste0(plot_data_names[i]), 
-                              colorBy = input$colorBy,
-                              dotsize = input$dotsize,
-                              lowColor = input$lowColor, 
-                              dotcolor = input$dotcolor,
-                              background = input$background,
-                              x_axis = input$x_axis,
-                              y_axis = input$y_axis,
-                              maxX = maxX,
-                              minX = minX,
-                              maxY = maxY,
-                              minY = minY,
-                              geneSel = input$gene,
-                              maxExpr = maxExpr,
-                              showPlotLegend = input$showPlotLegend
-                   )
+        ## Call server side module
+        lapply(
+            seq_along(plot_data),
+                function(i){
+                    callModule(plot_prep_server,
+                        paste0("n", i),
+                        df = plot_data[[i]],
+                        plot_name = paste0(plot_data_names[i]), 
+                        colorBy = input$colorBy,
+                        dotsize = input$dotsize,
+                        lowColor = input$lowColor, 
+                        dotcolor = input$dotcolor,
+                        background = input$background,
+                        x_axis = input$x_axis,
+                        y_axis = input$y_axis,
+                        maxX = maxX,
+                        minX = minX,
+                        maxY = maxY,
+                        minY = minY,
+                        geneSel = input$gene,
+                        maxExpr = maxExpr,
+                        showPlotLegend = input$showPlotLegend
+                    )
                }
         )
+        
+        #######################################################################
+        ## Prepare plot for file output                                      ##
         
         ## Make plot list for download
         res <- lapply(seq_along(plot_data),
@@ -1248,4 +1103,6 @@ app_server <- function(input, output, session) {
     )
     
     
-}
+    } # end server 
+
+
