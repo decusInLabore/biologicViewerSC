@@ -226,32 +226,7 @@ setGeneric(
     names(allOptions) <- gsub("[.]", "_", allOptions)
     
     
-    # rmNameVec <-c(
-    #   "^DC",
-    #   "uniquecellID",
-    #   "hmIdent",
-    #   "old_ident",
-    #   "cellID", 
-    #   "sample_group",
-    #   "DF_pANN",
-    #   "clusterColor",
-    #   "sampleColor",
-    #   "clustIdent",
-    #   "G2M_Score",
-    #   #"DM_Pseudotime",
-    #   "^Sub_clusters_ExNeurons$",
-    #   "sample_group_colors",
-    #   "row_names",
-    #   "sampleID"
-    # )
     
-    # rmVec <- as.vector(NULL, mode = "numeric")
-    # for (i in 1:length(rmNameVec)){
-    #   rmVec <- c(
-    #     rmVec,
-    #     grep(rmNameVec[i], allOptions)
-    #   )
-    # }
     
     XYsel <- allOptions
     # if (length(rmVec) > 0){
@@ -403,15 +378,7 @@ setGeneric(
       colorByOptions <- colorByOptions[-rmVec]
     }
     
-    # colorByOptionsPart1 <- c(
-    #   grep("clusterName", colorByOptions),
-    #   grep("seurat_clusters", colorByOptions),
-    #   grep("sampleName", colorByOptions)
-    # )
-    # # 
-    # if (length(colorByOptionsPart1) > 0){
-    #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-    # }
+    
     
     colorDisplayOptions <- c(
       "lg10Expr",

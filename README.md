@@ -121,8 +121,9 @@ For this option you need to have access to a MySQL/MariaDB database with permiss
 
 ### Setup database access credentials
 
-dbHostURL <- "10.27.241.82"
-dbAdminUser <- "boeings"
+```
+dbHostURL <- "mysql.database.IP.address"
+dbAdminUser <- "admin.user.name"
 
 FN <- "/camp/stp/babs/working/boeings/Projects/reference_data/documentation/BC.parameters.txt"
 dbTable <- read.delim(
@@ -132,7 +133,7 @@ dbTable <- read.delim(
 )
 dbAdminPassword <- as.vector(dbTable[1,1])
 
-```
+
 project_id <- "testDb"
 
 projectPath = "./"
@@ -148,7 +149,8 @@ biologicViewerSC::seuratObjectToViewer(
     dbname = "test_data",
     db.pwd = dbAdminPassword,
     db.user = "boeings",
-    appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%")
+    appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
+    geneDefault = "SILI"
 )
 
 
