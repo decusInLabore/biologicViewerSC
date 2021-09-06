@@ -9,24 +9,25 @@
 #' @import colourpicker
 #' @import scales
 
+###############################################################################
+## Load Variables                                                            ##
+dfColOptions <- golem::get_golem_options(which = "dfColOptions")
+dfParam <- golem::get_golem_options(which = "dfParam")
+keyList <- golem::get_golem_options(which = "keyList")
+allGenes <- golem::get_golem_options(which = "allEntries") 
+dropDownList <- golem::get_golem_options(which = "dropDownList")
+
+numOptions <- dropDownList[["numCols"]]
+
+factorOptions <- dropDownList[["nonNumCols"]]
+numericOptions <- dropDownList[["numCols"]]
+
+##                                                                           ##
+###############################################################################  
 
 app_server <- function(input, output, session) {
 
-    ###############################################################################
-    ## Load Variables                                                            ##
-    dfColOptions <- golem::get_golem_options(which = "dfColOptions")
-    dfParam <- golem::get_golem_options(which = "dfParam")
-    keyList <- golem::get_golem_options(which = "keyList")
-    allGenes <- golem::get_golem_options(which = "allEntries") 
-    dropDownList <- golem::get_golem_options(which = "dropDownList")
     
-    numOptions <- dropDownList[["numCols"]]
-    
-    factorOptions <- dropDownList[["nonNumCols"]]
-    numericOptions <- dropDownList[["numCols"]]
-    
-    ##                                                                           ##
-    ###############################################################################  
   
     ###############################################################################
     ## Load dfCoord from db                                                      ##
@@ -83,7 +84,7 @@ app_server <- function(input, output, session) {
     
     dfColorTable <- reactive({
       dfDL <- createDfCoord()
-      dfColOptions = loadColorFile()
+      #dfColOptions <- golem::get_golem_options(which = "dfColOptions")
       ## Create dummy log10 Expr
       dfDL[["lg10Expr"]] <- "A1"
       #######################################################################
