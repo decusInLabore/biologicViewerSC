@@ -23,12 +23,8 @@ mod_FeatureViewSidebar_ui <- function(id){
       selectizeInput("gene", 
                    label = "Gene or Category Selection",
                    choices = NULL, #c(as.vector(sort(unique(allGenes)))),
-                   #selected = geneDefault,
-                   options = list(
-                     maxOptions = 50 #, 
-                     # create=TRUE
-                   )
-      )
+                   selected = geneDefault,
+                   options = list(maxOptions = 50, create=TRUE))
     ),
     
     #uiOutput("dropDownPanel"),
@@ -80,14 +76,14 @@ mod_FeatureViewSidebar_ui <- function(id){
     #####################################################################
     ## Query color input based on 'colorBy' selection                  ##
     conditionalPanel(
-      condition = paste0("input.colorBy == '",numOptions[numOptions %in% as.vector(dropDownList[["colorBy"]][["selOptions"]])],"'", collapse = "||"),
+      condition = paste0("input.colorBy == '",numOptions,"'", collapse = "||"),
       colourInput("dotcolor", "Select Low Color", "darkblue"),
       colourInput("lowColor", "Select High color", "#D3D3D3")
     ),
     
     
     conditionalPanel(
-      condition = paste0("input.colorBy != '",numOptions[numOptions %in% as.vector(dropDownList[["colorBy"]][["selOptions"]])],"'", collapse = "&"),
+      condition = paste0("input.colorBy == '",splitOptions,"'", collapse = "||"),
       
       uiOutput("clusterColorPanel")
       
@@ -119,9 +115,9 @@ mod_FeatureViewSidebar_ui <- function(id){
     )
     ),mainPanel(
       tagList(
-        # fluidRow(
-        #   uiOutput("dev_text")
-        # ),
+        fluidRow(
+          uiOutput("dev_text")
+        ),
         fluidRow(
           column(8,
                  uiOutput("multi_plot_ui")
