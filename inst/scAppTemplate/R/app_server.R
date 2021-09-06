@@ -93,12 +93,16 @@ app_server <- function(input, output, session) {
         dfPlotCols <- dfColOptions[dfColOptions$menuName == input$colorBy, c("colOption", "colSel")]
         
         if (nrow(dfPlotCols) > 0){
-          checkDLvec <- sort(na.omit(as.vector(unique(dfDL[,input$colorBy]))))
-          checkColvec <- sort(na.omit(unique(dfPlotCols$colOption)))
+          checkDLvec <- as.character(sort(na.omit(as.vector(unique(dfDL[,input$colorBy])))))
+          checkColvec <- as.character(sort(na.omit(unique(dfPlotCols$colOption))))
           if (identical(checkDLvec, checkColvec)){
             dfAddCol <- unique(dfPlotCols)
             names(dfAddCol) <- gsub("colOption", input$colorBy, names(dfAddCol))
             names(dfAddCol) <- gsub("colSel", "dotColor", names(dfAddCol))
+            
+            ## Make sure strings are joined ##
+            dfDL[,input$colorBy] <- as.character(dfDL[,input$colorBy])
+            dfAddCol[,input$colorBy] <- as.character(dfAddCol[,input$colorBy])
             
             dfDL <- dplyr::full_join(
               dfDL,
