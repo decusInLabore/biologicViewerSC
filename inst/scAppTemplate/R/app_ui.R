@@ -13,548 +13,64 @@
 
 
 ###############################################################################
-## Load parameter file if available                                          ##
-FNparameters <- "parameters/menuParameters.txt"
+## Load Variables                                                            ##
+dfColOptions <- golem::get_golem_options(which = "dfColOptions")
+dfParam <- golem::get_golem_options(which = "dfParam")
+keyList <- golem::get_golem_options(which = "keyList")
+dropDownList <- golem::get_golem_options(which = "dropDownList")
 
-if (file.exists(FNparameters)){
-  dfParam <- read.delim(
-    FNparameters, 
-    header = T, 
-    sep = "\t",
-    stringsAsFactors = F
-  )
-  
-  parameterFileLoaded <- TRUE
-  ## Check file integrity ##
-  if (!(sum(names(dfParam) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
-    rm(dfParam)
-    parameterFileLoaded <- FALSE
-  }
-  
-} else {
-  parameterFileLoaded <- FALSE
-}
+numOptions <- dropDownList[["numCols"]]
 
 ## Done                                                                      ##
 ###############################################################################
 
-###############################################################################
-## Load category color file if available                                     ##
-FNcolParameters <- "parameters/colorParameters.txt"
 
-if (file.exists(FNparameters)){
-  dfCol <- read.delim(
-    FNcolParameters, 
-    header = T, 
-    sep = "\t",
-    stringsAsFactors = F
-  )
-  
-  colorFileLoaded <- TRUE
-  ## Check file integrity ##
-  if (!(sum(names(dfCol) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
-    rm(dfCol)
-    colorFileLoaded <- FALSE
-  }
-  
-} else {
-  colorFileLoaded <- FALSE
-}
-
-
-##                                                                           ##
-###############################################################################
-
-###############################################################################
-## Data Access Module                                                        ##
-
-FNkey <- "data/connect/db.txt"
-FNrda <- "data/dfkey.rda"
-
-if (file.exists(FNkey)){
-  dfkey <- read.delim(FNkey, stringsAsFactors = F, sep="\t")
-} else if (file.exists(FNrda)){
-  load(FNrda)
-} else {
-  data("dfkey")
-} 
-
-
-geneDefault = as.character(dfkey$default)
-host <- as.character(dfkey$url)
-user <- as.character(dfkey$id)
-DBpd <- as.character(dfkey$id2)
-dbname <- as.character(dfkey$db)
-coordinateTbName <- as.character(dfkey$coordTb)
-exprTbName <- as.character(dfkey$exprTb)
-geneID_TbName <- as.character(dfkey$geneTb)
-
-pos <- grep("dataMode", names(dfkey))
-if (length(pos) == 1){
-  if (dfkey$dataMode == "SQLite"){
-    dataMode <- dfkey$dataMode
-  } else {
-    dataMode <- "MySQL"
-  }
-} else {
-  dataMode <- "MySQL"
-}
-
-## Done Data Access Module                                                   ##
-###############################################################################
-
-###############################################################################
-##  Retrieve Meta data table                                                 ##      
-
-oldw <- getOption("warn")
-options(warn = -1)
-
-if (dataMode == "SQLite"){
-  
-  dbDB <- DBI::dbConnect(
-    drv = RSQLite::SQLite(),
-    dbname=dbname
-  )
-  
-} else {
-  
-  dbDB <- DBI::dbConnect(
-    drv = RMySQL::MySQL(),
-    user = user, 
-    password = DBpd, 
-    host = host, 
-    dbname=dbname
-    
-  )
-  
-}
-
-
-query <- paste0("SELECT DISTINCT * FROM ", coordinateTbName)
-dfCoordSel <- DBI::dbGetQuery(dbDB, query)
-DBI::dbDisconnect(dbDB)
-
-## Add column for all values
-dfCoordSel[["all"]] <- "all"
-
-numCols <- c("lg10Expr", names(dfCoordSel)[unlist(lapply(dfCoordSel, is.numeric))])
-##                                                                           ##
-###############################################################################
-
-###############################################################################
-## Create order in which samples are displayed                               ##
-
-if (colorFileLoaded){
-  dfSO <- dfCol[grep("^SAMPLENAME$", toupper(dfCol$menuName)), ]  
-  if (nrow(dfSO) > 0){
-    dfSO <- unique(dfSO[,c("colOption", "displayOrder")])
-    dfSO <- dfSO[order(dfSO$displayOrder, decreasing = F),]
-    conditionVec <- as.vector(dfSO$colOption)
-  } else {
-    conditionVec <- unique(sort(dfCoordSel$sampleName))  
-  }
-} else {
-  pos <- grep("sampleOrder", names(dfCoordSel))
-  
-  if (length(pos) > 0){
-    dfCoordSel <- unique(dfCoordSel[,c("sampleName", "sampleOrder")])
-    dfCoordSel <- dfCoordSel[order(dfCoordSel$sampleOrder, decreasing = F),]
-    conditionVec <- as.vector(dfCoordSel$sampleName)
-  } else {
-    conditionVec <- unique(sort(dfCoordSel$sampleName))  
-  }
-}
-
-
-Nsamples <- length(conditionVec)
-
-##                                                                           ##
-###############################################################################
-
-###############################################################################
-## Select Display options                                                    ##       
-
-## Create x and y axis selections if no parameterfile is loaded ##
-if (parameterFileLoaded){
-  Xsel <- as.vector(dfParam[dfParam$menuName == "x_axis","colSel"])
-  Ysel <- as.vector(dfParam[dfParam$menuName == "y_axis","colSel"])
-  
-  xDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "x_axis", "displayName"]))
-  yDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "y_axis", "displayName"]))
-  
-  
-} else {
-  allOptions <- names(dfCoordSel)
-  
-  ## Remove common undesirable colums ##
-  rmNameVec <-c(
-    "^DC",
-    "uniquecellID",
-    "hmIdent",
-    "old_ident",
-    "cellID", 
-    "sample_group",
-    "DF_pANN",
-    "clusterColor",
-    "sampleColor",
-    "clustIdent",
-    "row_names"
-  )
-  
-  rmVec <- as.vector(NULL, mode = "numeric")
-  for (i in 1:length(rmNameVec)){
-    rmVec <- c(
-      rmVec,
-      grep(rmNameVec[i], allOptions)
-    )
-  }
-  
-  XYsel <- allOptions
-  if (length(rmVec) > 0){
-    XYsel <- XYsel[-rmVec]
-  }
-  
-  ## Reorder
-  headSel <- c(
-    XYsel[grep("UMAP_", XYsel)],
-    XYsel[grep("tSNE_", XYsel)],
-    XYsel[grep("sampleName", XYsel)],
-    XYsel[grep("clusterName", XYsel)],
-    XYsel[grep("ClusterTame", XYsel)],
-    XYsel[grep("ClusterTest", XYsel)],
-    XYsel[grep("PC_", XYsel)],
-    XYsel[grep("DM_Pseudotime", XYsel)],
-    XYsel[grep("meta_", XYsel)],
-    #XYsel[grep("DF_Classification", XYsel)],
-    XYsel[grep("nCount", XYsel)],
-    XYsel[grep("nFeatures", XYsel)],
-    XYsel[grep("nCount", XYsel)],
-    XYsel[grep("percent", XYsel)],
-    XYsel[grep("nCount", XYsel)],
-    XYsel[grep("nCount", XYsel)]
-  )
-  
-  restSel <- XYsel[!(XYsel %in% headSel)]
-  
-  XYsel <- c(
-    "lg10Expr",
-    headSel, 
-    restSel
-  )
-  
-  Xsel <- XYsel
-  Ysel <- XYsel
-  xDisplayName <- "Choose a X-axis"
-  yDisplayName <- "Choose a Y-axis"
-}
-
-## check if all column names are valid ##
-check <- c("lg10Expr", names(dfCoordSel))
-Xsel <- Xsel[Xsel %in% check]
-Ysel <- Ysel[Ysel %in% check]
-
-defaultX <- "UMAP_1"
-if (length(defaultX %in% Xsel) != 1){
-  defaultX <- XYsel[2]
-}
-
-defaultY <- "UMAP_2"
-if (length(defaultX %in% Ysel) != 1){
-  defaultX <- XYsel[3]
-}
-
-
-## Add to dropdownlist 
-dropDownList <- list()
-
-dropDownList[["x_axis"]] <- list(
-  "displayName" = xDisplayName,
-  "selOptions" = Xsel,
-  "selDisplayOptions" = gsub("_", " ", Xsel),
-  "default" = defaultX
-)
-
-## Add to dropdownlist 
-Ysel <- c(Ysel, "Densityplot", "Histogram")
-dropDownList[["y_axis"]] <- list(
-  "displayName" = yDisplayName,
-  "selOptions" = Ysel,
-  "selDisplayOptions" = gsub("_", " ", Ysel),
-  "default" = defaultY
-)
-
-
-##                                                                           ##
-###############################################################################
-
-###############################################################################
-## Set color options                                                         ##
-
-if(parameterFileLoaded){
-  ## If paramsfile is loaded 
-  allColorOptions <- unique(dfParam[dfParam$displayName == "Color Plots By", "colSel"])
-  names(allColorOptions) <- gsub("_", " ", unique(dfParam[dfParam$displayName == "Color Plots By", "colSel"]))
-  
-   
-  
-} else {
-  allColorOptions <- c(
-    "log10 Expression" = "lg10Expr",
-    names(dfCoordSel)
-  )
-  
-  rmNameVec <-c(
-    "^DC",
-    "uniquecellID",
-    "hmIdent",
-    "old_ident",
-    "cellID", 
-    "sample_group",
-    "DF_pANN",
-    "clusterColor",
-    "sampleColor",
-    "clustIdent",
-    "row_names"
-  )
-  
-  rmVec <- as.vector(NULL, mode = "numeric")
-  for (i in 1:length(rmNameVec)){
-    rmVec <- c(
-      rmVec,
-      grep(rmNameVec[i], allColorOptions)
-    )
-  }
-  
-  
-  if (length(rmVec) > 0){
-    allColorOptions <- allColorOptions[-rmVec]
-  }
-  
-  
-  allColorOptions <- allColorOptions[allColorOptions %in% names(dfCoordSel)]
-  
-  allColorOptions <- c(
-    "Log10 Expression" = "lg10Expr",
-    allColorOptions
-  )  
-}
-
-
-## Organise order ##
-headVec <- unique(
-  c(
-    grep("LG10EXPR", toupper(allColorOptions)),
-    grep("CLUSTERNAME", toupper(allColorOptions)),
-    grep("CLUSTER", toupper(allColorOptions)),
-    grep("SAMPLENAME", toupper(allColorOptions)),
-    grep("META_", toupper(allColorOptions)),
-    grep("CLUSTERNAME", toupper(allColorOptions)),
-    grep("subClusterName", toupper(allColorOptions))
-  )
-)
-
-if (length(headVec) > 0){
-  headOptions <- allColorOptions[headVec]
-  restVec <- allColorOptions[-headVec]
-  allColorOptions <- c(
-    headOptions,
-    restVec
-  )
-}
-
-pos <- grep("^all$", allColorOptions)
-
-if (length(pos) > 0){
-  names(allColorOptions)[pos] <- "Unicolor"
-}
-
-## check if all column names are valid ##
-check <- c("lg10Expr", names(dfCoordSel))
-allColorOptions <- allColorOptions[allColorOptions %in% check]
-
-
-defaultCol <- "lg10Expr"
-if (length(defaultCol %in% allColorOptions) != 1){
-  defaultCol <- allColorOptions[1]
-}
-
-#cDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "colorPlotsBy", "displayName"]))
-cDisplayName <- "Color Plots By"
-
-## Add to dropdownlist 
-dropDownList[["colorBy"]] <- list(
-  "displayName" = cDisplayName,
-  "selOptions" = allColorOptions,
-  "selDisplayOptions" = gsub("_", " ", names(allColorOptions)),
-  "default" = defaultCol
-)
-## Done with color options                                                   ##
-###############################################################################
-
-
-
-###############################################################################
-## Set split options                                                         ##
-if (parameterFileLoaded){
-  ## If paramsfile is loaded 
-  splitOptions <- unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"])
-  names( splitOptions) <- gsub("_", " ", unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"]))
-  
-} else {
-  splitOptions <- names(dfCoordSel)
-  
-  
-  
-}
-
-splitOptions <- splitOptions[splitOptions %in% names(dfCoordSel)]
-
-## Remove all split options with more than 20 options ##
-Nopt <- apply(dfCoordSel[,splitOptions], 2, function(x) length(unique(x)))
-Nopt <- sort(Nopt[Nopt < 42], decreasing = F)
-
-
-splitOptions <- as.vector(names(Nopt))
-
-pos <- c(
-  grep("sampleName", names(dfCoordSel)),
-  grep("orig_ident", names(dfCoordSel))
-)
-
-if (length(pos) > 0){
-  Nsamples <- length(unique(dfCoordSel[,pos[1]]))
-} else {
-  Nsamples <- 1000
-}
-
-
-if (Nsamples > 3 | nrow(dfCoordSel) < 5000){
-  headVec <- c(
-    grep("all", splitOptions),
-    grep("sampleName", splitOptions),
-    grep("meta_", tolower(splitOptions)),
-    grep("clusterName", splitOptions),
-    grep("subClusterName", splitOptions)
-  )  
-} else {
-  headVec <- c(
-    grep(names(dfCoordSel)[pos[1]], splitOptions),
-    grep("meta_", tolower(splitOptions)),
-    grep("all", splitOptions),
-    grep("clusterName", splitOptions),
-    grep("subClusterName", splitOptions)
-  )  
-}
-
-
-
-if (length(headVec) > 0){
-  headOptions <- splitOptions[headVec]
-  restVec <- splitOptions[-headVec]
-  splitOptions <- c(
-    headOptions,
-    restVec
-  )
-}
-
-names(splitOptions) <- splitOptions
-names(splitOptions) <- gsub("all", "None", names(splitOptions) )
-
-
-numOptions <- c("lg10Expr", names(dfCoordSel)[unlist(lapply(dfCoordSel, is.numeric))])
-numOptions <- c(
-  "lg10Expr",
-  numOptions
-)
-
-
-
-## check if all column names are valid ##
-check <- c(names(dfCoordSel))
-splitOptions <- splitOptions[splitOptions %in% check]
-
-
-defaultS <- splitOptions[1]
-
-sDisplayName <- "Split Plots By"
-
-## Add to dropdownlist 
-dropDownList[["splitByColumn"]] <- list(
-  "displayName" = sDisplayName,
-  "selOptions" = splitOptions,
-  "selDisplayOptions" = gsub("_", " ", names(splitOptions)),
-  "default" = defaultS
-)
-## Done setting split options                                                ##
-###############################################################################
-  
-  
-  numOptions <- names(dfCoordSel)[!(names(dfCoordSel)) %in% splitOptions]
-  numOptions <- c(
-    "lg10Expr",
-    numOptions
-  )
-  
-  ##                                                                           ##
-  ###############################################################################
-  
 
 ###############################################################################
 ## Main App - server                                                         ##       
 
 
 app_ui <- function(request) {
+
+    # theme <- bslib::bs_theme(
+    #   bg = "#d3d3d3", 
+    #   fg = "#EEE8D5", 
+    #   primary = "#2AA198" #,
+    #   # bslib also makes it easy to import CSS fonts
+    #   #base_font = bslib::font_google("Pacifico")
+    # )
+    
+    #theme = bs_theme(version = 4, bootswatch = "cosmo")
   
-  # theme <- bslib::bs_theme(
-  #   bg = "#d3d3d3", 
-  #   fg = "#EEE8D5", 
-  #   primary = "#2AA198" #,
-  #   # bslib also makes it easy to import CSS fonts
-  #   #base_font = bslib::font_google("Pacifico")
-  # )
-  
-  #theme = bs_theme(version = 4, bootswatch = "cosmo")
-  
-  tagList(
-    # Leave this function for adding external resources
-    golem_add_external_resources(),
-                                                                         ##       
-    ## Start new
-    navbarPage(
-        "biologic SC",   
-        
-        tabPanel("FeatureView", 
-            # sidebarPanel(
-                mod_FeatureViewSidebar_ui("FeatureViewSidebar_ui_1"),
+    tagList(
+        # Leave this function for adding external resources
+        golem_add_external_resources(),
+                                                                             ##       
+        ## Start new
+        navbarPage(
+            "biologic SC",   
             
-        ),
-        # tabPanel("Downloads", 
-        #         sidebarPanel("sidebar panel 2"),
-        #         mainPanel("main panel",
-        #             downloadButton('plotDL2')
-        #         )
-        # ),
-        # tabPanel("CategoryView", "three"),
-        tabPanel("About this Dataviewer", mod_about_ui("about_ui_1")),
-        
-        navbarMenu("Settings", 
-                   tabPanel("Color Setting", "Color Settings"),
-                   tabPanel("Other Settings", "Other Settings")
-        )
-    ) ## End Navbar Parge
-    ## End new
-    
-    
-    
-    ## old below ##
-    
+            tabPanel("FeatureView", 
+                mod_FeatureViewSidebar_ui("FeatureViewSidebar_ui_1"),
+            ),
+            
+            tabPanel("About this Dataviewer", mod_about_ui("about_ui_1")),
+            
+            navbarMenu(
+                "Settings", 
+                tabPanel("Color Setting", "Color Settings"),
+                tabPanel("Other Settings", "Other Settings")
+            )
+        ) ## End Navbar Parge
+        ## End new
     )
-    
-    ##                                                                           ##
-    ###############################################################################
-    
-  
 }
+
+##                                                                           ##
+###############################################################################
+
+###############################################################################
+## Add external resources                                                    ##
 
 #' Add external Resources to the Application
 #' 
@@ -566,36 +82,27 @@ app_ui <- function(request) {
 #' @noRd
 golem_add_external_resources <- function(){
   
-  add_resource_path(
-    'www', app_sys('app/www')
-  )
+    add_resource_path(
+      'www', app_sys('app/www')
+    )
  
 
   
-  tags$head(
-    tags$link(rel="shortcut icon", href="www/favicon.ico"),
-    bundle_resources(
-      app_title = "biologicSC",
-      path = app_sys('app/www')
-    ),
+    tags$head(
+        tags$link(rel="shortcut icon", href="www/favicon.ico"),
+        bundle_resources(
+          app_title = "biologicSC",
+          path = app_sys('app/www')
+        ),
     
-    # Add here all the external resources
-    # If you have a custom.css in the inst/app/www
-    # Or for example, you can add shinyalert::useShinyalert() here
-    # tags$link(
-    #   rel="stylesheet", 
-    #   type="text/css", 
-    #   href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
-    #   integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T",
-    #   crossorigin="anonymous"
-    # ), 
-     
-    tags$link(
-      rel="stylesheet", 
-      type="text/css", 
-      href="www/custom.css"
-    ) 
+        tags$link(
+            rel="stylesheet", 
+            type="text/css", 
+            href="www/custom.css"
+        ) 
     
-  )
+    )
 }
 
+## Done                                                                      ##
+###############################################################################

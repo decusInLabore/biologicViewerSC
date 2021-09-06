@@ -14,6 +14,12 @@ run_app <- function(
       server = app_server,
       enableBookmarking = "url"
     ), 
-    golem_opts = list(...)
+    golem_opts = list(
+      dfColOptions = loadColorFile(),
+      dfParam = loadParameterFile(),
+      keyList = getDataAccess(),
+      allEntries = getAllEntriesToList(),
+      dropDownList = createDropdownMenuList()
+    )
   )
 }
