@@ -83,6 +83,7 @@ app_server <- function(input, output, session) {
     
     dfColorTable <- reactive({
       dfDL <- createDfCoord()
+      dfColOptions = loadColorFile()
       ## Create dummy log10 Expr
       dfDL[["lg10Expr"]] <- "A1"
       #######################################################################
