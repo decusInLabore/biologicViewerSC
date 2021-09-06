@@ -102,14 +102,15 @@ biologicViewerSC::seuratObjectToLocalViewer(
 
 
 ```
-</b>
+
+
 Run app locally, e.g. in Rstudio
 
-<b>
+
 ```
 shiny::runApp(paste0(projectPath, project_id, "_app"))
 ```
-</b>
+
 If you want to deploy the app on a shiny server, simply transfer the project folder, in the example case names test_PBMC_app onto the shiny server. 
 
 
