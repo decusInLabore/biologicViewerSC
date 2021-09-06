@@ -13,19 +13,23 @@
 ## Load Variables                                                            ##
 dfColOptions <- golem::get_golem_options(which = "dfColOptions")
 dfParam <- golem::get_golem_options(which = "dfParam")
-keyList <- golem::get_golem_options(which = "keyList")
-allGenes <- golem::get_golem_options(which = "allEntries") 
-dropDownList <- golem::get_golem_options(which = "dropDownList")
-
-numOptions <- dropDownList[["numCols"]]
-
-factorOptions <- dropDownList[["nonNumCols"]]
-numericOptions <- dropDownList[["numCols"]]
-
 ##                                                                           ##
 ###############################################################################  
 
 app_server <- function(input, output, session) {
+    ###############################################################################
+    ## Load Variables                                                            ##
+    keyList <- golem::get_golem_options(which = "keyList")
+    allGenes <- golem::get_golem_options(which = "allEntries") 
+    dropDownList <- golem::get_golem_options(which = "dropDownList")
+    
+    numOptions <- dropDownList[["numCols"]]
+    
+    factorOptions <- dropDownList[["nonNumCols"]]
+    numericOptions <- dropDownList[["numCols"]]
+    
+    ##                                                                           ##
+    ############################################################################### 
 
     
   
