@@ -136,6 +136,8 @@ getAllEntriesToList <- function(){
     oldw <- getOption("warn")
     options(warn = -1)
     
+    keyList <- getDataAccess()
+    
     if (keyList[["dataMode"]] == "SQLite"){
         
         dbDB <- DBI::dbConnect(
@@ -177,6 +179,8 @@ getAllEntriesToList <- function(){
 createDropdownMenuList <- function(){
     oldw <- getOption("warn")
     options(warn = -1)
+    
+    keyList <- getDataAccess()
     
     if (keyList[["dataMode"]] == "SQLite"){
         
