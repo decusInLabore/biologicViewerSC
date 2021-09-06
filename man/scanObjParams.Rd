@@ -6,7 +6,7 @@
 
 TBD.}
 \usage{
-scanObjParams(obj, NmaxSplit = 25, NcatColorMax = 25)
+scanObjParams(obj, NmaxSplit = 25, NcatColorMax = 40)
 }
 \arguments{
 \item{obj}{Seurat object}

@@ -1,0 +1,17 @@
+"menuName"	"colOption"	"colOptionName"	"colSel"	"displayOrder"
+"seurat_clusters"	"0"	"0"	"black"	1
+"seurat_clusters"	"1"	"1"	"red"	2
+"all"	"all"	"all"	"black"	1
+"groups"	"g1"	"g1"	"black"	1
+"groups"	"g2"	"g2"	"red"	2
+"letter_idents"	"A"	"A"	"black"	1
+"letter_idents"	"B"	"B"	"red"	2
+"meta_Region"	"RandomAcat"	"RandomAcat"	"black"	1
+"meta_Region"	"RandomBcat"	"RandomBcat"	"red"	2
+"RNA_snn_res_0_5"	"0"	"0"	"black"	1
+"RNA_snn_res_0_5"	"1"	"1"	"red"	2
+"RNA_snn_res_0_8"	"0"	"0"	"black"	1
+"RNA_snn_res_0_8"	"1"	"1"	"red"	2
+"RNA_snn_res_1"	"0"	"0"	"#F8766D"	1
+"RNA_snn_res_1"	"1"	"1"	"#00BA38"	2
+"RNA_snn_res_1"	"2"	"2"	"#619CFF"	3
