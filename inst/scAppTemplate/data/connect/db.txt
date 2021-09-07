@@ -1,2 +1,0 @@
-"dataMode"	"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"default"
-"SQLite"	""	""	""	"data/appDataDb.sqlite"	"viewerCodeImprovements_PCA"	"viewerCodeImprovements_gene_expr_tb"	"viewerCodeImprovements_geneID_tb"	"ACAP1"

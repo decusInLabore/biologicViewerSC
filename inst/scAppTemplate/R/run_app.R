@@ -14,6 +14,6 @@ run_app <- function(
       server = app_server,
       enableBookmarking = "url"
     ), 
-    golem_opts = list(...)
+    golem_opts = list(...,startUpList = loadStartUpData())
   )
 }
