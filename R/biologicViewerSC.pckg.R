@@ -555,8 +555,8 @@ writeAppParameterFiles <- function(
     for (i in 1:length(menuList)){
       mList[[i]] <- rbind(data.frame(
         menuName = rep(names(menuList)[i], length(menuList[[i]])),
-        colOption = names(menuList[[i]]),
-        colOptionName = gsub("_", " ", names(menuList[[i]])),
+        colOption = names(menuList)[i],
+        colOptionName = gsub("_", " ", names(menuList)[i]),
         colSel = menuList[[i]],
         displayOrder = 1:length(menuList[[i]])
       ))
