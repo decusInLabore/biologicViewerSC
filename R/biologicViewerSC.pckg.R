@@ -717,9 +717,9 @@ seuratObjectToLocalViewer <- function(
     library("dplyr")
     
     dfIDTable <- dfExpr %>% 
-      select(gene) %>% 
-      distinct() %>% 
-      mutate(gene_id = row_number())
+      dplyr::select(gene) %>% 
+      dplyr::distinct() %>% 
+      dplyr::mutate(gene_id = dplyr::row_number())
     
     
     ## Upload expression table to database 
@@ -748,9 +748,9 @@ seuratObjectToLocalViewer <- function(
     ## Rearrange expression talbe
     ## This step may take a couple of minutes in a large dataset
     dfExpr <- dfExpr %>% 
-      rename(condition = cellID)  %>%  
-      mutate(lg10Expr = round(lg10Expr, 3)) %>% 
-      arrange(gene) 
+      dplyr::rename(condition = cellID)  %>%  
+      dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>% 
+      dplyr::arrange(gene) 
     
     ## Upload expression table to database 
     
@@ -1132,9 +1132,9 @@ seuratObjectToViewer <- function(
   library("dplyr")
   
   dfIDTable <- dfExpr %>% 
-    select(gene) %>% 
-    distinct() %>% 
-    mutate(gene_id = row_number())
+    dplyr::select(gene) %>% 
+    dplyr::distinct() %>% 
+    dplyr::mutate(gene_id = dplyr::row_number())
   
   
   ## Upload expression table to database 
@@ -1163,9 +1163,9 @@ seuratObjectToViewer <- function(
   ## Rearrange expression talbe
   ## This step may take a couple of minutes in a large dataset
   dfExpr <- dfExpr %>% 
-    rename(condition = cellID)  %>%  
-    mutate(lg10Expr = round(lg10Expr, 3)) %>% 
-    arrange(gene) 
+    dplyr::rename(condition = cellID)  %>%  
+    dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>% 
+    dplyr::arrange(gene) 
   
   ## Upload expression table to database 
   
