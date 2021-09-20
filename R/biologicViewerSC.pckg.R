@@ -617,7 +617,8 @@ seuratObjectToLocalViewer <- function(
   project_id = "testApp",
   projectPath = "./",
   OsC = NULL,
-  dataMode = "SQLite"
+  dataMode = "SQLite",
+  geneDefault = NULL
   #host = host,
   #user = db.user,
   #password = db.pwd
@@ -639,6 +640,28 @@ seuratObjectToLocalViewer <- function(
     }
     
     ##
+    ###############################################################################
+  
+    ###############################################################################
+    ## Set gene default if it isnt                                               ##
+    if (is.null(geneDefault)){
+        DefaultAssay(OsC) <- "RNA"
+        my_genes <- rownames(x = OsC@assays$RNA)
+        exp <- FetchData(OsC, my_genes)
+        ExprMatrix <- round(as.matrix(colMeans(exp  > 0)) *100,1)
+        colnames(ExprMatrix)[1] <- "count_cut_off"
+        dfExprMatrix <- data.frame(ExprMatrix)
+        dfExprMatrix[["gene"]] <- row.names(dfExprMatrix)
+        
+        
+        
+        dfPercCellsExpr <- dfExprMatrix
+        dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
+        dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
+        
+        geneDefault <- as.vector(dfPercCellsExpr[1,"gene"])
+    }
+    ## Done 
     ###############################################################################
     
     ###############################################################################
@@ -994,7 +1017,7 @@ seuratObjectToLocalViewer <- function(
       coordTb = PCAdbTableName,
       exprTb = expDbTable,
       geneTb = geneTb,
-      default = as.vector(dfExpr[1,"gene"])
+      default = geneDefault
     )
     
     FN <- paste0(shinyDataPath, "db.txt")
@@ -1037,7 +1060,8 @@ seuratObjectToViewer <- function(
   db.pwd = "dbAdminPassword",
   db.user = "boeings",
   appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
-  geneDefault = NULL
+  geneDefault = NULL,
+  dfExpr = NULL
   
   
 ){  
@@ -1054,6 +1078,28 @@ seuratObjectToViewer <- function(
   }
   
   ##
+  ###############################################################################
+  
+  ###############################################################################
+  ## Set gene default if it isnt                                               ##
+  if (is.null(geneDefault)){
+    DefaultAssay(OsC) <- "RNA"
+    my_genes <- rownames(x = OsC@assays$RNA)
+    exp <- FetchData(OsC, my_genes)
+    ExprMatrix <- round(as.matrix(colMeans(exp  > 0)) *100,1)
+    colnames(ExprMatrix)[1] <- "count_cut_off"
+    dfExprMatrix <- data.frame(ExprMatrix)
+    dfExprMatrix[["gene"]] <- row.names(dfExprMatrix)
+    
+    
+    
+    dfPercCellsExpr <- dfExprMatrix
+    dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
+    dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
+    
+    geneDefault <- as.vector(dfPercCellsExpr[1,"gene"])
+  }
+  ## Done 
   ###############################################################################
   
   ###############################################################################
@@ -1116,12 +1162,14 @@ seuratObjectToViewer <- function(
   print("Formating expression data. This may take a few minutes, particulary with larger datasets...")
   ## Running this function may take a minute or two, depending on the number of cells in your dataset
   
-  dfExpr <-  biologicViewerSC::createDfExpr(
-    obj = OsC,
-    assay = "RNA",
-    #slot = "data",
-    geneSel = NULL
-  ) 
+  if (is.null(dfExpr)){
+      dfExpr <-  biologicViewerSC::createDfExpr(
+        obj = OsC,
+        assay = "RNA",
+        #slot = "data",
+        geneSel = NULL
+      ) 
+  }
   
   ## In Sqlite version load via function ##
   
@@ -1430,6 +1478,8 @@ seuratObjectToViewer <- function(
   
   ##                                                                       ##
   ###########################################################################
+  
+  
   
   ###########################################################################
   ## Create app user and credentials                                       ##
