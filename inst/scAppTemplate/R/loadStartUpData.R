@@ -310,7 +310,7 @@ createDropdownMenuList <- function(){
     )
     
     ## Add to dropdownlist 
-    Ysel <- c("Densityplot", "Histogram", Ysel)
+    Ysel <- c("Ridgeplot","Densityplot", "Histogram", Ysel)
     
     Ydisplay <- gsub("_", " ", Ysel)
     Ydisplay <- firstup(Ydisplay)
