@@ -15,7 +15,8 @@ seuratObjectToViewer(
   db.pwd = "dbAdminPassword",
   db.user = "boeings",
   appDomains = c("shiny-bioinformatics.crick.ac.uk", "10.\%"),
-  geneDefault = NULL
+  geneDefault = NULL,
+  dfExpr = NULL
 )
 }
 \arguments{

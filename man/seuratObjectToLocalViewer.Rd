@@ -9,7 +9,8 @@ seuratObjectToLocalViewer(
   project_id = "testApp",
   projectPath = "./",
   OsC = NULL,
-  dataMode = "SQLite"
+  dataMode = "SQLite",
+  geneDefault = NULL
 )
 }
 \arguments{

@@ -1,0 +1,2 @@
+"type"	"dataMode"	"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"default"
+"main"	"MySQL"	"10.27.241.82"	"SC20154_aUser"	"epowhzDd"	"esl_data"	"SC20154_PCA"	"SC20154_gene_expr_tb"	"SC20154_geneID_tb"	"Tpr53"
