@@ -20,11 +20,6 @@ mod_about_ui <- function(id){
       includeMarkdown(
         system.file("app/www/about.md", package = "biologicViewerSC")
       )
-    ), 
-    col_6(
-      includeMarkdown(
-        system.file("app/www/tech.md", package = "tidytuesday201942")
-      )
     )
   )
 }
