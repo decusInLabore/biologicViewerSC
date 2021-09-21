@@ -656,7 +656,7 @@ seuratObjectToLocalViewer <- function(
         
         
         dfPercCellsExpr <- dfExprMatrix
-        dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
+        #dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
         dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
         
         geneDefault <- as.vector(dfPercCellsExpr[1,"gene"])
