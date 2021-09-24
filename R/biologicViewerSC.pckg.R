@@ -518,8 +518,8 @@ writeAppParameterFiles <- function(
     dfM <- dfM[, c("menuName", "displayName", "colSel", "displayOrder")]
     
     outDir <- paste0(
-      projectPath,
-      project_id, "_app/parameters"
+        projectPath,
+        project_id, "_app/parameters"
     )
     
     if (!dir.exists(outDir)){
@@ -547,6 +547,8 @@ writeAppParameterFiles <- function(
     ###########################################################################
     ## save sample color list                                                ##
     
+    pos <- grep("catColorList", names(params))
+    
     colorList <- params[[pos]]
     
     
@@ -555,13 +557,12 @@ writeAppParameterFiles <- function(
     for (i in 1:length(menuList)){
       mList[[i]] <- rbind(data.frame(
         menuName = rep(names(menuList)[i], length(menuList[[i]])),
-        colOption = names(menuList)[i],
-        colOptionName = gsub("_", " ", names(menuList)[i]),
+        colOption = names(menuList[[i]]),
+        colOptionName = gsub("_", " ", names(menuList[[i]])),
         colSel = menuList[[i]],
         displayOrder = 1:length(menuList[[i]])
       ))
     }
-    
     
     dfC <- data.frame(do.call(rbind,mList), stringsAsFactors = F)
     row.names(dfC) <- NULL
@@ -618,7 +619,8 @@ seuratObjectToLocalViewer <- function(
   projectPath = "./",
   OsC = NULL,
   dataMode = "SQLite",
-  geneDefault = NULL
+  geneDefault = NULL,
+  dfExpr = NULL
   #host = host,
   #user = db.user,
   #password = db.pwd
@@ -724,12 +726,14 @@ seuratObjectToLocalViewer <- function(
     print("Rendering expression data...")
     ## Running this function may take a minute or two, depending on the number of cells in your dataset
     
-    dfExpr <-  biologicViewerSC::createDfExpr(
-      obj = OsC,
-      assay = "RNA",
-      #slot = "data",
-      geneSel = NULL
-    ) 
+    if (is.null(dfExpr)){
+        dfExpr <-  biologicViewerSC::createDfExpr(
+          obj = OsC,
+          assay = "RNA",
+          #slot = "data",
+          geneSel = NULL
+        ) 
+    }
     
     ## In Sqlite version load via function ##
     
@@ -771,9 +775,9 @@ seuratObjectToLocalViewer <- function(
     ## Rearrange expression talbe
     ## This step may take a couple of minutes in a large dataset
     dfExpr <- dfExpr %>% 
-      dplyr::rename(condition = cellID)  %>%  
-      dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>% 
-      dplyr::arrange(gene) 
+        dplyr::rename(condition = cellID)  %>%  
+        dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>% 
+        dplyr::arrange(gene) 
     
     ## Upload expression table to database 
     
@@ -783,17 +787,17 @@ seuratObjectToLocalViewer <- function(
     colCatList <- biologicSeqTools::inferDBcategories(dfExpr)
     
     biologicSeqTools::upload.datatable.to.database(
-      #host = host,
-      #user = db.user,
-      #password = db.pwd,
-      prim.data.db = primDataDB,
-      dbTableName = expDbTable,
-      df.data = dfExpr,
-      db.col.parameter.list = colCatList,
-      new.table = T,
-      cols2Index = c("gene"),
-      #indexName = c("idx_gene_exp"),
-      mode = dataMode  # Options: "MySQL" and "SQLite"
+        #host = host,
+        #user = db.user,
+        #password = db.pwd,
+        prim.data.db = primDataDB,
+        dbTableName = expDbTable,
+        df.data = dfExpr,
+        db.col.parameter.list = colCatList,
+        new.table = T,
+        cols2Index = c("gene"),
+        #indexName = c("idx_gene_exp"),
+        mode = dataMode  # Options: "MySQL" and "SQLite"
     )
     
     
@@ -980,11 +984,11 @@ seuratObjectToLocalViewer <- function(
     ## Create sample order and color specification files                         ##
     
     writeAppParameterFiles(
-      project_id = project_id,
-      projectPath = projectPath,
-      params = params,
-      menuParametersFN = "menuParameters.txt",
-      colorParametersFN = "colorParameters.txt"
+        project_id = project_id,
+        projectPath = projectPath,
+        params = params,
+        menuParametersFN = "menuParameters.txt",
+        colorParametersFN = "colorParameters.txt"
     )
     
     ## Done 
