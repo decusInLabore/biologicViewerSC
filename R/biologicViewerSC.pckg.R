@@ -491,18 +491,22 @@ writeAppParameterFiles <- function(
     ## Write menu ParameterFile                                              ##
     pos <- grep("catColorList", names(params))
     
-    menuList <- params
+    menuListP <- params
     if (length(pos) > 0){
-        menuList <- menuList[-pos]
+        menuList <- menuListP[-pos]
     }
     
-    mList <- menuList
+    mList <- list()
     for (i in 1:length(menuList)){
         mList[[i]] <- rbind(data.frame(
           menuName = rep(names(menuList)[i], length(menuList[[i]])),
+          colOption = menuList[[i]],
+          colOptionName = menuList[[i]],
           colSel = menuList[[i]],
           displayOrder = 1:length(menuList[[i]])
         ))
+        
+        
     }
     
     
@@ -515,7 +519,7 @@ writeAppParameterFiles <- function(
     dfM$displayName <- gsub("splitPlotsBy", "Split Plots By", dfM$displayName)
     dfM$displayName <- gsub("colorPlotsBy", "Color Plots By", dfM$displayName)
     
-    dfM <- dfM[, c("menuName", "displayName", "colSel", "displayOrder")]
+    dfM <- dfM[, c("menuName", "displayName", "colOption", "colOptionName" , "displayOrder", "displayName")]
     
     outDir <- paste0(
         projectPath,
@@ -549,29 +553,40 @@ writeAppParameterFiles <- function(
     
     
     pos <- grep("catColorList", names(params))
+    # 
+    # menuList <- params
+    # if (length(pos) > 0){
+    #   menuList <- menuList[-pos]
+    # }
     
-    menuList <- params
-    if (length(pos) > 0){
-      menuList <- menuList[-pos]
-    }
+    #dfCol <- 
     
-    mList <- menuList
+    colorList <- params[[pos]]
     
-    
-    for (i in 1:length(menuList)){
+    mList <- list()
+    for (i in 1:length(colorList)){
       mList[[i]] <- rbind(data.frame(
-        menuName = rep(names(menuList)[i], length(menuList[[i]])),
-        colOption = names(menuList[[i]]),
-        colOptionName = gsub("_", " ", names(menuList[[i]])),
-        colSel = menuList[[i]],
-        displayOrder = 1:length(menuList[[i]])
+        menuName = rep(names(colorList)[i], length(colorList[[i]])),
+        colOption = names(colorList[[i]]),
+        colOptionName = gsub("_", " ", names(colorList[[i]])),
+        colSel = as.vector(colorList[[i]]),
+        displayOrder = 1:length(colorList[[i]])
       ))
+      
+      
     }
     
     dfC <- data.frame(do.call(rbind,mList), stringsAsFactors = F)
     row.names(dfC) <- NULL
     
     dfC <- dfC[, c("menuName", "colOption", "colOptionName", "colSel", "displayOrder")]
+    
+    menuList <- params
+    
+    dfCol <- data.frame(
+        columnName = names(unlist(menuList[[pos]])), 
+        colOption = as.vector(unlist(menuList[[pos]]))
+    )
     
     outDir <- paste0(
       projectPath,
