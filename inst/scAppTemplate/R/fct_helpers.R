@@ -277,9 +277,11 @@ plot_prep_server_dl <- function(
   qGene <- unique(na.omit(df$gene))
   qGene <- qGene[qGene != 0]
   
-  plotInput <- reactive({
+  #plotInput <- reactive({
+  startUpList <- golem::get_golem_options(which = "startUpList")
+  nonNumCols <- startUpList$utilityList$nonNumCols
     
-    if (colorBy %in% nonNumCols ){
+    if (colorBy %in% startUpList$nonNumCols ){
       df$Dcolor[df$Dcolor == ""] <- "Rest"
       df$Dcolor <- factor(df$Dcolor)
     } else if( is.numeric( df$Dcolor ) ) {
@@ -423,7 +425,7 @@ plot_prep_server_dl <- function(
     
     
     p
-  })
+  #})
   # })
   ## End of download functions   
 }
