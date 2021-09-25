@@ -107,7 +107,7 @@ loadColorFile <- function(){
         
         colorFileLoaded <- TRUE
         ## Check file integrity ##
-        if (!(sum(names(dfColOptions) %in% c("menuName", "displayName", "colSel", "displayOrder")))){
+        if (!(sum(names(dfColOptions) %in% c("menuName", "colOption", "colOptionName", "colSel","displayOrder")) == 5)){
             rm(dfColOptions)
             colorFileLoaded <- FALSE
             dfColOptions <- NULL
@@ -186,7 +186,16 @@ createDropdownMenuList <- function(){
             dfSO <- dfSO[order(dfSO$displayOrder, decreasing = F),]
             conditionVec <- as.vector(dfSO$colOption)
         } else {
-            conditionVec <- unique(sort(dfCoordSel$sampleName))  
+            colSel <- c(
+                grep("orig_ident", names(dfCoordSel)),
+                grep("sampleName", names(dfCoordSel))
+            )
+            
+            if (length(colSel) > 0){
+                conditionVec <- unique(sort(dfCoordSel[,colSel[1]])) 
+            } else {
+                conditionVec <- unique(sort(dfCoordSel[,1]))  
+            }
         }
     } else {
         pos <- grep("sampleOrder", names(dfCoordSel))
@@ -226,8 +235,8 @@ createDropdownMenuList <- function(){
     dfParam <- loadParameterFile()
     
     if (!is.null(dfParam)){
-        Xsel <- as.vector(dfParam[dfParam$menuName == "x_axis","colSel"])
-        Ysel <- as.vector(dfParam[dfParam$menuName == "y_axis","colSel"])
+        Xsel <- as.vector(dfParam[dfParam$menuName == "x_axis","colOption"])
+        Ysel <- as.vector(dfParam[dfParam$menuName == "y_axis","colOption"])
         
         xDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "x_axis", "displayName"]))
         yDisplayName <- gsub("_", " ", unique(dfParam[dfParam$menuName == "y_axis", "displayName"]))
@@ -332,8 +341,8 @@ createDropdownMenuList <- function(){
     
     if(!is.null(dfParam)){
         ## If paramsfile is loaded 
-        allColorOptions <- unique(dfParam[dfParam$displayName == "Color Plots By", "colSel"])
-        names(allColorOptions) <- gsub("_", " ", unique(dfParam[dfParam$displayName == "Color Plots By", "colSel"]))
+        allColorOptions <- unique(dfParam[dfParam$displayName == "Color Plots By", "colOption"])
+        names(allColorOptions) <- gsub("_", " ", unique(dfParam[dfParam$displayName == "Color Plots By", "colOption"]))
     } else {
         allColorOptions <- c(
             collectionList$nonNumCols,
@@ -414,8 +423,8 @@ createDropdownMenuList <- function(){
     ## Set split options                                                         ##
     if (!is.null(dfParam)){
         ## If paramsfile is loaded 
-        splitOptions <- unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"])
-        names( splitOptions) <- gsub("_", " ", unique(dfParam[dfParam$menuName == "splitPlotsBy", "colSel"]))
+        splitOptions <- unique(dfParam[dfParam$menuName == "splitPlotsBy", "colOption"])
+        names( splitOptions) <- gsub("_", " ", unique(dfParam[dfParam$menuName == "splitPlotsBy", "colOption"]))
         
     } else {
         splitOptions <- c(
