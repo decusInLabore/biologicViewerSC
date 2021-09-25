@@ -1013,15 +1013,15 @@ seuratObjectToLocalViewer <- function(
     ##                                                                       ##
     
     dfID <- data.frame(
-      dataMode = dataMode,
-      url = "",
-      id = "",
-      id2 = "",
-      db =  gsub(paste0("./",project_id, "_app/"),"",primDataDB),
-      coordTb = PCAdbTableName,
-      exprTb = expDbTable,
-      geneTb = geneTb,
-      default = geneDefault
+        dataMode = dataMode,
+        url = "",
+        id = "",
+        id2 = "",
+        db =  gsub(paste0("./",project_id, "_app/"),"",primDataDB),
+        coordTb = PCAdbTableName,
+        exprTb = expDbTable,
+        geneTb = geneTb,
+        default = geneDefault
     )
     
     FN <- paste0(shinyDataPath, "db.txt")
