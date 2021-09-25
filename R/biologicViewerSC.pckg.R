@@ -1201,11 +1201,7 @@ seuratObjectToViewer <- function(
     prim.data.db = dbname,
     dbTableName = geneTb,
     df.data = dfIDTable,
-    db.col.parameter.list = list(
-      "BIGINT(8) NULL DEFAULT NULL" = c("row_names"),
-      "VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci" = c("gene"),
-      "INT(8) NULL DEFAULT NULL" = c("gene_id")
-    ),
+    db.col.parameter.list = biologicSeqTools::inferDBcategories(dfIDTable),
     new.table = T,
     cols2Index = c("gene"),
     mode = dataMode  # Options: "MySQL" and "SQLite"
