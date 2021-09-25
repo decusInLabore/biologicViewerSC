@@ -547,13 +547,17 @@ writeAppParameterFiles <- function(
     ###########################################################################
     ## save sample color list                                                ##
     
+    
     pos <- grep("catColorList", names(params))
     
-    colorList <- params[[pos]]
+    menuList <- params
+    if (length(pos) > 0){
+      menuList <- menuList[-pos]
+    }
+    
+    mList <- menuList
     
     
-    menuList <- colorList
-    mList <- list()
     for (i in 1:length(menuList)){
       mList[[i]] <- rbind(data.frame(
         menuName = rep(names(menuList)[i], length(menuList[[i]])),
