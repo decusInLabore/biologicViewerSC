@@ -317,7 +317,11 @@ plot_prep_server_dl <- function(
         Nbin <- ceiling(length(df$x_axis)/5)
         p <- ggplot2::ggplot(
           data = df, ggplot2::aes(x=x_axis, color=Dcolor,fill=Dcolor)
-        ) + ggplot2::geom_histogram(alpha=0.3, position="stack", bins = Nbin) 
+        ) + ggplot2::geom_histogram(alpha=0.3, position="stack", bins = Nbin)
+      } else if (df$y_axis[1] == "Ridgeplot"){
+        plotLogic <- "ridgeplot"
+        p <- ggplot2::ggplot(data = df, ggplot2::aes_string(x = "x_axis", y = colorBy, fill=colorBy, color=colorBy)
+        ) + ggridges::geom_density_ridges()
       } else {
         plotLogic <- "point"
         p <- ggplot2::ggplot(
@@ -354,7 +358,7 @@ plot_prep_server_dl <- function(
       ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
       )
       
-      if (plotLogic %in% c("density", "histogram")){
+      if (plotLogic %in% c("ridgeplot","density", "histogram")){
         p <- p + ggplot2::scale_fill_manual(colorBy ,values = colVec
         ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
         )
