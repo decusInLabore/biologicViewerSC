@@ -1513,7 +1513,8 @@ seuratObjectToViewer <- function(
       tables = c("coordTb" = PCAdbTableName,"exprTb" = expDbTable,"geneTb" = geneTb),
       #recreateProjectUser = TRUE,
       dbAdminUser = db.user,
-      dbAdminPwd = db.pwd
+      dbAdminPwd = db.pwd,
+      geneDefault = geneDefault
   ) 
   
   ## Done app user and credentials                                         ##
