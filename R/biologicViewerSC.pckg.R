@@ -1507,7 +1507,6 @@ seuratObjectToViewer <- function(
       accessFilePath = shinyDataPath,
       hostDbUrl = host,
       appUserName = substr(paste0(project_id, "_aUser"), 1, 30),
-      geneDefault = geneDefault,
       domains = appDomains,
       dbname = dbname,
       tables = c("coordTb" = PCAdbTableName,"exprTb" = expDbTable,"geneTb" = geneTb),
