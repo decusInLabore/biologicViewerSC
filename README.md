@@ -3,6 +3,9 @@
 This R-package will create a shiny viewer for your (Seurat-) single-cell RNA-Sequencing dataset. 
 As input we need only your analysed Seurat object. The app can be used in two modes: as a 'local' version that stores all required data in files locally, or as a 'remote database' version, that relies on a MySQL/MariaDB database. This database can be on your local machine as well as hosted on a remote server. Using the local version wil be easier in terms of setup, the database version has significant performance advantages particularly when it comes to larger datasets. Both versions of the app can be readily deployed on a shiny server. 
 
+## Examples
+In the section below you will be able to create a single-cell data viewer using your own Seurat single-cell object. As an example you can review a comparison of a single-cell and single-nuclei workflow on a Neuroblastoma sample <a href="https://shiny-bioinformatics.crick.ac.uk/shiny/boeings/Neuroblastoma_app/" target="_blank">here</a>. The About this dataviewer section will have additional details on the experiment.  
+
 ## Option 1 Create App with local data storage. 
 
 Let's start by installing required R-packages:
