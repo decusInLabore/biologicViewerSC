@@ -21,7 +21,7 @@ mod_FeatureViewSidebar_ui <- function(id){
     numCols <- startUpList$utilityList$numCols
     nonNumCols <- startUpList$utilityList$nonNumCols
     splitOptions <- startUpList$utilityList$dropDownList$splitByColumn$selOptions
-  
+    
   
     tagList(
         sidebarPanel(
@@ -31,8 +31,7 @@ mod_FeatureViewSidebar_ui <- function(id){
             condition = "input.colorBy == 'lg10Expr'|| input.x_axis == 'lg10Expr' || input.y_axis == 'lg10Expr'",
             selectizeInput("gene", 
                 label = "Gene or Category Selection",
-                choices = NULL, #c(as.vector(sort(unique(allGenes)))),
-                selected = geneDefault,
+                choices = NULL, 
                 options = list(maxOptions = 50))
         ),
     
@@ -59,26 +58,29 @@ mod_FeatureViewSidebar_ui <- function(id){
             selected = as.vector(dropDownList[["splitByColumn"]][["default"]])
         ),
 
+        #####################################################################
+        ## Display color selections                                        ##
+        
         selectInput("colorBy",
-            label = as.vector(dropDownList[["colorBy"]][["displayName"]]),
-            choices =dropDownList[["colorBy"]][["selOptions"]],
-            selected = as.vector(dropDownList[["colorBy"]][["default"]])
+                    label = as.vector(dropDownList[["colorBy"]][["displayName"]]),
+                    choices =dropDownList[["colorBy"]][["selOptions"]],
+                    selected = as.vector(dropDownList[["colorBy"]][["default"]])
         ),
-
+        
         #####################################################################
         ## Query color input based on 'colorBy' selection                  ##
         conditionalPanel(
-            condition = paste0("input.colorBy == '", numCols ,"'", collapse = "||"),
-            colourInput("dotcolor", "Select High Color", "darkblue"),
-            colourInput("lowColor", "Select Low color", "#D3D3D3")
+          condition = paste0("input.colorBy == '", numCols ,"'", collapse = "||"),
+          colourInput("dotcolor", "Select High Color", "darkblue"),
+          colourInput("lowColor", "Select Low color", "#D3D3D3")
         ),
-    
-    
+        
+        
         conditionalPanel(
-            condition = paste0("input.colorBy == '",nonNumCols,"'", collapse = "||"),
-      
-        uiOutput("clusterColorPanel")
-      
+          condition = paste0("input.colorBy == '",nonNumCols,"'", collapse = "||"),
+          
+          uiOutput("clusterColorPanel")
+          
         ),
     
     
