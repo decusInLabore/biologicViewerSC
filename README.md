@@ -8,6 +8,23 @@ You will get a local Shiny app, that can be used locally or copied onto a shiny 
 ## Example App Neuroblastoma (comparison single-cell / single-nuclei Workflow)
 In the section below you will be able to create a single-cell data viewer using your own Seurat single-cell object. As an example you can review a comparison of a single-cell and single-nuclei workflow on a Neuroblastoma sample <a href="https://shiny-bioinformatics.crick.ac.uk/shiny/boeings/Neuroblastoma_app/" target="_blank">here</a>. The About this dataviewer section will have additional details on the experiment.  
 
+**Features**
+* Backend
+  * Two-step creation procedure from Seurat object
+  * Custom-selection of display options via the params list
+  * Easy resetting of category colors in the app's parameters/
+* Front-end
+  * Free Category Color Selection
+  * All figures can be exported as high-quality PDFs (Download Button)
+  * Any snapshot state of the app can be captured and shared as a url link (Bookmark button)
+  * User-directed figure creation
+  * User-directed data slicing
+  * FeatureView plots
+  * Histograms
+  * Ridgeplots
+  * Densityplots
+  
+
 ## Create single-cell Shiny Data Viewer from your Seurat Object
 
 In the example below we use create a small Seurat single-cell object from a single-cell dataset build into Seurat. In order to use your Seurat object, start at the OsC <- YourAnalysedSeuratObject step.
