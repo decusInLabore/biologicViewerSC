@@ -1,12 +1,17 @@
 # Create an Interactive Single-cell App Based on a Seurat single-cell Object
 
 This R-package will create a shiny viewer for your (Seurat-) single-cell RNA-Sequencing dataset. 
-As input we need only your analysed Seurat object. The app can be used in two modes: as a 'local' version that stores all required data in files locally, or as a 'remote database' version, that relies on a MySQL/MariaDB database. This database can be on your local machine as well as hosted on a remote server. Using the local version wil be easier in terms of setup, the database version has significant performance advantages particularly when it comes to larger datasets. Both versions of the app can be readily deployed on a shiny server. 
+As input we need only your Seurat object. The app can be used in two modes: as a 'local' version that stores all required data in files locally, or as a 'remote database' version, that relies on a MySQL/MariaDB database. This database can be on your local machine as well as hosted on a remote server. Using the local version wil be easier in terms of setup, the database version has significant performance advantages particularly when it comes to larger datasets. Both versions of the app can be readily deployed on a shiny server. 
 
-## Examples
+You will get a local Shiny app, that can be used locally or copied onto a shiny server. If you need help with the database setup or the shiny server at the Crick, please do get in touch with the Software development team, the database team or email me (stefan.boeing@crick.ac.uk).
+
+## Example App Neuroblastoma (comparison single-cell / single-nuclei Workflow)
 In the section below you will be able to create a single-cell data viewer using your own Seurat single-cell object. As an example you can review a comparison of a single-cell and single-nuclei workflow on a Neuroblastoma sample <a href="https://shiny-bioinformatics.crick.ac.uk/shiny/boeings/Neuroblastoma_app/" target="_blank">here</a>. The About this dataviewer section will have additional details on the experiment.  
 
-## Option 1 Create App with local data storage. 
+## Create single-cell Shiny Data Viewer from your Seurat Object
+
+In the example below we use create a small Seurat single-cell object from a single-cell dataset build into Seurat. In order to use your Seurat object, start at the OsC <- YourAnalysedSeuratObject step.
+
 
 Let's start by installing required R-packages:
 ```
@@ -87,7 +92,7 @@ params
 <b>Step2 Create app </b>
 Depending on the size of your Seurat object, it <b>might take a couple of minutes for the seuratObjectToLocalViewer function to run</b>. Very large single cell objects might have to be processed on a high-performance computing system. A dataset with 5000 cells should take less than a minute to render on your local system. 
 
-## Option 2A: Fully Local Version
+## Option A: Fully Local Version
 ```
 project_id <- "testExperiment"
 
@@ -160,3 +165,50 @@ biologicViewerSC::seuratObjectToViewer(
 
 
 ```
+
+## FAQs
+
+### How do I get to a Violin Plot?
+In the data viewer, select as x-axis a category column, for example, seurat_clusters in the provided example, Meta Region, as y-axis log10 pression and as colorBy Meta Region. 
+
+### How do I get to a Histogram?
+In the data viewer, select as x-axis a numeric column, e.g. nFeature_RNA, and as y-axis Histogram and as colorBy, for example, meta Region. In your experiment, splitting by sample might be helpful.
+
+### How do I change colors in the app?
+To change category colors, e.g. cluster colors, navigate in the app folder to the parameters folder and open the colorParameters.txt file in Excel and edit the color in the colSel column.
+
+Alternatively you can edit the color HEX codes in the params list prepared in step 1.
+
+### How do I limit the amout of parameters listed as selection options?
+If you wish to limit the parameters listed in your viewer, edit the params list in step 1. 
+
+To see all default parameters for the x-axis selection, y-axis selection, splitPlotsBy selection or colorPlotsBy selection, do after performing step 1:
+
+```
+names(params[["x_axis"]]) or
+names(params[["y_axis"]]) or 
+names(params[["splitPlotsBy"]]) or
+nanes(params[["colorPlotsBy"]]) or
+
+```
+
+In order to for example remove the TSNE coordinates from being listed as x- and y-axis options, do
+
+```
+# Removing options TSNE 1 and TSNE 2 from the x-axis listing:
+
+entriesToRemoveX <- c("TSNE 1", "TSNE 2")
+itemsToRetainX <- names(params[["x_axis"]])[!(names(params[["x_axis"]]) %in% entriesToRemoveX)]
+
+params[["x_axis"]] <- params[["x_axis"]][itemsToRetainX]
+
+# Removing options TSNE 1 and TSNE 2 from the y-axis listing:
+
+entriesToRemoveY <- c("TSNE 1", "TSNE 2")
+itemsToRetainY <- names(params[["y_axis"]])[!(names(params[["y_axis"]]) %in% entriesToRemoveY)]
+
+params[["y_axis"]] <- params[["y_axis"]][itemsToRetainY]
+
+```
+
+Once you've customised the params list as shown above, re-run the seuratObjectToLocalViewer or seuratObjectToViewer functions to create a local or database Shiny app.  
