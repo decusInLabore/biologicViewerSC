@@ -104,7 +104,8 @@ biologicViewerSC::seuratObjectToLocalViewer(
     project_id = project_id,
     projectPath = projectPath,
     OsC = OsC,
-    dataMode = "SQLite"
+    dataMode = "SQLite",
+    geneDefault = "CD3E" # This will set the default gene in the app
 )
 
 
@@ -159,7 +160,7 @@ biologicViewerSC::seuratObjectToViewer(
     db.pwd = dbAdminPassword,
     db.user = "boeings",
     appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
-    geneDefault = "SILI"
+    geneDefault = "CD3E" # This will set the default gene in the app
 )
 
 
