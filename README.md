@@ -12,7 +12,8 @@ In the section below you will be able to create a single-cell data viewer using 
 * Backend
   * Two-step creation procedure from Seurat object
   * Custom-selection of display options via the params list
-  * Easy resetting of category colors in the app's parameters/
+  * Convenient resetting of default category colors in the app's parameters/colorParameters.txt file at any time after app creation
+  * App can be run with a datafile or remote database
 * Front-end
   * Free Category Color Selection
   * All figures can be exported as high-quality PDFs (Download Button)
@@ -23,6 +24,9 @@ In the section below you will be able to create a single-cell data viewer using 
   * Histograms
   * Ridgeplots
   * Densityplots
+* Performance
+  * Small webserver memory footprint
+  
   
 
 ## Create single-cell Shiny Data Viewer from your Seurat Object
