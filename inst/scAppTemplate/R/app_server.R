@@ -374,9 +374,6 @@ app_server <- function(input, output, session) {
         updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE, selected=geneDefault) 
     })
     
-    onRestored(function(state) {
-        updateSelectizeInput(session, "gene", selected=state$input$gene, allGenes, server=TRUE)
-    })
     
     ###################################################################
     ## Add dropdownselection                                         ##
