@@ -14,12 +14,15 @@ Imports:
     DBI,
     RMySQL,
     ggplot2,
-    DT, 
+    DT,
     colourpicker,
     RSQLite,
     Seurat,
     biologicSeqTools,
-    scales
+    scales,
+    officer,
+    dplyr,
+    cowplot
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
@@ -31,4 +34,3 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
-
