@@ -500,6 +500,14 @@ createDfTempLocal <- function(dfMeta, dfExpr, input, dfColorTable = NULL){
 
 ###############################################################################
 ## Helper function
+
+#' @title plot_prep_report
+#'
+#'
+#' @import dplyr
+#' @import ggplot2
+#' @export
+#' 
 plot_prep_report <- function(
     #input,
     #output,
@@ -732,7 +740,7 @@ createAppPlotList <- function(
     dfColOptions = NULL
     
 ){
-    source("presentation.functions.R")
+    #source("presentation.functions.R")
     ## Load app parameters ##
     dfID <- dfID[1,]
     
