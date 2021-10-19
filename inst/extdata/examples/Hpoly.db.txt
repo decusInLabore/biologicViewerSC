@@ -1,0 +1,2 @@
+"type"	"dataMode"	"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"default"
+"main"	"MySQL"	"10.27.241.82"	"EGCsHPoly_aUser"	"maKJyL7s"	"vpl_data"	"EGCsHPoly_PCA"	"EGCsHPoly_gene_expr_tb"	"EGCsHPoly_geneID_tb"	"SILI"

@@ -1,0 +1,11 @@
+menuName	colOption	colOptionName	colSel	displayOrder
+all	all	all	black	1
+batch	H_poly_1	H poly 1	#19B569	1
+batch	H_poly_2	H poly 2	#15A2F5	2
+batch	H_poly_3	H poly 3	#DD4DeF	3
+batch	Naive_1	Naive 1	#F55E59	4
+batch	Naive_2	Naive 2	#939708	5
+cluster	EGC1	EGC1	#0D5FA5	1
+cluster	EGC2	EGC2	#EDE237	2
+condition	H_poly	H poly	#E08F09	1
+condition	Naive	Naive	#32A178	2

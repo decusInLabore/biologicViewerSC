@@ -1,0 +1,2 @@
+"url"	"id"	"id2"	"db"	"coordTb"	"exprTb"	"geneTb"	"default"
+"10.27.241.82"	"Neuroblastoma_s"	"CuxTNqU8"	"neuro_ref_data"	"Neuroblastoma_PCA"	"Neuroblastoma_gene_expr_tb"	"Neuroblastoma_geneID_tb"	"CD74"
