@@ -830,7 +830,7 @@ createPowerpointPresentation <- function(
         pathToAppColorParameters <- slideList[[i]]$pathToAppColorParameters
         figureLink <- slideList[[i]]$figureLink
         
-        input <- createInputListFromLink(figureLink =figureLink)
+        input <- createInputListFromLink(figureLink = figureLink)
         
         dfID <- read.delim(
             appParameterFile,
@@ -864,24 +864,38 @@ createPowerpointPresentation <- function(
         
         
         #doc <- add_slide(doc)
-        doc <- officer::add_slide(doc, layout = "Title and Content", master = "Office Theme")
+        doc <- officer::add_slide(
+            doc, layout = "Title and Content", 
+            master = "Office Theme"
+        )
         
-        doc <- officer::ph_with(x = doc, value = names(slideList)[i], type = "sldNum", location = officer::ph_location_type(
-            type = "sldNum"))
+        doc <- officer::ph_with(
+            x = doc, 
+            value = names(slideList)[i], 
+            type = "sldNum", 
+            location = officer::ph_location_type(
+                type = "sldNum"
+            )
+        )
         
-        ## This Adds a bullet point slide
-        # doc <- ph_with(x = doc, value = c("abc", "Next", "next", "NExt"), 
-        #                location = ph_location_type(
-        #                    type = "body") )
         
-        doc <- officer::ph_with(x = doc, value = plot, 
-                                location = officer::ph_location_type(
-                                    type = "body") )
+        doc <- officer::ph_with(
+            x = doc, value = plot, 
+            location = officer::ph_location_type(
+            type = "body") 
+        )
         
-        doc <- officer::ph_with(x = doc, "An Example UMAP", 
-                                location = officer::ph_location_type(
-                                    type = "title") )
-        doc <- officer::ph_with(doc, "biologicViewerSC Powerpoint Output", location = officer::ph_location_type(type = "ftr"))
+        doc <- officer::ph_with(
+            x = doc, 
+            slideList[[i]]$Slidetitle, 
+            location = officer::ph_location_type(
+                type = "title"
+            ) 
+        )
+        doc <- officer::ph_with(
+            doc, "biologicViewerSC Powerpoint Output", 
+            location = officer::ph_location_type(type = "ftr")
+        )
     }
     
     print(doc, target = outputfile)

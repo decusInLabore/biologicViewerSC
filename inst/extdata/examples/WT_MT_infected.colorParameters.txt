@@ -1,0 +1,120 @@
+menuName	colOption	colOptionName	colSel	displayOrder
+all	all	all	green	1
+ClusterName	Bcells	Bcells	#576825	1
+ClusterName	CyclingMacrophages	CyclingMacrophages	#C6B1F5	2
+ClusterName	DendriticCells1	DendriticCells1	#36DCB6	3
+ClusterName	DendriticCells2	DendriticCells2	#A67066	4
+ClusterName	EndothelialCells1	EndothelialCells1	#927E75	5
+ClusterName	EndothelialCells2	EndothelialCells2	#E82F55	6
+ClusterName	EntericGliaCells	EntericGliaCells	#447BE9	7
+ClusterName	EpithelialCells	EpithelialCells	#C48779	8
+ClusterName	Fibroblasts1	Fibroblasts1	#A91CC3	9
+ClusterName	Fibroblasts2	Fibroblasts2	#A0B915	10
+ClusterName	InterstitialCellsOfCajal	InterstitialCellsOfCajal	#F1CB7A	11
+ClusterName	LymphaticEndothelialCells	LymphaticEndothelialCells	#5F994B	12
+ClusterName	MesothelialCells1	MesothelialCells1	#1069DF	13
+ClusterName	MesothelialCells2	MesothelialCells2	#35D156	14
+ClusterName	MesothelialCells3	MesothelialCells3	#2DA5D6	15
+ClusterName	MesothelialCells4	MesothelialCells4	#AFC858	16
+ClusterName	MesothelialCells5	MesothelialCells5	#628D55	17
+ClusterName	MonocyteMacrophages	MonocyteMacrophages	#EE7A6F	18
+ClusterName	MuscularisMacrophages1	MuscularisMacrophages1	#7FC9E4	19
+ClusterName	MuscularisMacrophages2	MuscularisMacrophages2	#B706DC	20
+ClusterName	MuscularisMacrophages3	MuscularisMacrophages3	#FD7A63	21
+ClusterName	MuscularisMacrophages4	MuscularisMacrophages4	#61BBC6	22
+ClusterName	NaturalKillerCells	NaturalKillerCells	#621934	23
+ClusterName	Neutrophils	Neutrophils	#203E53	24
+ClusterName	OtherLymphoidCells	OtherLymphoidCells	#4412C1	25
+ClusterName	Pericytes	Pericytes	#E5AA42	26
+ClusterName	SmoothMuscleCells	SmoothMuscleCells	#33D3A6	27
+ClusterName	TCells1	TCells1	#0351B5	28
+ClusterName	TCells2	TCells2	#62841F	29
+ClusterName	TCells3	TCells3	#DEA93F	30
+genotype	KO	KO	black	1
+genotype	WT	WT	red	2
+longTag	PRO513A1_KO_infected	PRO513A1 KO infected	#F8766D	1
+longTag	PRO513A2_WT_uninfected	PRO513A2 WT uninfected	#CD9600	2
+longTag	PRO513A3_KO_uninfected	PRO513A3 KO uninfected	#7CAE00	3
+longTag	PRO513A4_WT_infected	PRO513A4 WT infected	#00BE67	4
+longTag	PRO513A5_WT_infected	PRO513A5 WT infected	#00BFC4	5
+longTag	PRO513A6_KO_infected	PRO513A6 KO infected	#00A9FF	6
+longTag	PRO513A7_WT_uninfected	PRO513A7 WT uninfected	#C77CFF	7
+longTag	PRO513A8_KO_uninfected	PRO513A8 KO uninfected	#FF61CC	8
+quadrant	WT_uninfected	WT uninfected	#F8766D	1
+quadrant	KO_uninfected	KO uninfected	#7CAE00	2
+quadrant	WT_infected	WT infected	#00BFC4	3
+quadrant	KO_infected	KO infected	#C77CFF	4
+seurat_clusters	C1	C1	#F8766D	1
+seurat_clusters	C10	C10	#EF7F49	2
+seurat_clusters	C11	C11	#E58700	3
+seurat_clusters	C12	C12	#D89000	4
+seurat_clusters	C13	C13	#C99800	5
+seurat_clusters	C14	C14	#B79F00	6
+seurat_clusters	C15	C15	#A3A500	7
+seurat_clusters	C16	C16	#8AAB00	8
+seurat_clusters	C17	C17	#6BB100	9
+seurat_clusters	C18	C18	#39B600	10
+seurat_clusters	C19	C19	#00BA38	11
+seurat_clusters	C2	C2	#00BD5F	12
+seurat_clusters	C20	C20	#00BF7D	13
+seurat_clusters	C21	C21	#00C097	14
+seurat_clusters	C22	C22	#00C0AF	15
+seurat_clusters	C23	C23	#00BFC4	16
+seurat_clusters	C24	C24	#00BCD8	17
+seurat_clusters	C25	C25	#00B7E9	18
+seurat_clusters	C26	C26	#00B0F6	19
+seurat_clusters	C27	C27	#00A7FF	20
+seurat_clusters	C28	C28	#619CFF	21
+seurat_clusters	C29	C29	#9590FF	22
+seurat_clusters	C3	C3	#B983FF	23
+seurat_clusters	C30	C30	#D376FF	24
+seurat_clusters	C4	C4	#E76BF3	25
+seurat_clusters	C5	C5	#F564E3	26
+seurat_clusters	C6	C6	#FD61D1	27
+seurat_clusters	C7	C7	#FF62BC	28
+seurat_clusters	C8	C8	#FF67A4	29
+seurat_clusters	C9	C9	#FF6C91	30
+Subclusters_Fibroblasts	C0	C0	#F8766D	1
+Subclusters_Fibroblasts	C1	C1	#7CAE00	2
+Subclusters_Fibroblasts	C2	C2	#00BFC4	3
+Subclusters_Fibroblasts	Rest	Rest	#C77CFF	4
+tag	PRO513A1	PRO513A1	#F8766D	1
+tag	PRO513A2	PRO513A2	#CD9600	2
+tag	PRO513A3	PRO513A3	#7CAE00	3
+tag	PRO513A4	PRO513A4	#00BE67	4
+tag	PRO513A5	PRO513A5	#00BFC4	5
+tag	PRO513A6	PRO513A6	#00A9FF	6
+tag	PRO513A7	PRO513A7	#C77CFF	7
+tag	PRO513A8	PRO513A8	#FF61CC	8
+treatment	infected	infected	black	1
+treatment	uninfected	uninfected	red	2
+shortName	Bcells	Bcells	#576825	1
+shortName	CyclingMacrophages	CyclingMacrophages	#C6B1F5	2
+shortName	DendriticCells1	DendriticCells1	#36DCB6	3
+shortName	DendriticCells2	DendriticCells2	#A67066	4
+shortName	EndothelialCells1	EndothelialCells1	#927E75	5
+shortName	EndothelialCells2	EndothelialCells2	#E82F55	6
+shortName	EntericGliaCells	EntericGliaCells	#447BE9	7
+shortName	EpithelialCells	EpithelialCells	#C48779	8
+shortName	Fibroblasts1	Fibroblasts1	#A91CC3	9
+shortName	Fibroblasts2	Fibroblasts2	#A0B915	10
+shortName	InterstitialCellsOfCajal	InterstitialCellsOfCajal	#F1CB7A	11
+shortName	LymphaticEndothelialCells	LymphaticEndothelialCells	#5F994B	12
+shortName	MesothelialCells1	MesothelialCells1	#1069DF	13
+shortName	MesothelialCells2	MesothelialCells2	#35D156	14
+shortName	MesothelialCells3	MesothelialCells3	#2DA5D6	15
+shortName	MesothelialCells4	MesothelialCells4	#AFC858	16
+shortName	MesothelialCells5	MesothelialCells5	#628D55	17
+shortName	MonocyteMacrophages	MonocyteMacrophages	#EE7A6F	18
+shortName	MuscularisMacrophages1	MuscularisMacrophages1	#7FC9E4	19
+shortName	MuscularisMacrophages2	MuscularisMacrophages2	#B706DC	20
+shortName	MuscularisMacrophages3	MuscularisMacrophages3	#FD7A63	21
+shortName	MuscularisMacrophages4	MuscularisMacrophages4	#61BBC6	22
+shortName	NaturalKillerCells	NaturalKillerCells	#621934	23
+shortName	Neutrophils	Neutrophils	#203E53	24
+shortName	OtherLymphoidCells	OtherLymphoidCells	#4412C1	25
+shortName	Pericytes	Pericytes	#E5AA42	26
+shortName	SmoothMuscleCells	SmoothMuscleCells	#33D3A6	27
+shortName	TCells1	TCells1	#0351B5	28
+shortName	TCells2	TCells2	#62841F	29
+shortName	TCells3	TCells3	#DEA93F	30
