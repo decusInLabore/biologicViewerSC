@@ -84,6 +84,7 @@ plot_prep_server <- function(
       df$Dcolor <- factor(df$Dcolor)
     }     
     
+    df[df$Dcolor == 0, "Dcolor"] <- NA
     
     
     ###########################################################################
@@ -133,6 +134,7 @@ plot_prep_server <- function(
     p <- p + ggplot2::xlab(x_axis) + ggplot2::ylab(y_axis)
     startUpList <- golem::get_golem_options(which = "startUpList")
     nonNumCols <- startUpList$utilityList$nonNumCols
+    
     if (colorBy %in% nonNumCols ){
         dfCol <- unique(df[,c(colorBy, "dotColor")])
         colVec <- dfCol$dotColor
@@ -145,7 +147,10 @@ plot_prep_server <- function(
         )
         
         if (plotLogic %in% c("ridgeplot","density", "histogram")){
-          p <- p + ggplot2::scale_fill_manual(colorBy ,values = colVec
+          p <- p + ggplot2::scale_fill_manual(
+            colorBy, 
+            values = colVec,
+            na.value = "#d3d3d3"
           ) + ggplot2::guides(
               col = guide_legend(
                 override.aes = list(shape = 16, size = 5)
@@ -155,11 +160,17 @@ plot_prep_server <- function(
         
     } else if (is.numeric( df$Dcolor )){
       if (minExpr < 0){
-        p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
+        p <- p + ggplot2::scale_color_gradient2(colorBy,low= lowColor, 
+            mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr),
+            na.value = "#d3d3d3"
         )
         
       } else {
-        p <- p + ggplot2::scale_color_gradient("Expr",low= lowColor, high= dotcolor, limits=c(minExpr,maxExpr)
+        p <- p + ggplot2::scale_color_gradient(
+            colorBy,low= lowColor, 
+            high= dotcolor, 
+            limits=c(minExpr,maxExpr),
+            na.value = "#d3d3d3"
         )
       }
       
