@@ -491,7 +491,7 @@ writeAppParameterFiles <- function(
     ## Write menu ParameterFile                                              ##
     pos <- grep("catColorList", names(params))
     
-    menuListP <- params
+    menuList <- params
     if (length(pos) > 0){
         menuList <- menuListP[-pos]
     }
@@ -1371,8 +1371,10 @@ seuratObjectToViewer <- function(
   names(splitOptions) <- sapply(names(splitOptions), function(x) firstup(x))
   
   
-  if (!(exists("paramList"))){
+  if (!(exists("params"))){
     paramList <- list()
+  } else {
+    paramList <- params
   }
   paramList$splitPlotsBy <- NULL
   
@@ -1475,7 +1477,7 @@ seuratObjectToViewer <- function(
   writeAppParameterFiles(
     project_id = project_id,
     projectPath = projectPath,
-    params = params,
+    params = paramList,
     menuParametersFN = "menuParameters.txt",
     colorParametersFN = "colorParameters.txt"
   )
