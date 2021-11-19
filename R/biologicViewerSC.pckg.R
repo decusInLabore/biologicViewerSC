@@ -493,7 +493,7 @@ writeAppParameterFiles <- function(
     
     menuList <- params
     if (length(pos) > 0){
-        menuList <- menuListP[-pos]
+        menuList <- menuList[-pos]
     }
     
     mList <- list()
