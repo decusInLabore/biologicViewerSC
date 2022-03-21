@@ -126,20 +126,48 @@ setGeneric(
     geneSel = NULL
   ) {
     Seurat::DefaultAssay(obj) <- assay
-    dfExpr <- data.frame(obj[[assay]]@data)
-    dfExpr[["gene"]] <- row.names(dfExpr)
     
-    if (!is.null(geneSel)){
-      dfExpr <- dfExpr[dfExpr$gene %in% geneSel, ]
+    
+    ## Breakdown into chunks to make it more memory friendly ##
+    ## 2022 03 21
+    cells <- row.names(OsC@meta.data)
+    cellList <- split(cells, ceiling(seq_along(cells)/50000))
+    
+    for (i in 1:length(cellList)){
+      tempOsC <- subset(OsC, subset = cellID %in% cellList[[i]])
+      dfTempExpr <- data.frame(tempOsC[[assay]]@data)
+      dfTempExpr[["gene"]] <- row.names(dfTempExpr)
+      dfTempExpr <- tidyr::gather(
+        dfTempExpr, 
+        condition, 
+        expr, 1:(ncol(dfTempExpr)-1), 
+        factor_key=TRUE
+      )
+      dfTempExpr <- dfTempExpr[dfTempExpr$expr != 0,]
+      
+      if (i == 1){
+        dfExpr <- dfTempExpr
+      } else {
+        dfExpr <- rbind(dfTempExpr, dfExpr)
+      }
     }
     
-    dfExpr <- tidyr::gather(
-      dfExpr,
-      condition,
-      expr, 1:(ncol(dfExpr)-1),
-      factor_key=TRUE
-    )
-    dfExpr <- dfExpr[dfExpr$expr != 0,]
+    ## end of change 2022 03 21
+    
+    # dfExpr <- data.frame(obj[[assay]]@data)
+    # dfExpr[["gene"]] <- row.names(dfExpr)
+    # 
+    # if (!is.null(geneSel)){
+    #   dfExpr <- dfExpr[dfExpr$gene %in% geneSel, ]
+    # }
+    # 
+    # dfExpr <- tidyr::gather(
+    #   dfExpr,
+    #   condition,
+    #   expr, 1:(ncol(dfExpr)-1),
+    #   factor_key=TRUE
+    # )
+    # dfExpr <- dfExpr[dfExpr$expr != 0,]
     names(dfExpr) <- gsub("condition", "cellID", names(dfExpr))
     names(dfExpr) <- gsub("expr", "lg10Expr", names(dfExpr))
     return(dfExpr)
