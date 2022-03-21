@@ -668,7 +668,17 @@ seuratObjectToLocalViewer <- function(
     if (is.null(geneDefault)){
         DefaultAssay(OsC) <- "RNA"
         my_genes <- rownames(x = OsC@assays$RNA)
-        exp <- FetchData(OsC, my_genes)
+        
+        
+        ## Based on https://github.com/satijalab/seurat/issues/3560 the next two lines were 
+        # added/altered:
+        cells <- as.factor(row.names(OsC@meta.data))
+        
+        exp <- FetchData(OsC, my_genes, cells = cells )
+        # exp <- FetchData(OsC, my_genes)
+        ## End change 2022 03 21
+        
+        
         ExprMatrix <- round(as.matrix(colMeans(exp  > 0)) *100,1)
         colnames(ExprMatrix)[1] <- "count_cut_off"
         dfExprMatrix <- data.frame(ExprMatrix)
@@ -1108,7 +1118,15 @@ seuratObjectToViewer <- function(
   if (is.null(geneDefault)){
     DefaultAssay(OsC) <- "RNA"
     my_genes <- rownames(x = OsC@assays$RNA)
-    exp <- FetchData(OsC, my_genes)
+    
+    ## Based on https://github.com/satijalab/seurat/issues/3560 the next two lines were 
+    # added/altered:
+    cells <- as.factor(row.names(OsC@meta.data))
+    
+    exp <- FetchData(OsC, my_genes, cells = cells )
+    # exp <- FetchData(OsC, my_genes)
+    ## End change 2022 03 21
+    
     ExprMatrix <- round(as.matrix(colMeans(exp  > 0)) *100,1)
     colnames(ExprMatrix)[1] <- "count_cut_off"
     dfExprMatrix <- data.frame(ExprMatrix)
