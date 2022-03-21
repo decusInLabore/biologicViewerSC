@@ -672,10 +672,22 @@ seuratObjectToLocalViewer <- function(
         
         ## Based on https://github.com/satijalab/seurat/issues/3560 the next two lines were 
         # added/altered:
-        cells <- as.factor(row.names(OsC@meta.data))
+        # in large datasets fetch data produces errors. After some trial and error, 
+        # breaking down the problem into chunks seems to solve the problem. 
+        cells <- row.names(OsC@meta.data)
+        cellList <- split(cells, ceiling(seq_along(cells)/50000))
         
-        exp <- FetchData(OsC, my_genes, cells = cells )
-        # exp <- FetchData(OsC, my_genes)
+        for (i in 1:length(cellList)){
+          expTemp <- FetchData(OsC, vars = my_genes, cells = cellList[[i]] )
+          if (i == 1){
+            exp <- expTemp
+          } else {
+            exp <- rbind(exp, expTemp[,colnames(exp)])
+          }
+          #print(i)
+        }
+        
+        #exp <- FetchData(OsC, vars = my_genes, cells = cells )
         ## End change 2022 03 21
         
         
