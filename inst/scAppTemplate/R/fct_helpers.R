@@ -120,12 +120,28 @@ plot_prep_server <- function(
       ## Done deciding factorial display logic
       #########################################################################  
     } else {
+        if (df$y_axis[1] == "Barchart"){
+            plotLogic <- "barchart"
+            p <- ggplot2::ggplot(
+              data = df, ggplot2::aes(x= x_axis, fill=Dcolor)) + ggplot2::geom_bar(color="black")  
+            if (showPlotLegend){
+                p <- p + geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5))
+            }
+        } else {
+            plotLogic <- "violin"
+            
+            ## Add noise to y_axis to mimit Seurat displays as per
+            # https://github.com/satijalab/seurat/issues/3322
+            noise <- rnorm(n = length(x = df[, "y_axis"])) / 100000
+            df$y_axis <- df$y_axis + noise
+            
+            p <- ggplot2::ggplot(
+              data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+            ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
+            ) + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+            
+        }
       
-      plotLogic <- "violin"
-      p <- ggplot2::ggplot(
-        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
-      )+ ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
     }
     ## Done plot logic                                                       ##
     ###########################################################################
@@ -146,7 +162,7 @@ plot_prep_server <- function(
         ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
         )
         
-        if (plotLogic %in% c("ridgeplot","density", "histogram")){
+        if (plotLogic %in% c("ridgeplot","density", "histogram", "barchart")){
           p <- p + ggplot2::scale_fill_manual(
             colorBy, 
             values = colVec,
@@ -191,7 +207,7 @@ plot_prep_server <- function(
     
     p <- p + ggplot2::theme(
       axis.text.y   = ggplot2::element_text(size=8),
-      axis.text.x   = ggplot2::element_text(size=8),
+      axis.text.x   = ggplot2::element_text(size=8, angle=90, vjust=0.5, hjust=1),
       axis.title.y  = ggplot2::element_text(size=8),
       axis.title.x  = ggplot2::element_text(size=8),
       axis.line = ggplot2::element_line(colour = "black"),
@@ -345,12 +361,26 @@ plot_prep_server_dl <- function(
       ## Done deciding factorial display logic
       #########################################################################  
     } else {
-      
-      plotLogic <- "violin"
-      p <- ggplot2::ggplot(
-        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
-      )+ ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+        if (df$y_axis[1] == "Barchart"){
+            plotLogic <- "barchart"
+            p <- ggplot2::ggplot(
+              data = df, ggplot2::aes(x= x_axis, fill=Dcolor)) + ggplot2::geom_bar(color="black")  
+            if (showPlotLegend){
+              p <- p + geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5))
+            }
+        } else {
+            plotLogic <- "violin"
+            
+            ## Add noise to y_axis to mimit Seurat displays as per
+            # https://github.com/satijalab/seurat/issues/3322
+            noise <- rnorm(n = length(x = df[, "y_axis"])) / 100000
+            df$y_axis <- df$y_axis + noise
+            
+            p <- ggplot2::ggplot(
+              data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
+            ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
+            )+ ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+        }
     }
     ## Done plot logic                                                       ##
     ###########################################################################
@@ -402,7 +432,7 @@ plot_prep_server_dl <- function(
     
     p <- p + ggplot2::theme(
       axis.text.y   = ggplot2::element_text(size=8),
-      axis.text.x   = ggplot2::element_text(size=8),
+      axis.text.x   = ggplot2::element_text(size=8, angle=90, vjust=0.5, hjust=1),
       axis.title.y  = ggplot2::element_text(size=8),
       axis.title.x  = ggplot2::element_text(size=8),
       axis.line = ggplot2::element_line(colour = "black"),

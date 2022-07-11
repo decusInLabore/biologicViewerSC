@@ -2,50 +2,49 @@
 ## Add to Seurat metadata                                                    ##
 
 #' @title addDf2seuratMetaData
-#'
-#'
 #' @param obj Seurat object
 #' @return paramerer list
 #' @import Seurat
 #' @export
 
 setGeneric(
-  name="addDf2seuratMetaData",
-  def=function(obj, dfAdd) {
+    name="addDf2seuratMetaData",
+    def=function(obj, dfAdd) {
     #print(paste0("Dims before addition: ", dim(obj@meta.data)))
     ###########################################################################
     ## Detach packages that interfere with AddMetaData                       ##
     detach_package <- function(pkg, character.only = FALSE) {
-      if(!character.only) {
-        pkg <- deparse(substitute(pkg))
-      }
-      
-      search_item <- paste("package", pkg, sep = ":")
-      
-      while(search_item %in% search()){
-        detach(search_item, unload = TRUE, character.only = TRUE)
-      }
+        if(!character.only) {
+          pkg <- deparse(substitute(pkg))
+        }
+        
+        search_item <- paste("package", pkg, sep = ":")
+        
+        while(search_item %in% search()){
+          detach(search_item, unload = TRUE, character.only = TRUE)
+        }
     }
     
     interferenceVec <- c("SeuratDisk", "SeuratObject", "DESeq2")
     detachPacks <- interferenceVec[paste0("package:", interferenceVec) %in% search()]
+    
     if (length(detachPacks) > 0){
-      for (n in 1:length(detachPacks)){
-        detach_package(detachPacks[n], character.only = TRUE)
-      }
+        for (n in 1:length(detachPacks)){
+          detach_package(detachPacks[n], character.only = TRUE)
+        }
     }
     ##
     ###########################################################################
     
     for (i in 1:ncol(dfAdd)){
-      addVec <- as.vector(dfAdd[,i])
-      names(addVec) <- row.names(dfAdd)
-      colName <- as.vector(names(dfAdd)[i])
-      obj <- Seurat::AddMetaData(
-        object = obj,
-        metadata = addVec,
-        colName
-      )
+        addVec <- as.vector(dfAdd[,i])
+        names(addVec) <- row.names(dfAdd)
+        colName <- as.vector(names(dfAdd)[i])
+        obj <- Seurat::AddMetaData(
+            object = obj,
+            metadata = addVec,
+            colName
+        )
     }
     
     #print(paste0("Dims after addition: ", dim(obj@meta.data)))
@@ -65,14 +64,17 @@ setGeneric(
 #' @param obj Seurat object
 #' @return paramerer list
 #' @import Seurat
+#' @import dplyr
+#' @import tibble
 #' @export
 
 setGeneric(
-  name="createDfCoord",
-  def=function(
-    obj,
-    params = NULL
-  ) {
+    name="createDfCoord",
+    def=function(
+        obj,
+        params = NULL
+    ) {
+    
     if (is.null(params)){
       params <- biologicViewerSC::scanObjParams(obj)
     }
@@ -82,17 +84,22 @@ setGeneric(
     reds <- names(obj@reductions)
     
     for (i in 1:length(reds)){
-      dfAdd <- data.frame(obj@reductions[[reds[i]]]@cell.embeddings)
-      if (nrow(dfAdd) > 0){
-        obj <- biologicViewerSC::addDf2seuratMetaData(obj = obj, dfAdd = dfAdd)
-      }
+        dfAdd <- data.frame(obj@reductions[[reds[i]]]@cell.embeddings)
+        if (nrow(dfAdd) > 0){
+            obj <- biologicViewerSC::addDf2seuratMetaData(obj = obj, dfAdd = dfAdd)
+        }
     }
     
+    ## Shape table
+    
+    
     ##
-    dfdbTable <- obj@meta.data
-    dfdbTable[["cellID"]] <- row.names(dfdbTable)
+    dfdbTable <- obj@meta.data %>% 
+        tibble::rownames_to_column(var = "cellID")
+    
     pos <- grep("sampleID", names(dfdbTable))
     pos2 <- grep("orig.ident", names(dfdbTable))
+    
     if (length(pos) == 0 | length(pos2) == 1){
       dfdbTable[["sampleID"]] <- dfdbTable[["orig.ident"]]
     } else {
@@ -114,62 +121,47 @@ setGeneric(
 #' @param obj Seurat object
 #' @return paramerer list
 #' @import Seurat
+#' @import tibble
+#' @import tidyr
+#' @import dplyr
 #' @export
 
 
 setGeneric(
-  name="createDfExpr",
-  def=function(
-    obj,
-    assay = "RNA",
-    #slot = "data",
-    geneSel = NULL
-  ) {
-    Seurat::DefaultAssay(obj) <- assay
+    name="createDfExpr",
+    def=function(
+        obj,
+        assay = "RNA",
+        #slot = "data",
+        geneSel = NULL
+    ) {
     
+    Seurat::DefaultAssay(obj) <- assay
     
     ## Breakdown into chunks to make it more memory friendly ##
     ## 2022 03 21
     cells <- row.names(OsC@meta.data)
-    cellList <- split(cells, ceiling(seq_along(cells)/50000))
+    cellList <- split(cells, ceiling(seq_along(cells)/10000))
     
-    for (i in 1:length(cellList)){
-      tempOsC <- subset(OsC, subset = cellID %in% cellList[[i]])
-      dfTempExpr <- data.frame(tempOsC[[assay]]@data)
-      dfTempExpr[["gene"]] <- row.names(dfTempExpr)
-      dfTempExpr <- tidyr::gather(
-        dfTempExpr, 
-        condition, 
-        expr, 1:(ncol(dfTempExpr)-1), 
-        factor_key=TRUE
-      )
-      dfTempExpr <- dfTempExpr[dfTempExpr$expr != 0,]
-      
-      if (i == 1){
-        dfExpr <- dfTempExpr
-      } else {
-        dfExpr <- rbind(dfTempExpr, dfExpr)
-      }
+    ## Define helper function ##
+    subset_fun <- function(obj, cellIDs) {
+      z <- subset(obj, subset = cellID %in% cellIDs)[[assay]]@data %>%
+        data.frame() %>%
+        tibble::rownames_to_column(var = "gene") %>%
+        tidyr::pivot_longer(
+          !gene,
+          names_to = "cellID",
+          values_to = "lg10Expr"
+        ) %>%
+        filter(lg10Expr > 0)
+        return(z)
     }
+    ## End of helper function
     
-    ## end of change 2022 03 21
+    dfExpr <- purrr::map(cellList, function(x) subset_fun(obj=obj, cellIDs = x)) %>%
+        dplyr::bind_rows() %>%
+        data.frame()
     
-    # dfExpr <- data.frame(obj[[assay]]@data)
-    # dfExpr[["gene"]] <- row.names(dfExpr)
-    # 
-    # if (!is.null(geneSel)){
-    #   dfExpr <- dfExpr[dfExpr$gene %in% geneSel, ]
-    # }
-    # 
-    # dfExpr <- tidyr::gather(
-    #   dfExpr,
-    #   condition,
-    #   expr, 1:(ncol(dfExpr)-1),
-    #   factor_key=TRUE
-    # )
-    # dfExpr <- dfExpr[dfExpr$expr != 0,]
-    names(dfExpr) <- gsub("condition", "cellID", names(dfExpr))
-    names(dfExpr) <- gsub("expr", "lg10Expr", names(dfExpr))
     return(dfExpr)
   }
 )
@@ -212,18 +204,19 @@ setGeneric(
     
     obj@meta.data[["all"]] <- "all"
     
-    addReductions <- function(red = "pca", obj, paramList){
-      reds <- names(obj@reductions)
-      pos <- grep(red, reds)
-      if (length(pos) > 0){
-        dfTemp <- data.frame(obj@reductions[[red]]@cell.embeddings)
-        if (nrow(dfTemp) > 0){
-          paramList[[red]] <- names(dfTemp)
-          
+    addReductions <- function(red = "pca", obj, paramList=list()){
+        reds <- names(obj@reductions)
+        pos <- grep(red, reds)
+        if (length(pos) > 0){
+            dfTemp <- data.frame(obj@reductions[[red]]@cell.embeddings)
+            if (nrow(dfTemp) > 0){
+                paramList[[red]] <- names(dfTemp)
+            }
         }
-      }
-      return(paramList)
+        return(paramList)
     }
+    
+    t <- purrr::map(reds, function(x) addReductions(red = x, obj=obj))
     
     tempList <- list()
     
@@ -231,13 +224,11 @@ setGeneric(
     names(tempList[["meta.data"]]) <- gsub("[.]", "_",gsub("meta.data", "", c(names(obj@meta.data))))
     reds <- names(obj@reductions)
     
-    for (i in 1:length(reds)){
-      tempList <- addReductions(
-        red = reds[i],
-        obj = obj,
-        paramList = tempList
-      )
-    }
+    tempList <- c(
+        tempList, 
+        t
+    )
+    
     
     allOptions <- unlist(tempList, use.names = F)
     allOptions <- allOptions[allOptions != "all"]
@@ -504,7 +495,7 @@ setGeneric(
 #' @param projectPath Path to project
 #' @param params biologic parameterList
 #' 
-#' @import Seurat RMySQL RSQLite biologicSeqTools
+#' @import Seurat RMySQL RSQLite biologicSeqTools2
 #' @export
 
 
@@ -656,23 +647,20 @@ writeAppParameterFiles <- function(
 #'
 #' @param project_id Project id
 #' @param OsC Seurat object
-#' 
-#' @import Seurat RMySQL RSQLite biologicSeqTools
+#' @import Seurat RMySQL RSQLite dplyr
 #' @export
 
 seuratObjectToLocalViewer <- function(
-  params = NULL,
-  project_id = "testApp",
-  projectPath = "./",
-  OsC = NULL,
-  dataMode = "SQLite",
-  geneDefault = NULL,
-  dfExpr = NULL
-  #host = host,
-  #user = db.user,
-  #password = db.pwd
-  
-    
+    params = NULL,
+    project_id = "testApp",
+    projectPath = "./",
+    OsC = NULL,
+    dataMode = "SQLite",
+    geneDefault = NULL,
+    dfExpr = NULL
+    #host = host,
+    #user = db.user,
+    #password = db.pwd
 ){  
   
     ###############################################################################
@@ -823,7 +811,7 @@ seuratObjectToLocalViewer <- function(
     print(paste0("Database to be used: ", primDataDB))
     print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
     
-    biologicSeqTools::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
       #host = host,
       #user = db.user,
       #password = db.pwd,
@@ -853,9 +841,9 @@ seuratObjectToLocalViewer <- function(
     print(paste0("Database to be used: ", primDataDB))
     print(paste0("Database table name to be used: ", expDbTable))
     
-    colCatList <- biologicSeqTools::inferDBcategories(dfExpr)
+    colCatList <- biologicSeqTools2::inferDBcategories(dfExpr)
     
-    biologicSeqTools::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
         #host = host,
         #user = db.user,
         #password = db.pwd,
@@ -915,10 +903,10 @@ seuratObjectToLocalViewer <- function(
     
     
     
-    columnDBcategoryList <- biologicSeqTools::inferDBcategories(dfData=dfdbTable)
+    columnDBcategoryList <- biologicSeqTools2::inferDBcategories(dfData=dfdbTable)
     
     
-    biologicSeqTools::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
       host = host,
       user = db.user,
       password = db.pwd,
@@ -929,7 +917,7 @@ seuratObjectToLocalViewer <- function(
       new.table = TRUE,
       mode = dataMode
     )
-    biologicSeqTools::killDbConnections()
+    biologicSeqTools2::killDbConnections()
     ##                                                                           ##
     ###############################################################################
     
@@ -1119,24 +1107,22 @@ seuratObjectToLocalViewer <- function(
 #' @param project_id Project id
 #' @param OsC Seurat object
 #' 
-#' @import Seurat RMySQL RSQLite biologicSeqTools
+#' @import Seurat RMySQL RSQLite
 #' @export
 
 seuratObjectToViewer <- function(
-  params = NULL,
-  project_id = "testApp",
-  projectPath = "./",
-  OsC = NULL,
-  dataMode = "MySQL",
-  host = "dbHostURL",
-  dbname = "dbname_db",
-  db.pwd = "dbAdminPassword",
-  db.user = "boeings",
-  appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
-  geneDefault = NULL,
-  dfExpr = NULL
-  
-  
+    params = NULL,
+    project_id = "testApp",
+    projectPath = "./",
+    OsC = NULL,
+    dataMode = "MySQL",
+    host = "dbHostURL",
+    dbname = "dbname_db",
+    db.pwd = "dbAdminPassword",
+    db.user = "boeings",
+    appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
+    geneDefault = NULL,
+    dfExpr = NULL
 ){  
   ###############################################################################
   ## Ensure no column is factor                                                ##
@@ -1271,14 +1257,14 @@ seuratObjectToViewer <- function(
   print(paste0("Database to be used: ", dbname))
   print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
   
-  biologicSeqTools::upload.datatable.to.database(
+  biologicSeqTools2::upload.datatable.to.database(
     host = host,
     user = db.user,
     password = db.pwd,
     prim.data.db = dbname,
     dbTableName = geneTb,
     df.data = dfIDTable,
-    db.col.parameter.list = biologicSeqTools::inferDBcategories(dfIDTable),
+    db.col.parameter.list = biologicSeqTools2::inferDBcategories(dfIDTable),
     new.table = T,
     cols2Index = c("gene"),
     mode = dataMode  # Options: "MySQL" and "SQLite"
@@ -1297,12 +1283,12 @@ seuratObjectToViewer <- function(
   print(paste0("Database to be used: ", dbname))
   print(paste0("Database table name to be used: ", expDbTable))
   
-  colCatList <- biologicSeqTools::inferDBcategories(dfExpr)
+  colCatList <- biologicSeqTools2::inferDBcategories(dfExpr)
   
   
   if (nrow(dfExpr) > 100000 & dataMode == "MySQL"){
       ## load infile  
-      biologicSeqTools::uploadDbTableInfile(
+      biologicSeqTools2::uploadDbTableInfile(
           host = host,
           user = db.user,
           password = db.pwd,
@@ -1318,7 +1304,7 @@ seuratObjectToViewer <- function(
           
       )
   } else {
-      biologicSeqTools::upload.datatable.to.database(
+      biologicSeqTools2::upload.datatable.to.database(
         host = host,
         user = db.user,
         password = db.pwd,
@@ -1381,10 +1367,10 @@ seuratObjectToViewer <- function(
   
   
   
-  columnDBcategoryList <- biologicSeqTools::inferDBcategories(dfData=dfdbTable)
+  columnDBcategoryList <- biologicSeqTools2::inferDBcategories(dfData=dfdbTable)
   
   
-  biologicSeqTools::upload.datatable.to.database(
+  biologicSeqTools2::upload.datatable.to.database(
     host = host,
     user = db.user,
     password = db.pwd,
@@ -1395,7 +1381,7 @@ seuratObjectToViewer <- function(
     new.table = TRUE,
     mode = dataMode
   )
-  biologicSeqTools::killDbConnections()
+  biologicSeqTools2::killDbConnections()
   ##                                                                           ##
   ###############################################################################
   
@@ -1563,7 +1549,7 @@ seuratObjectToViewer <- function(
   ###########################################################################
   ## Create app user and credentials                                       ##
   
-  biologicSeqTools::assignDbUsersAndPrivileges(
+  biologicSeqTools2::assignDbUsersAndPrivileges(
       accessFilePath = shinyDataPath,
       hostDbUrl = host,
       appUserName = substr(paste0(project_id, "_aUser"), 1, 30),
