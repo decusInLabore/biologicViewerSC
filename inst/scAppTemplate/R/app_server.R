@@ -369,11 +369,12 @@ app_server <- function(input, output, session) {
     startUpList <- golem::get_golem_options(which = "startUpList")
     allGenes <- startUpList$utilityList$allGenes
     geneDefault <- startUpList$keyList$geneDefault
-    
-    observe({
-        updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE, selected=geneDefault) 
-    })
-    
+    # dropDownList <- startUpList$utilityList$dropDownList
+    # # 
+    # observe({
+    #     updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE, selected=dropDownList[["gene"]][["default"]])
+    # })
+
     
     ###################################################################
     ## Add dropdownselection                                         ##
@@ -409,6 +410,7 @@ app_server <- function(input, output, session) {
                 do.call(tagList, dropdown_list)
             })
         }
+        
         
     })
     

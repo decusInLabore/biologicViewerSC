@@ -124,7 +124,53 @@ loadColorFile <- function(){
 ###############################################################################
 
 
+###############################################################################
+## Get all genes to list                                                     ##
 
+getAllEntriesToList <- function(){
+    ###############################################################################
+    ## Query all genes to be listed                                              ##
+    oldw <- getOption("warn")
+    options(warn = -1)
+    
+    keyList <- assembleKeyList()
+    
+    if (keyList[["dataMode"]] == "SQLite"){
+        
+        dbDB <- DBI::dbConnect(
+            drv = RSQLite::SQLite(),
+            dbname=keyList[["dbname"]]
+        )
+        
+    } else {
+        
+        dbDB <- DBI::dbConnect(
+            drv = RMySQL::MySQL(),
+            user = keyList[["user"]], 
+            password = keyList[["DBpd"]], 
+            host = keyList[["host"]], 
+            dbname=keyList[["dbname"]]
+            
+        )
+        
+    }
+    
+    #dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
+    
+    
+    
+    query <- paste0("SELECT DISTINCT gene FROM ", keyList[["geneID_TbName"]])
+    dfGene <- DBI::dbGetQuery(dbDB, query)
+    
+    allGenes <- as.vector(dfGene[,"gene"])
+    allGenes <- c(keyList[["geneDefault"]], allGenes)
+    RMySQL::dbDisconnect(dbDB) 
+    
+    return(allGenes)
+}
+
+## Done                                                                      ##
+###############################################################################
 
 ###############################################################################
 ## Create dropdown menues                                                    ##
@@ -307,6 +353,15 @@ createDropdownMenuList <- function(){
     ## Add to dropdownlist 
     dropDownList <- list()
     
+    ## Add gene selection ##
+    dropDownList[["gene"]] <- list(
+        "displayName" = "Gene or Category Selection 2",
+        "selOptions" = getAllEntriesToList(),
+        "selDisplayOptions" = getAllEntriesToList(),
+        "default" = "A2M"
+    )
+    
+    ## X-axis
     Xdisplay <- gsub("_", " ", Xsel)
     Xdisplay <- firstup(Xdisplay)
     names(Xsel) <- Xdisplay
@@ -319,7 +374,7 @@ createDropdownMenuList <- function(){
     )
     
     ## Add to dropdownlist 
-    Ysel <- c("Ridgeplot","Densityplot", "Histogram", Ysel)
+    Ysel <- c("Ridgeplot","Densityplot", "Histogram", "Barchart",Ysel)
     
     Ydisplay <- gsub("_", " ", Ysel)
     Ydisplay <- firstup(Ydisplay)
@@ -529,53 +584,7 @@ createDropdownMenuList <- function(){
 ## Create utility list                                                       ##
 
 
-###############################################################################
-## Get all genes to list                                                     ##
 
-getAllEntriesToList <- function(){
-    ###############################################################################
-    ## Query all genes to be listed                                              ##
-    oldw <- getOption("warn")
-    options(warn = -1)
-    
-    keyList <- assembleKeyList()
-    
-    if (keyList[["dataMode"]] == "SQLite"){
-        
-        dbDB <- DBI::dbConnect(
-            drv = RSQLite::SQLite(),
-            dbname=keyList[["dbname"]]
-        )
-        
-    } else {
-        
-        dbDB <- DBI::dbConnect(
-            drv = RMySQL::MySQL(),
-            user = keyList[["user"]], 
-            password = keyList[["DBpd"]], 
-            host = keyList[["host"]], 
-            dbname=keyList[["dbname"]]
-            
-        )
-        
-    }
-    
-    #dbDB <- RMySQL::dbConnect(RMySQL::MySQL(), user = user, password = DBpd, host = host, dbname=dbname)
-    
-    
-    
-    query <- paste0("SELECT DISTINCT gene FROM ", keyList[["geneID_TbName"]])
-    dfGene <- DBI::dbGetQuery(dbDB, query)
-    
-    allGenes <- as.vector(dfGene[,"gene"])
-    allGenes <- c(keyList[["geneDefault"]], allGenes)
-    RMySQL::dbDisconnect(dbDB) 
-    
-    return(allGenes)
-}
-
-## Done                                                                      ##
-###############################################################################
 
 
 

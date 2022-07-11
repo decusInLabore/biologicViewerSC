@@ -30,8 +30,9 @@ mod_FeatureViewSidebar_ui <- function(id){
         conditionalPanel(
             condition = "input.colorBy == 'lg10Expr'|| input.x_axis == 'lg10Expr' || input.y_axis == 'lg10Expr'",
             selectizeInput("gene", 
-                label = "Gene or Category Selection",
-                choices = NULL, 
+                label = as.vector(dropDownList[["gene"]][["displayName"]]),
+                choices = dropDownList[["gene"]][["selOptions"]], 
+                selected = dropDownList[["gene"]][["default"]], 
                 options = list(maxOptions = 50))
         ),
     
