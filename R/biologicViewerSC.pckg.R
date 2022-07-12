@@ -216,6 +216,7 @@ setGeneric(
         return(paramList)
     }
     
+    reds <- names(obj@reductions)
     t <- purrr::map(reds, function(x) addReductions(red = x, obj=obj))
     
     tempList <- list()
