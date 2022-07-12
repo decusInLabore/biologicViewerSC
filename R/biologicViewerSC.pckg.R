@@ -95,7 +95,7 @@ setGeneric(
     
     ##
     dfdbTable <- obj@meta.data %>% 
-        dplyr::select(-one_of("cellID"))
+        dplyr::select(-one_of("cellID"))  %>% 
         tibble::rownames_to_column(var = "cellID")
     
     pos <- grep("sampleID", names(dfdbTable))
