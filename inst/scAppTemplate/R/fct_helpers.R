@@ -137,8 +137,13 @@ plot_prep_server <- function(
             
             p <- ggplot2::ggplot(
               data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-            ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
-            ) + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+            ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8")
+            
+            if (showPlotLegend){
+                p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+            }
+            
+             
             
         }
       
@@ -378,8 +383,11 @@ plot_prep_server_dl <- function(
             
             p <- ggplot2::ggplot(
               data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-            ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8"
-            )+ ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+            ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8")
+            
+            if (showPlotLegend){
+              p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
+            }
         }
     }
     ## Done plot logic                                                       ##

@@ -371,10 +371,12 @@ app_server <- function(input, output, session) {
     geneDefault <- startUpList$keyList$geneDefault
     # dropDownList <- startUpList$utilityList$dropDownList
     # # 
-    # observe({
-    #     updateSelectizeInput(session, 'gene', choices = allGenes, server = TRUE, selected=dropDownList[["gene"]][["default"]])
+    
+    
+    # observeEvent(input$gene == "", {
+    #     updateSelectizeInput(session, 'gene', choices = allGenes, selected = geneDefault, server = TRUE)
     # })
-
+    
     
     ###################################################################
     ## Add dropdownselection                                         ##
@@ -382,6 +384,10 @@ app_server <- function(input, output, session) {
     observe({
         startUpList <- golem::get_golem_options(which = "startUpList")
         dropDownList <- startUpList$utilityList$dropDownList
+        
+        # if (input$gene != ""){
+        #     dropDownList[["gene"]][["default"]] <- input$gene
+        # }
         
         if (length(dropDownList) > 0){
             
