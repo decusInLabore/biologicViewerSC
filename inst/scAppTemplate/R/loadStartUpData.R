@@ -355,10 +355,10 @@ createDropdownMenuList <- function(){
     
     ## Add gene selection ##
     dropDownList[["gene"]] <- list(
-        "displayName" = "Gene or Category Selection 2",
+        "displayName" = "Gene or Category Selection",
         "selOptions" = getAllEntriesToList(),
         "selDisplayOptions" = getAllEntriesToList(),
-        "default" = "A2M"
+        "default" = keyList[["geneDefault"]]
     )
     
     ## X-axis
