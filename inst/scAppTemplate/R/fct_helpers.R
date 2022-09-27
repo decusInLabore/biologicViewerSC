@@ -4,8 +4,10 @@
 plot_prep_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    plotOutput(ns("my_plot"), 
-               width = "100%")
+    plotOutput(
+        ns("my_plot"), 
+        width = "100%"
+    )
   )
 }
 

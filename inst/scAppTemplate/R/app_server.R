@@ -372,7 +372,7 @@ app_server <- function(input, output, session) {
     # dropDownList <- startUpList$utilityList$dropDownList
     # # 
     
-    
+    updateSelectizeInput(session, 'gene', choices = allGenes, selected = geneDefault, server = TRUE)
     # observeEvent(input$gene == "", {
     #     updateSelectizeInput(session, 'gene', choices = allGenes, selected = geneDefault, server = TRUE)
     # })
