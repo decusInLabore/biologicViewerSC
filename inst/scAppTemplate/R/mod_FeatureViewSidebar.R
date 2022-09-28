@@ -13,6 +13,8 @@
 
 
 mod_FeatureViewSidebar_ui <- function(id){
+    
+    # Organise namespace
     ns <- NS(id)
     
     startUpList <- golem::get_golem_options(which = "startUpList")
@@ -31,8 +33,8 @@ mod_FeatureViewSidebar_ui <- function(id){
             condition = "input.colorBy == 'lg10Expr'|| input.x_axis == 'lg10Expr' || input.y_axis == 'lg10Expr'",
             selectizeInput("gene", 
                 label = as.vector(dropDownList[["gene"]][["displayName"]]),
-                choices = dropDownList[["gene"]][["selOptions"]], 
-                selected = dropDownList[["gene"]][["default"]], 
+                choices = NULL, # dropDownList[["gene"]][["selOptions"]], 
+                #selected = dropDownList[["gene"]][["default"]], 
                 options = list(maxOptions = 50))
         ),
     
@@ -129,10 +131,13 @@ mod_FeatureViewSidebar_ui <- function(id){
 #' @noRd 
 mod_FeatureViewSidebar_server <- function(input, output, session){
   ns <- session$ns
-  output$dev_text <- renderText({
-    print("foo");
-    "bar"
-  })
+  
+  startUpList <- golem::get_golem_options(which = "startUpList")
+  allGenes <- startUpList$utilityList$allGenes
+  geneDefault <- startUpList$keyList$geneDefault
+  
+  updateSelectizeInput(session, 'gene', choices = allGenes, selected = geneDefault, server = TRUE)
+  
 }
     
 ## To be copied in the UI
