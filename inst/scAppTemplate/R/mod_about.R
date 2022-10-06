@@ -13,19 +13,17 @@
 #' @keywords internal
 #' @export 
 #' @importFrom shiny NS tagList includeMarkdown
-mod_about_ui <- function(id){
+mod_about_ui <- function(id, title = "About"){
   ns <- NS(id)
-  tagList(
-    col_6(
-      includeMarkdown(
-        system.file("app/www/about.md", package = "biologicViewerSC")
-      )
-    ), 
-    col_6(
-      includeMarkdown(
-        system.file("app/www/tech.md", package = "tidytuesday201942")
-      )
-    )
+  
+  tabPanel(
+        title = title,
+        col_6(
+          shiny::includeMarkdown(
+            system.file("app/www/about.md", package = "biologicViewerSC")
+          )
+        )
+      
   )
 }
     
@@ -34,9 +32,11 @@ mod_about_ui <- function(id){
 #' @rdname mod_about
 #' @export
 #' @keywords internal
-    
-mod_about_server <- function(input, output, session){
-  ns <- session$ns
+  
+mod_about_server <- function(id){
+  moduleServer( id, function(input, output, session){
+    ns <- session$ns
+  })
 }
     
 ## To be copied in the UI

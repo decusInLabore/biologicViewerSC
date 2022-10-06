@@ -32,13 +32,26 @@ app_ui <- function(request) {
                                                                          ##       
         ## Start new
         navbarPage(
-            "biologic SC",   
-        
-            tabPanel("FeatureView", 
-                mod_FeatureViewSidebar_ui("FeatureViewSidebar_ui_1"),
+            title = "biologic SC",   
+            mod_scFeatureView_ui("scFeatureView_1", title = "FeatureView"),
+            
+            mod_scFeatureView_ui(
+                "scFeatureView_2", 
+                title = "Violin Plots", 
+                xSel = "clusterName", 
+                ySel = "lg10Expr",
+                colorSel = "clusterName"
             ),
             
-            tabPanel("About this Dataviewer", mod_about_ui("about_ui_1")),
+            mod_scFeatureView_ui(
+              "scFeatureView_3", 
+              title = "Ridge Plots", 
+              xSel = "lg10Expr", 
+              ySel = "Ridgeplot",
+              colorSel = "clusterName"
+            ),
+        
+            mod_about_ui("about_ui_1", title = "About this Dataviewer"),
         
             navbarMenu("Settings", 
                 tabPanel("Color Setting", "Color Settings"),
