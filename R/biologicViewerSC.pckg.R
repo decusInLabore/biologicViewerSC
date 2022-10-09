@@ -672,6 +672,17 @@ seuratObjectToLocalViewer <- function(
     #password = db.pwd
 ){  
   
+    ############################################################################
+    ## Add cellID column to the seurat object if it isnt present             ##
+    pos <- grep("^cellID$", names(OsC@meta.data))
+                
+    if (length(pos) == 0){
+      OsC@meta.data[["cellID"]] <- row.names(OsC@meta.data)
+    }
+    
+    ## Done                                                                   ##
+    ############################################################################
+              
     ###############################################################################
     ## Ensure no column is factor                                                ##
     
@@ -1133,6 +1144,17 @@ seuratObjectToViewer <- function(
     geneDefault = NULL,
     dfExpr = NULL
 ){  
+  ##############################################################################
+  ## Add cellID column to the seurat object if it isnt present                ##
+  pos <- grep("^cellID$", names(OsC@meta.data))
+  
+  if (length(pos) == 0){
+      OsC@meta.data[["cellID"]] <- row.names(OsC@meta.data)
+  }
+  
+  ## Done                                                                     ##
+  ##############################################################################
+  
   ###############################################################################
   ## Ensure no column is factor                                                ##
   
