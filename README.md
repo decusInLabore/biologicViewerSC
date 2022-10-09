@@ -6,7 +6,7 @@ As input we need only your Seurat object. The app can be used in two modes: as a
 You will get a local Shiny app, that can be used locally or copied onto a shiny server. If you need help with the database setup or the shiny server at the Crick, please do get in touch with the Software development team, the database team or email me (stefan.boeing@crick.ac.uk).
 
 ## Example App Neuroblastoma (comparison single-cell / single-nuclei Workflow)
-In the section below you will be able to create a single-cell data viewer using your own Seurat single-cell object. As an example you can review a comparison of a single-cell and single-nuclei workflow on a Neuroblastoma sample <a href="https://shiny-bioinformatics.crick.ac.uk/shiny/boeings/Neuroblastoma_app/" target="_blank">here</a>. The About this dataviewer section will have additional details on the experiment.  
+In the section below you will be able to create a single-cell data viewer using your own Seurat single-cell object. As an example you can review a comparison of a single-cell and single-nuclei workflow on a Neuroblastoma sample <a href="https://bioinformatics.crick.ac.uk/shiny/users/boeings/Neuroblastoma_app/" target="_blank">here</a>. The About this dataviewer section will have additional details on the experiment.  
 
 **Features**
 * Backend
@@ -184,7 +184,7 @@ biologicViewerSC::seuratObjectToViewer(
     dbname = "test_data",
     db.pwd = dbAdminPassword,
     db.user = "boeings",
-    appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
+    appDomains = c("bioinformatics.crick.ac.uk","10.%"),
     geneDefault = "CD3E" # This will set the default gene in the app
 )
 
