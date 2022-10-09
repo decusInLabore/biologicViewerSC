@@ -11,7 +11,7 @@ mod_scFeatureView_ui <- function(
     id , title, 
     xSel = NULL, 
     ySel = NULL, 
-    colorSel = NULL 
+    colorSel = NULL
 ){
     ns <- NS( id )
     ## Load parameters ##
@@ -123,23 +123,30 @@ mod_scFeatureView_ui <- function(
                 value = TRUE, 
                 width = NULL
             ),
-            
-            ## Item sidepanel
-            bookmarkButton(),
             br(),
             br(),
             ## Item sidepanel
             downloadButton(ns('plotDLall'), "Download Plot Images"),
             br(),
             br(),
+            shiny::bookmarkButton(),
+            br(),
+            br(),
+            
             ## Item sidepanel
             conditionalPanel(
                 condition = paste0('input[\'', ns('lg10Expr'), "\'] != \'lg10Expr\'"),
                 downloadButton(ns("downloadData"), "Download Color Selection")
             )
           ), # End sidepanel
+          
           mainPanel(
-              uiOutput(ns("plotsFV"))
+              if (require("shinycssloaders")){
+                  uiOutput(ns("plotsFV")) %>% shinycssloaders::withSpinner(color = "#C4DEB9")
+              } else {
+                  uiOutput(ns("plotsFV"))
+              }
+              
           )
   )
 }
@@ -173,30 +180,17 @@ mod_scFeatureView_server <- function(id){
         ## Done loading gene list server side ##
         ########################################
     
-        ################################
-        ## Set up data list           ##
-        rv <- reactiveValues()
-        ## Done                       ##
-        ################################
-    
+        
         ########################################
         ## Create/update color table                 ##
         
-        # observeEvent(input$colorBy, {
-        #   rv$dfColorTable <-  createColorTable(
-        #     startUpList = startUpList, 
-        #     colorBy = input$colorBy
-        #   )
-        # })
         
-        
-        
-       
-          rColorTable <-  reactive({ createColorTable(
-            startUpList = startUpList, 
-            colorBy = input$colorBy
-          )
-          })
+        rColorTable <-  reactive({ 
+            createColorTable(
+                startUpList = startUpList, 
+                colorBy = input$colorBy
+            )
+        })
         
         
         ## Done color table                   ##
@@ -217,19 +211,7 @@ mod_scFeatureView_server <- function(id){
             )
         })
     
-        toListen <- reactive({
-            list(
-                input$gene,
-                input$splitByColumn,
-                input$colorBy,
-                input$x_axis,
-                input$y_axis
-            )
-        })
-    
-        observeEvent(toListen, {
-              rv$plotList <- rplotList()
-        })  
+         
       ## Done main table                    ##
       ########################################
     
@@ -310,12 +292,12 @@ mod_scFeatureView_server <- function(id){
             do.call(tagList, plot_output_list)
         })
         
-        plotList <- rplotList()
+        # plotList <- rplotList()
         
-        dfTemp <- plotList[["dfTemp"]]
+        # dfTemp <- plotList[["dfTemp"]]
         
         if (!(input$colorBy %in% numCols)){
-            dfColourSel <- createColorTable(startUpList = startUpList, colorBy = input$colorBy)
+            dfColourSel <- rColorTable()
             dfColourSel <- dfColourSel[order(dfColourSel[[input$colorBy]]), ]
             cols <- as.vector(dfColourSel[,"dotColor"])
             names(cols) <- as.vector(dfColourSel[,input$colorBy])
