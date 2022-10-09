@@ -160,6 +160,12 @@ setGeneric(
     }
     ## End of helper function
     
+    ## Add cellID column ##
+    pos <- grep("cellID", names(obj@meta.data))
+    if (length(pos) == 0){
+        obj@meta.data[["cellID"]] <- row.names(obj@meta.data)
+    }
+    
     dfExpr <- purrr::map(cellList, function(x) subset_fun(obj=obj, cellIDs = x)) %>%
         dplyr::bind_rows() %>%
         data.frame()

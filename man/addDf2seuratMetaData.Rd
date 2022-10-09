@@ -8,6 +8,8 @@ addDf2seuratMetaData(obj, dfAdd)
 }
 \arguments{
 \item{obj}{Seurat object}
+
+\item{dfAdd}{Data frame to add to metadata}
 }
 \value{
 paramerer list
