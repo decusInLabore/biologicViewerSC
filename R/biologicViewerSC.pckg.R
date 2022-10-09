@@ -3,6 +3,7 @@
 
 #' @title addDf2seuratMetaData
 #' @param obj Seurat object
+#' @param dfAdd Data frame to add to metadata
 #' @return paramerer list
 #' @import Seurat
 #' @export
@@ -497,7 +498,7 @@ setGeneric(
 #' @param projectPath Path to project
 #' @param params biologic parameterList
 #' 
-#' @import Seurat RMySQL RSQLite biologicSeqTools2
+#' @import Seurat RMySQL RSQLite
 #' @export
 
 
@@ -813,7 +814,7 @@ seuratObjectToLocalViewer <- function(
     print(paste0("Database to be used: ", primDataDB))
     print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
     
-    biologicSeqTools2::upload.datatable.to.database(
+    biologicViewerSC::upload.datatable.to.database(
       #host = host,
       #user = db.user,
       #password = db.pwd,
@@ -843,9 +844,9 @@ seuratObjectToLocalViewer <- function(
     print(paste0("Database to be used: ", primDataDB))
     print(paste0("Database table name to be used: ", expDbTable))
     
-    colCatList <- biologicSeqTools2::inferDBcategories(dfExpr)
+    colCatList <- biologicViewerSC::inferDBcategories(dfExpr)
     
-    biologicSeqTools2::upload.datatable.to.database(
+    biologicViewerSC::upload.datatable.to.database(
         #host = host,
         #user = db.user,
         #password = db.pwd,
@@ -905,10 +906,10 @@ seuratObjectToLocalViewer <- function(
     
     
     
-    columnDBcategoryList <- biologicSeqTools2::inferDBcategories(dfData=dfdbTable)
+    columnDBcategoryList <- biologicViewerSC::inferDBcategories(dfData=dfdbTable)
     
     
-    biologicSeqTools2::upload.datatable.to.database(
+    biologicViewerSC::upload.datatable.to.database(
       host = host,
       user = db.user,
       password = db.pwd,
@@ -919,7 +920,7 @@ seuratObjectToLocalViewer <- function(
       new.table = TRUE,
       mode = dataMode
     )
-    biologicSeqTools2::killDbConnections()
+    biologicViewerSC::killDbConnections()
     ##                                                                           ##
     ###############################################################################
     
@@ -1163,8 +1164,8 @@ seuratObjectToViewer <- function(
     
     
     dfPercCellsExpr <- dfExprMatrix
-    dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
-    dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
+    #dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
+    #dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
     
     geneDefault <- as.vector(dfPercCellsExpr[1,"gene"])
   }
@@ -1259,14 +1260,14 @@ seuratObjectToViewer <- function(
   print(paste0("Database to be used: ", dbname))
   print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
   
-  biologicSeqTools2::upload.datatable.to.database(
+  biologicViewerSC::upload.datatable.to.database(
     host = host,
     user = db.user,
     password = db.pwd,
     prim.data.db = dbname,
     dbTableName = geneTb,
     df.data = dfIDTable,
-    db.col.parameter.list = biologicSeqTools2::inferDBcategories(dfIDTable),
+    db.col.parameter.list = biologicViewerSC::inferDBcategories(dfIDTable),
     new.table = T,
     cols2Index = c("gene"),
     mode = dataMode  # Options: "MySQL" and "SQLite"
@@ -1285,12 +1286,12 @@ seuratObjectToViewer <- function(
   print(paste0("Database to be used: ", dbname))
   print(paste0("Database table name to be used: ", expDbTable))
   
-  colCatList <- biologicSeqTools2::inferDBcategories(dfExpr)
+  colCatList <- biologicViewerSC::inferDBcategories(dfExpr)
   
   
   if (nrow(dfExpr) > 100000 & dataMode == "MySQL"){
       ## load infile  
-      biologicSeqTools2::uploadDbTableInfile(
+      biologicViewerSC::uploadDbTableInfile(
           host = host,
           user = db.user,
           password = db.pwd,
@@ -1306,7 +1307,7 @@ seuratObjectToViewer <- function(
           
       )
   } else {
-      biologicSeqTools2::upload.datatable.to.database(
+      biologicViewerSC::upload.datatable.to.database(
         host = host,
         user = db.user,
         password = db.pwd,
@@ -1369,10 +1370,10 @@ seuratObjectToViewer <- function(
   
   
   
-  columnDBcategoryList <- biologicSeqTools2::inferDBcategories(dfData=dfdbTable)
+  columnDBcategoryList <- biologicViewerSC::inferDBcategories(dfData=dfdbTable)
   
   
-  biologicSeqTools2::upload.datatable.to.database(
+  biologicViewerSC::upload.datatable.to.database(
     host = host,
     user = db.user,
     password = db.pwd,
@@ -1383,7 +1384,7 @@ seuratObjectToViewer <- function(
     new.table = TRUE,
     mode = dataMode
   )
-  biologicSeqTools2::killDbConnections()
+  biologicViewerSC::killDbConnections()
   ##                                                                           ##
   ###############################################################################
   
@@ -1551,7 +1552,7 @@ seuratObjectToViewer <- function(
   ###########################################################################
   ## Create app user and credentials                                       ##
   
-  biologicSeqTools2::assignDbUsersAndPrivileges(
+  biologicViewerSC::assignDbUsersAndPrivileges(
       accessFilePath = shinyDataPath,
       hostDbUrl = host,
       appUserName = substr(paste0(project_id, "_aUser"), 1, 30),

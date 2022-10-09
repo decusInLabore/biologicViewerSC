@@ -36,8 +36,15 @@ In the example below we use create a small Seurat single-cell object from a sing
 
 Let's start by installing required R-packages:
 ```
-install.packages("remotes")
-remotes::install_github("decusInLabore/biologicSeqTools")
+
+if (!require("Seurat")){
+    install.packages("Seurat")
+}
+
+if (!require("remotes")){
+    install.packages("remotes")
+}
+
 remotes::install_github("decusinlabore/biologicViewerSC")
 
 ```
@@ -50,8 +57,6 @@ remotes::install_github("decusinlabore/biologicViewerSC")
 library(Seurat)
 library(dplyr)
 library(biologicViewerSC)
-library(biologicSeqTools)
-
 
 all.genes <- rownames(pbmc_small)
 
@@ -61,7 +66,6 @@ testObj <- pbmc_small %>%
     RunUMAP(dims = 1:3)  %>%
     FindNeighbors(dims = 1:3) %>%
     FindClusters(resolution = 0.5)
-
 
 
 testObj@meta.data[["meta_Region"]] <- "RandomAcat"
