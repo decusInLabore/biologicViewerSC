@@ -132,16 +132,24 @@ upload.datatable.to.database <- function(
     ## Connect to MySQL to check existence of database ##
     if (mode == "SQLite"){
         
-        prim.data.dbPath <- unlist(strsplit(prim.data.db, "/"))[1:(length(unlist(strsplit(prim.data.db, "/")))-1)]
-        prim.data.dbPath <- paste0(prim.data.dbPath, collapse = "/")
+        # create path to database. To do that, split everything that's not the database file name. 
+        pos <- grep("/", prim.data.db)
+        if (length(pos) > 0){
+            prim.data.dbPath <- unlist(strsplit(prim.data.db, "/"))[1:(length(unlist(strsplit(prim.data.db, "/")))-1)]
+            prim.data.dbPath <- paste0(prim.data.dbPath, collapse = "/")    
+        } else {
+            prim.data.dbPath <- "./"
+        }
+        
         
         if (!dir.exists(prim.data.dbPath)){
             dir.create(prim.data.dbPath, recursive = T)
         }
         
+        
         dbDB <- DBI::dbConnect(
             drv = RSQLite::SQLite(),
-            dbname=prim.data.db
+            dbname=paste0(prim.data.db)
         )
         
         
@@ -226,7 +234,7 @@ upload.datatable.to.database <- function(
         
         dbDB <- DBI::dbConnect(
             drv = RSQLite::SQLite(),
-            dbname=prim.data.db
+            dbname=paste0(prim.data.db)
         )
         
     } else {
@@ -285,7 +293,7 @@ upload.datatable.to.database <- function(
                     
                     dbDB <- DBI::dbConnect(
                         drv = RSQLite::SQLite(),
-                        dbname=prim.data.db
+                        dbname=paste0(prim.data.db)
                     )
                     
                 } else {
@@ -336,7 +344,7 @@ upload.datatable.to.database <- function(
             
             dbDB <- DBI::dbConnect(
                 drv = RSQLite::SQLite(),
-                dbname=prim.data.db
+                dbname=paste0(prim.data.db)
             )
             
         } else {

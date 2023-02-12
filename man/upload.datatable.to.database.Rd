@@ -11,17 +11,20 @@ upload.datatable.to.database(
   prim.data.db = "project.database",
   dbTableName = "rnaseqdbTableName",
   df.data = "df.data.to.upload",
-  db.col.parameter.list = list(`VARCHAR(255) CHARACTER SET latin1 COLLATE
-    latin1_swedish_ci` = c("gene_description"), `VARCHAR(50) CHARACTER SET latin1 COLLATE
-    latin1_swedish_ci` = c("ENSG", "ENSMUSG", "hgnc_symbol", "mgi_symbol", "uniprot",
-    "entrezgene", "display_ptm", "^sequence_window", "p_site_env", "for_GSEA_gene_chip",
-    "associated_gene_name", "gene_type"), `VARCHAR(1) CHARACTER SET latin1 COLLATE
-    latin1_swedish_ci` = c("ppos", "amino_acid", "charge", "known_site"), `BIGINT(8) NULL
-    DEFAULT NULL` = c("row_names"), `INT(8) NULL DEFAULT NULL` = c("row_id",     
-    "cluster_order", "cluster_id", "count_cut_off", "^position$", "raw_counts"),
-    `DECIMAL(6,3) NULL DEFAULT NULL` = c("norm_counts", "NES", "logFC", "lg2_avg",
-    "intensity", "^int", "iBAQ", "^localization_prob$"), `DECIMAL(6,5) NULL DEFAULT NULL`
-    = c("padj", "pvalue", "^pep$")),
+ 
+    db.col.parameter.list = list(`VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci`
+    = c("gene_description"), `VARCHAR(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci`
+    = c("ENSG", "ENSMUSG", "hgnc_symbol", "mgi_symbol", "uniprot", "entrezgene",
+    "display_ptm", "^sequence_window", "p_site_env", "for_GSEA_gene_chip",
+    "associated_gene_name", "gene_type"),
+    `VARCHAR(1) CHARACTER SET latin1 COLLATE latin1_swedish_ci` = c("ppos", "amino_acid",
+    "charge", "known_site"), `BIGINT(8) NULL DEFAULT NULL` = c("row_names"),
+    `INT(8) NULL DEFAULT NULL` = c("row_id", 
+     "cluster_order", "cluster_id",
+    "count_cut_off", "^position$", "raw_counts"), `DECIMAL(6,3) NULL DEFAULT NULL` =
+    c("norm_counts", "NES", "logFC", "lg2_avg", "intensity", "^int", "iBAQ",
+    "^localization_prob$"), `DECIMAL(6,5) NULL DEFAULT NULL` = c("padj", "pvalue",
+    "^pep$")),
   increment = 5000,
   new.table = FALSE,
   first.row.name.index = 1,

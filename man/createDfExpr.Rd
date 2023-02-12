@@ -8,6 +8,10 @@ createDfExpr(obj, assay = "RNA", geneSel = NULL)
 }
 \arguments{
 \item{obj}{Seurat object}
+
+\item{assay}{Seurat assay to use to extract expression data}
+
+\item{geneSel}{Gene subset to use when preparing the expression assay}
 }
 \value{
 paramerer list
