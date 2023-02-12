@@ -120,8 +120,13 @@ setGeneric(
 #'
 #' TBD.
 #' @title createDfExpr
+#' 
 #' @param obj Seurat object
+#' @param assay Seurat assay to use to extract expression data
+#' @param geneSel Gene subset to use when preparing the expression assay
+#' 
 #' @return paramerer list
+#' 
 #' @import Seurat
 #' @import tibble
 #' @import tidyr
@@ -138,40 +143,41 @@ setGeneric(
         geneSel = NULL
     ) {
     
-    Seurat::DefaultAssay(obj) <- assay
+        Seurat::DefaultAssay(obj) <- assay
     
-    ## Breakdown into chunks to make it more memory friendly ##
-    ## 2022 03 21
-    cells <- row.names(OsC@meta.data)
-    cellList <- split(cells, ceiling(seq_along(cells)/10000))
+        ## Breakdown into chunks to make it more memory friendly ##
+        ## 2022 03 21
+        cells <- row.names(OsC@meta.data)
+        cellList <- split(cells, ceiling(seq_along(cells)/10000))
     
-    ## Define helper function ##
-    subset_fun <- function(obj, cellIDs) {
-      z <- subset(obj, subset = cellID %in% cellIDs)[[assay]]@data %>%
-        data.frame() %>%
-        tibble::rownames_to_column(var = "gene") %>%
-        tidyr::pivot_longer(
-          !gene,
-          names_to = "cellID",
-          values_to = "lg10Expr"
-        ) %>%
-        filter(lg10Expr > 0)
-        return(z)
+        ## Define helper function ##
+        subset_fun <- function(obj, cellIDs) {
+          z <- subset(obj, subset = cellID %in% cellIDs)[[assay]]@data %>%
+            data.frame() %>%
+            tibble::rownames_to_column(var = "gene") %>%
+            tidyr::pivot_longer(
+              !gene,
+              names_to = "cellID",
+              values_to = "lg10Expr"
+            ) %>%
+            filter(lg10Expr > 0)
+            return(z)
+        }
+        ## End of helper function
+    
+        ## Add cellID column ##
+        pos <- grep("cellID", names(obj@meta.data))
+        if (length(pos) == 0){
+              obj@meta.data[["cellID"]] <- row.names(obj@meta.data)
+        }
+    
+        dfExpr <- purrr::map(
+            cellList, function(x) subset_fun(obj=obj, cellIDs = x)) %>%
+            dplyr::bind_rows() %>%
+            data.frame()
+    
+        return(dfExpr)
     }
-    ## End of helper function
-    
-    ## Add cellID column ##
-    pos <- grep("cellID", names(obj@meta.data))
-    if (length(pos) == 0){
-        obj@meta.data[["cellID"]] <- row.names(obj@meta.data)
-    }
-    
-    dfExpr <- purrr::map(cellList, function(x) subset_fun(obj=obj, cellIDs = x)) %>%
-        dplyr::bind_rows() %>%
-        data.frame()
-    
-    return(dfExpr)
-  }
 )
 
 
@@ -1012,26 +1018,6 @@ seuratObjectToLocalViewer <- function(
       colorByOptions
     )
     
-    # colorByOptionsPart1 <- c(
-    #   grep("clusterName", colorByOptions),
-    #   grep("seurat_clusters", colorByOptions),
-    #   grep("sampleName", colorByOptions)
-    # )
-    # 
-    # if (length(colorByOptionsPart1) > 0){
-    #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-    #   colorDisplayOptions <- c(
-    #     "lg10Expr",
-    #     colorByOptions[colorByOptionsPart1],
-    #     colorByOptionsPart2
-    #   )
-    # } else {
-    #   colorDisplayOptions <- c(
-    #     "lg10Expr",
-    #     colorByOptions[colorByOptionsPart1]
-    #   )
-    # }
-    
     
     
     names(colorDisplayOptions) <- colorDisplayOptions
@@ -1053,14 +1039,14 @@ seuratObjectToLocalViewer <- function(
     
     ## Order Options ##
     
-    ##                                                                           ##
-    ###############################################################################
+    ##                                                                        ##
+    ############################################################################
     
     
-    ###############################################################################
-    ## Create sample order and color specification files                         ##
+    ############################################################################
+    ## Create sample order and color specification files                      ##
     
-    writeAppParameterFiles(
+    biologicViewerSC::writeAppParameterFiles(
         project_id = project_id,
         projectPath = projectPath,
         params = params,
@@ -1123,12 +1109,29 @@ seuratObjectToLocalViewer <- function(
 
 #' @title seuratObjectToLocalViewer
 #'
+#' This function creates a shiny single-cell viewer based on a Seurat single-cell object.
 #'
-#' @param project_id Project id
-#' @param OsC Seurat object
+#' @param params A parameter list created by the biologicViewerSC::scanObjParams function. 
+#' @param project_id A project ID string
+#' @param projectPath A path into which the shiny app will be deposited. 
+#' @param OsC A Seurat object
+#' @param dataMode "MySQL" or "SQLite". This parameter determines whether a remote MySQL database ("MySQL") or a local database ("SQLite") is used
+#' @param host Host url 
+#' @param dbname Database name
+#' @param db.pwd Database password
+#' @param db.user Database username
+#' @param appDomains
+#' @param geneDefault Default gene string
+#' @param dfExpr Dataframe containing expression data
+#' @param clusterNameColumn Column name of the sample name column
+#' @param sampleNameColumn Column name of the cluster name column
 #' 
-#' @import Seurat RMySQL RSQLite
+#' @return No return. A shiny single-cell app will be created.
+#' 
 #' @export
+#' 
+#' @import Seurat RMySQL RSQLite dplyr purrr
+
 
 seuratObjectToViewer <- function(
     params = NULL,
@@ -1142,420 +1145,419 @@ seuratObjectToViewer <- function(
     db.user = "boeings",
     appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
     geneDefault = NULL,
-    dfExpr = NULL
+    dfExpr = NULL,
+    clusterNameColumn = "clusterName",
+    sampleNameColumn = "sampleName",
+    seuratAssayToUse = "RNA"
 ){  
-  ##############################################################################
-  ## Add cellID column to the seurat object if it isnt present                ##
-  pos <- grep("^cellID$", names(OsC@meta.data))
+    ############################################################################
+    ## Checks & Formatting                                                    ##
   
-  if (length(pos) == 0){
-      OsC@meta.data[["cellID"]] <- row.names(OsC@meta.data)
-  }
+    ## Formatting 
+    names(OsC@meta.data) <- gsub("\\.", "_", names(OsC@meta.data))
+    
+    ## clusterNameColumn
+    pos <- grep(paste0("^",clusterNameColumn,"$"), names(OsC@meta.data))
+    
+    if (length(pos) ==0){
+        pos2 <- grep(paste0("^seurat_clusters$"), names(OsC@meta.data))
+        if (length(pos2) ==1){
+            OsC@meta.data[["clusterNameColumn"]] <- paste0("C", OsC@meta.data$seurat_clusters)
+            print("seurat_clusters column set as clusterNameColumn.")
+        } else {
+            print("No clusterNameColumn identifiable in the meta data. Please check.")
+            clusterNameColumn <- NULL
+        }
+    }
   
-  ## Done                                                                     ##
-  ##############################################################################
+    ## sampleNameColumn
+    pos <- grep(paste0("^",sampleNameColumn,"$"), names(OsC@meta.data))
+      if (length(pos) ==0){
+          pos2 <- grep(paste0("^orig_ident$"), names(OsC@meta.data))
+          if (length(pos2) ==1){
+            OsC@meta.data[["sampleNameColumn"]] <- OsC@meta.data$orig_ident
+            print("seurat_clusters column set as clusterNameColumn.")
+          } else {
+            print("No clusterNameColumn identifiable in the meta data. Please check.")
+            clusterNameColumn <- NULL
+          }
+    }
   
-  ###############################################################################
-  ## Ensure no column is factor                                                ##
   
-  for (i in 1:ncol(OsC@meta.data)){
-    if (is.factor(OsC@meta.data[,i])){
-      OsC@meta.data[,i] <- as.character(OsC@meta.data[,i])
-      print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
+    
+    ## Add cellID column to the seurat object if it isnt present
+    pos <- grep("^cellID$", names(OsC@meta.data))
+  
+    if (length(pos) == 0){
+        OsC@meta.data[["cellID"]] <- row.names(OsC@meta.data)
+    }
+  
+    ## Ensure no column is factor                                             ##
+  
+    for (i in 1:ncol(OsC@meta.data)){
+        if (is.factor(OsC@meta.data[,i])){
+            OsC@meta.data[,i] <- as.character(OsC@meta.data[,i])
+            print(paste0("Metadata column ", names(OsC@meta.data)[i], " changed from factor to character."))
+        }
+      
+        # print(is.factor(OsC@meta.data[,i]))
+    }
+  
+    ##
+    ############################################################################
+  
+    ############################################################################
+    ## Set gene default if it isnt                                            ##
+    
+    ## check if geneDefault is in the dataset
+    Seurat::DefaultAssay(OsC) <- seuratAssayToUse
+    my_genes <- rownames(x = OsC@assays[[seuratAssayToUse]])
+    
+    geneDefault <- geneDefault[geneDefault %in% my_genes]
+    
+    if (length(geneDefault) == 0){
+        geneDefault <- NULL
     }
     
-    # print(is.factor(OsC@meta.data[,i]))
-  }
-  
-  ##
-  ###############################################################################
-  
-  ###############################################################################
-  ## Set gene default if it isnt                                               ##
-  if (is.null(geneDefault)){
-    DefaultAssay(OsC) <- "RNA"
-    my_genes <- rownames(x = OsC@assays$RNA)
+    if (is.null(geneDefault)){
+        print("Setting default gene to display.")
+        ## Based on https://github.com/satijalab/seurat/issues/3560 the next two lines were 
+        # added/altered:
+        cells <- as.factor(row.names(OsC@meta.data))
     
-    ## Based on https://github.com/satijalab/seurat/issues/3560 the next two lines were 
-    # added/altered:
-    cells <- as.factor(row.names(OsC@meta.data))
+        exp <- Seurat::FetchData(OsC, my_genes, cells = cells )
+        # exp <- FetchData(OsC, my_genes)
+        ## End change 2022 03 21
     
-    exp <- FetchData(OsC, my_genes, cells = cells )
-    # exp <- FetchData(OsC, my_genes)
-    ## End change 2022 03 21
-    
-    ExprMatrix <- round(as.matrix(colMeans(exp  > 0)) *100,1)
-    colnames(ExprMatrix)[1] <- "count_cut_off"
-    dfExprMatrix <- data.frame(ExprMatrix)
-    dfExprMatrix[["gene"]] <- row.names(dfExprMatrix)
+        ExprMatrix <- round(as.matrix(colMeans(exp  > 0)) *100,1)
+        colnames(ExprMatrix)[1] <- "count_cut_off"
+        dfExprMatrix <- data.frame(ExprMatrix)
+        dfExprMatrix[["gene"]] <- row.names(dfExprMatrix)
     
     
     
-    dfPercCellsExpr <- dfExprMatrix
-    #dfPercCellsExpr <- dfPercCellsExpr[dfPercCellsExpr$gene %in% Obio@dataTableList$referenceList$integrated_top30var, ]
-    #dfPercCellsExpr <- dfPercCellsExpr[order(dfPercCellsExpr$count_cut_off, decreasing = T),]
+        dfPercCellsExpr <- dfExprMatrix
+     
+        geneDefault <- as.vector(dfPercCellsExpr[1,"gene"])
+    }
+    ## Done 
+    ############################################################################
+  
+    ############################################################################
+    ## Create Single-cell Application                                         ##
+  
+    shinyBasePath <- projectPath
+    shinyProjectPath <-paste0(
+        shinyBasePath, 
+        project_id, "_app"
+    )
     
-    geneDefault <- as.vector(dfPercCellsExpr[1,"gene"])
-  }
-  ## Done 
-  ###############################################################################
+    if (!dir.exists(shinyProjectPath)){
+        dir.create(shinyProjectPath)
+    }
   
-  ###############################################################################
-  ## Create Single-cell Application                                            ##
+    shinyProjectPath <-paste0(
+        shinyBasePath, 
+        project_id, "_app"
+    )
+    if (!dir.exists(shinyProjectPath)){
+        dir.create(shinyProjectPath)
+    }
   
-  shinyBasePath <- projectPath
-  shinyProjectPath <-paste0(
-    shinyBasePath, 
-    project_id, "_app"
-  )
-  if (!dir.exists(shinyProjectPath)){
-    dir.create(shinyProjectPath)
-  }
+    shinyDataPath <-paste0(shinyProjectPath, "/data/connect/")
+    if (!dir.exists(shinyDataPath)){
+        dir.create(shinyDataPath, recursive = T)
+    }
   
-  shinyProjectPath <-paste0(
-    shinyBasePath, 
-    project_id, "_app"
-  )
-  if (!dir.exists(shinyProjectPath)){
-    dir.create(shinyProjectPath)
-  }
-  
-  shinyDataPath <-paste0(shinyProjectPath, "/data/connect/")
-  if (!dir.exists(shinyDataPath)){
-    dir.create(shinyDataPath, recursive = T)
-  }
-  
-  shinyLocalDbPath <-paste0(shinyProjectPath, "/data/")
-  if (!dir.exists(shinyLocalDbPath)){
-    dir.create(shinyDataPath, recursive = T)
-  }
+    shinyLocalDbPath <-paste0(shinyProjectPath, "/data/")
+    if (!dir.exists(shinyLocalDbPath)){
+        dir.create(shinyDataPath, recursive = T)
+    }
   
   
-  shinyParamPath <-paste0(shinyProjectPath, "/data/parameters/")
-  if (!dir.exists(shinyParamPath)){
-    dir.create(shinyParamPath)
-  }
+    shinyParamPath <-paste0(shinyProjectPath, "/data/parameters/")
+    if (!dir.exists(shinyParamPath)){
+        dir.create(shinyParamPath)
+    }
   
   
   
+    PCAdbTableName <- paste0(
+        project_id, 
+        "_PCA"
+    )
   
+    expDbTable <- paste0(project_id, "_gene_expr_tb")
   
-  PCAdbTableName <- paste0(
-    project_id, 
-    "_PCA"
-  )
+    geneTb = paste0(project_id, "_geneID_tb")
   
-  expDbTable <- paste0(project_id, "_gene_expr_tb")
-  
-  geneTb = paste0(project_id, "_geneID_tb")
-  
-  ## Done                                                                      ##
-  ###############################################################################
-  
-  
-  
-  ###############################################################################
-  ## Create Expr table                                                         ##
-  
-  print("Formating expression data. This may take a few minutes, particulary with larger datasets...")
-  ## Running this function may take a minute or two, depending on the number of cells in your dataset
-  
-  if (is.null(dfExpr)){
-      dfExpr <-  biologicViewerSC::createDfExpr(
-        obj = OsC,
-        assay = "RNA",
-        #slot = "data",
-        geneSel = NULL
-      ) 
-  }
-  
-  ## In Sqlite version load via function ##
+    ## Done                                                                   ##
+    ############################################################################
   
   
   
-  ## Adding gene_ids 
+    ############################################################################
+    ## Create Expr table                                                      ##
   
-  library("dplyr")
+    if (is.null(dfExpr)){
+        print("Formating expression data. This may take a few minutes, particulary with larger datasets...")
+        ## Running this function may take a minute or two, depending on the number of cells in your dataset
+        dfExpr <-  biologicViewerSC::createDfExpr(
+            obj = OsC,
+            assay = seuratAssayToUse,
+            #slot = "data",
+            geneSel = NULL
+        ) 
+    }
   
-  dfIDTable <- dfExpr %>% 
-    dplyr::select(gene) %>% 
-    dplyr::distinct() %>% 
-    dplyr::mutate(gene_id = dplyr::row_number())
-  
-  
-  ## Upload expression table to database 
-  
-  print(paste0("Database to be used: ", dbname))
-  print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
-  
-  biologicViewerSC::upload.datatable.to.database(
-    host = host,
-    user = db.user,
-    password = db.pwd,
-    prim.data.db = dbname,
-    dbTableName = geneTb,
-    df.data = dfIDTable,
-    db.col.parameter.list = biologicViewerSC::inferDBcategories(dfIDTable),
-    new.table = T,
-    cols2Index = c("gene"),
-    mode = dataMode  # Options: "MySQL" and "SQLite"
-  )
+    ## In Sqlite version load via function ##
   
   
-  ## Rearrange expression talbe
-  ## This step may take a couple of minutes in a large dataset
-  dfExpr <- dfExpr %>% 
-    dplyr::rename(condition = cellID)  %>%  
-    dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>% 
-    dplyr::arrange(gene) 
   
-  ## Upload expression table to database 
-  
-  print(paste0("Database to be used: ", dbname))
-  print(paste0("Database table name to be used: ", expDbTable))
-  
-  colCatList <- biologicViewerSC::inferDBcategories(dfExpr)
+    ## Adding gene_ids 
+    
+    library("dplyr")
+    
+    dfIDTable <- dfExpr %>% 
+        dplyr::select(gene) %>% 
+        dplyr::distinct() %>% 
+        dplyr::mutate(gene_id = dplyr::row_number())
   
   
-  if (nrow(dfExpr) > 100000 & dataMode == "MySQL"){
-      ## load infile  
-      biologicViewerSC::uploadDbTableInfile(
-          host = host,
-          user = db.user,
-          password = db.pwd,
-          prim.data.db = dbname,
-          dbTableName = expDbTable,
-          df.data = dfExpr,
-          db.col.parameter.list = colCatList,
-          new.table = TRUE,
-          cols2Index = c("gene"),
-          indexName = "idx_gene",
-          mode = "MySQL",
-          tempFileName = "temp.upload.csv"
-          
-      )
-  } else {
-      biologicViewerSC::upload.datatable.to.database(
+    ## Upload expression table to database 
+  
+    print(paste0("Database to be used: ", dbname))
+    print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
+  
+    biologicViewerSC::upload.datatable.to.database(
         host = host,
         user = db.user,
         password = db.pwd,
         prim.data.db = dbname,
-        dbTableName = expDbTable,
-        df.data = dfExpr,
-        db.col.parameter.list = colCatList,
+        dbTableName = geneTb,
+        df.data = dfIDTable,
+        db.col.parameter.list = biologicViewerSC::inferDBcategories(dfIDTable),
         new.table = T,
         cols2Index = c("gene"),
-        #indexName = c("idx_gene_exp"),
         mode = dataMode  # Options: "MySQL" and "SQLite"
-      )
-  }
+    )
   
   
-  
-  ###############################################################################
-  ## Create Metadata table                                                     ##
-  print("Rendering Metadata...")
-  
-  
-  dfCoord <- biologicViewerSC::createDfCoord(OsC)
-  
-  
-  dupTest <- duplicated(toupper(names(dfCoord)))
-  
-  if (sum(dupTest) > 0 ){
-    names(dfCoord)[duplicated(toupper(names(dfCoord)))] <- paste0( names(dfCoord)[duplicated(toupper(names(dfCoord)))], "_B")
-  }
-  
-  dfCoord <- dfCoord [,!(duplicated(names(dfCoord)))]
-  
-  dfdbTable <- dfCoord
-  
-  pos <- grep("integrated_", names(dfdbTable))
-  if (length(pos) > 0){
-    dfdbTable <- dfdbTable[,-pos]
-  }
-  names(dfdbTable) <- gsub("\\.", "_", names(dfdbTable))
-  
-  ## In case of factor problems write to file and read back in without factors
-  # write.table(
-  #     dfdbTable,
-  #     "temp.txt",
-  #     row.names = F,
-  #     sep = "\t"
-  # )
-  # 
-  # dfdbTable <- read.delim(
-  #     "temp.txt",
-  #     sep = "\t",
-  #     stringsAsFactors = F
-  # )
-  
-  if (file.exists("temp.txt")){
-    unlink("temp.txt")
-  }
-  
-  dfdbTable[is.na(dfdbTable)] <- ""
-  
-  
-  
-  columnDBcategoryList <- biologicViewerSC::inferDBcategories(dfData=dfdbTable)
-  
-  
-  biologicViewerSC::upload.datatable.to.database(
-    host = host,
-    user = db.user,
-    password = db.pwd,
-    prim.data.db = dbname,
-    dbTableName = PCAdbTableName,
-    df.data = dfdbTable,
-    db.col.parameter.list = columnDBcategoryList,
-    new.table = TRUE,
-    mode = dataMode
-  )
-  biologicViewerSC::killDbConnections()
-  ##                                                                           ##
-  ###############################################################################
-  
-  ###############################################################################
-  ## Create params if they don't exist                                         ##
-  if (is.null(params)){
-    params <- scanObjParams(OsC)
-  }
-  ##                                                                           ##
-  ###############################################################################
-  
-  ###############################################################################
-  ## Select default splitBy options                                            ##
-  
-  
-  numCols <- unlist(lapply(dfCoord, is.numeric))
-  chrCols <- unlist(lapply(dfCoord, is.character))
-  
-  splitOptions <- names(dfCoord)[chrCols]
-  
-  splitOptions <- c(splitOptions[splitOptions == "all"], sort(splitOptions[splitOptions != "all"]))
-  
-  names(splitOptions) <- splitOptions
-  names(splitOptions) <- gsub("all", "None", names(splitOptions))
-  
-  firstup <- function(x) {
-    substr(x, 1, 1) <- toupper(substr(x, 1, 1))
-    x
-  }
-  
-  names(splitOptions) <- sapply(names(splitOptions), function(x) firstup(x))
-  
-  
-  if (!(exists("params"))){
-    paramList <- list()
-  } else {
-    paramList <- params
-  }
-  paramList$splitPlotsBy <- NULL
-  
-  paramList$splitPlotsBy <- splitOptions
-  
-  ## Make None the first option
-  
-  ##                                                                           ##
-  ###############################################################################
-  
-  ###############################################################################
-  ## Select colorBy options                                                    ##
-  
-  
-  ## Default all non-numeric columns
-  numCols <- unlist(lapply(dfCoord, is.numeric))
-  chrCols <- unlist(lapply(dfCoord, is.character))
-  
-  colorByOptions <- sort(names(dfCoord))
-  
-  ## Columns not to show in the color selection
-  rmVec <- c(
-    grep("^UMAP", toupper(colorByOptions)),
-    grep("^TSNE", toupper(colorByOptions)),
-    grep("^PC", toupper(colorByOptions)),
-    grep("orig.ident", toupper(colorByOptions)),
-    grep("cellID", toupper(colorByOptions))
+    ## Rearrange expression talbe
+    ## This step may take a couple of minutes in a large dataset
+   
+    dfExpr <- dfExpr %>% 
+        dplyr::rename(condition = cellID)  %>%  
+        dplyr::mutate(lg10Expr = round(lg10Expr, 3)) 
     
-  )
+    ## Upload expression table to database 
   
-  if (length(rmVec) > 0){
-    colorByOptions <- colorByOptions[-rmVec]
-  }
-  
-  
-  colorDisplayOptions <- c(
-      "lg10Expr",
-      colorByOptions
-  )
-  
-  # colorByOptionsPart1 <- c(
-  #   grep("clusterName", colorByOptions),
-  #   grep("seurat_clusters", colorByOptions),
-  #   grep("sampleName", colorByOptions)
-  # )
-  # 
-  # 
-  # if (length(colorByOptionsPart1) > 0){
-  #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-  #   colorDisplayOptions <- c(
-  #     "lg10Expr",
-  #     colorByOptions[colorByOptionsPart1],
-  #     colorByOptionsPart2
-  #   )
-  # } else {
-  #   colorDisplayOptions <- c(
-  #     "lg10Expr",
-  #     colorByOptions[colorByOptionsPart1]
-  #   )
-  # }
-  
-  # if (length(colorByOptionsPart1) > 0){
-  #   colorByOptionsPart2 <- colorByOptions[-colorByOptionsPart1]
-  # }
-  # 
-  # 
-  # 
-  # colorDisplayOptions <- c(
-  #   "lg10Expr",
-  #   colorByOptions[colorByOptionsPart1],
-  #   sort(colorByOptionsPart2)
-  # )
-  
-  names(colorDisplayOptions) <- colorDisplayOptions
-  names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
-  names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
-  
-  firstup <- function(x) {
-    substr(x, 1, 1) <- toupper(substr(x, 1, 1))
-    x
-  }
-  
-  names(colorDisplayOptions) <- sapply(names(colorDisplayOptions), function(x) firstup(x))
-  names(colorDisplayOptions) <- gsub("_", " ", names(colorDisplayOptions))
+    print(paste0("Database to be used: ", dbname))
+    print(paste0("Database table name to be used: ", expDbTable))
+    
+    colCatList <- biologicViewerSC::inferDBcategories(dfExpr)
   
   
-  paramList$colorPlotsBy <- NULL
+    if (nrow(dfExpr) > 100000 & dataMode == "MySQL"){
+        ## load infile  
+      
+        print("Loading data infile...")
+      
+        biologicViewerSC::uploadDbTableInfile(
+            host = host,
+            user = db.user,
+            password = db.pwd,
+            prim.data.db = dbname,
+            dbTableName = expDbTable,
+            df.data = dfExpr,
+            db.col.parameter.list = colCatList,
+            new.table = TRUE,
+            cols2Index = c("gene"),
+            indexName = "idx_gene",
+            mode = "MySQL",
+            tempFileName = "temp.upload.csv"
+            
+        )
+    } else {
+       
+        biologicViewerSC::upload.datatable.to.database(
+            host = host,
+            user = db.user,
+            password = db.pwd,
+            prim.data.db = dbname,
+            dbTableName = expDbTable,
+            df.data = dfExpr,
+            db.col.parameter.list = colCatList,
+            new.table = T,
+            cols2Index = c("gene"),
+            #indexName = c("idx_gene_exp"),
+            increment = 50000,
+            mode = dataMode  # Options: "MySQL" and "SQLite"
+        )
+        
+    }
+    
   
-  paramList$colorPlotsBy <- colorDisplayOptions
-  
-  ## Order Options ##
-  
-  ##                                                                           ##
-  ###############################################################################
+    
+    ###############################################################################
+    ## Create Metadata table                                                     ##
+    print("Rendering Metadata...")
   
   
-  ###############################################################################
-  ## Create sample order and color specification files                         ##
+    dfCoord <- biologicViewerSC::createDfCoord(OsC)
   
-  writeAppParameterFiles(
-    project_id = project_id,
-    projectPath = projectPath,
-    params = paramList,
-    menuParametersFN = "menuParameters.txt",
-    colorParametersFN = "colorParameters.txt"
-  )
+  
+    dupTest <- duplicated(toupper(names(dfCoord)))
+  
+    if (sum(dupTest) > 0 ){
+      names(dfCoord)[duplicated(toupper(names(dfCoord)))] <- paste0( names(dfCoord)[duplicated(toupper(names(dfCoord)))], "_B")
+    }
+  
+    dfCoord <- dfCoord [,!(duplicated(names(dfCoord)))]
+  
+    dfdbTable <- dfCoord
+  
+    pos <- grep("integrated_", names(dfdbTable))
+    if (length(pos) > 0){
+      dfdbTable <- dfdbTable[,-pos]
+    }
+    names(dfdbTable) <- gsub("\\.", "_", names(dfdbTable))
+  
+  
+    if (file.exists("temp.txt")){
+        unlink("temp.txt")
+    }
+  
+    dfdbTable[is.na(dfdbTable)] <- ""
+  
+  
+  
+    columnDBcategoryList <- biologicViewerSC::inferDBcategories(dfData=dfdbTable)
+  
+  
+    biologicViewerSC::upload.datatable.to.database(
+        host = host,
+        user = db.user,
+        password = db.pwd,
+        prim.data.db = dbname,
+        dbTableName = PCAdbTableName,
+        df.data = dfdbTable,
+        db.col.parameter.list = columnDBcategoryList,
+        new.table = TRUE,
+        mode = dataMode
+    )
+    biologicViewerSC::killDbConnections()
+    ##                                                                        ##
+    ############################################################################
+  
+    ############################################################################
+    ## Create params if they don't exist                                      ##
+    if (is.null(params)){
+        params <- biologicViewerSC::scanObjParams(OsC)
+        print("Created parameter list, as it was not provided")
+    }
+    ##                                                                        ##
+    ############################################################################
+  
+    ###############################################################################
+    ## Select default splitBy options                                            ##
+  
+  
+    numCols <- unlist(lapply(dfCoord, is.numeric))
+    chrCols <- unlist(lapply(dfCoord, is.character))
+  
+    splitOptions <- names(dfCoord)[chrCols]
+  
+    splitOptions <- c(splitOptions[splitOptions == "all"], sort(splitOptions[splitOptions != "all"]))
+  
+    names(splitOptions) <- splitOptions
+    names(splitOptions) <- gsub("all", "None", names(splitOptions))
+  
+    firstup <- function(x) {
+        substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+        x
+    }
+  
+    names(splitOptions) <- sapply(names(splitOptions), function(x) firstup(x))
+  
+  
+    if (!(exists("params"))){
+      paramList <- list()
+    } else {
+      paramList <- params
+    }
+    paramList$splitPlotsBy <- NULL
+    
+    paramList$splitPlotsBy <- splitOptions
+    
+    ## Make None the first option
+  
+    ##                                                                        ##
+    ############################################################################
+  
+    ###############################################################################
+    ## Select colorBy options                                                    ##
+  
+  
+    ## Default all non-numeric columns
+    numCols <- unlist(lapply(dfCoord, is.numeric))
+    chrCols <- unlist(lapply(dfCoord, is.character))
+  
+    colorByOptions <- sort(names(dfCoord))
+  
+    ## Columns not to show in the color selection
+    rmVec <- c(
+        grep("^UMAP", toupper(colorByOptions)),
+        grep("^TSNE", toupper(colorByOptions)),
+        grep("^PC", toupper(colorByOptions)),
+        grep("orig.ident", toupper(colorByOptions)),
+        grep("cellID", toupper(colorByOptions))
+    )
+  
+    if (length(rmVec) > 0){
+      colorByOptions <- colorByOptions[-rmVec]
+    }
+  
+  
+    colorDisplayOptions <- c(
+        "lg10Expr",
+        colorByOptions
+    )
+  
+  
+    names(colorDisplayOptions) <- colorDisplayOptions
+    names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
+    names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
+    
+    firstup <- function(x) {
+      substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+      x
+    }
+    
+    names(colorDisplayOptions) <- sapply(names(colorDisplayOptions), function(x) firstup(x))
+    names(colorDisplayOptions) <- gsub("_", " ", names(colorDisplayOptions))
+    
+    
+    paramList$colorPlotsBy <- NULL
+    
+    paramList$colorPlotsBy <- colorDisplayOptions
+  
+    ## Order Options ##
+  
+    ##                                                                        ##
+    ############################################################################
+  
+  
+    ############################################################################
+    ## Create sample order and color specification files                      ##
+  
+    writeAppParameterFiles(
+        project_id = project_id,
+        projectPath = projectPath,
+        params = paramList,
+        menuParametersFN = "menuParameters.txt",
+        colorParametersFN = "colorParameters.txt"
+    )
   
   ## Done 
   ###########################################################################
@@ -1580,10 +1582,13 @@ seuratObjectToViewer <- function(
   ###########################################################################
   ## Create app user and credentials                                       ##
   
+  ## Add a random string to avoid duplications
+  rs <- paste0(sample(LETTERS, 2, TRUE), collapse = "")
+  
   biologicViewerSC::assignDbUsersAndPrivileges(
       accessFilePath = shinyDataPath,
       hostDbUrl = host,
-      appUserName = substr(paste0(project_id, "_aUser"), 1, 30),
+      appUserName = paste0(substr(project_id, 1, 22), rs,"_aUser"),
       domains = appDomains,
       dbname = dbname,
       tables = c("coordTb" = PCAdbTableName,"exprTb" = expDbTable,"geneTb" = geneTb),
