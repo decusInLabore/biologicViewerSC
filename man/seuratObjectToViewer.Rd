@@ -22,9 +22,7 @@ seuratObjectToViewer(
   clusterNameColumn = "clusterName",
   sampleNameColumn = "sampleName",
   seuratAssayToUse = "RNA",
-  defaultSplitOption = NULL,
-  defaultSplitOrder = NULL,
-  defaultColorOption = NULL
+  defaultSplitOption = NULL
 )
 }
 \arguments{
