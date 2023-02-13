@@ -21,7 +21,10 @@ seuratObjectToViewer(
   dfExpr = NULL,
   clusterNameColumn = "clusterName",
   sampleNameColumn = "sampleName",
-  seuratAssayToUse = "RNA"
+  seuratAssayToUse = "RNA",
+  defaultSplitOption = NULL,
+  defaultSplitOrder = NULL,
+  defaultColorOption = NULL
 )
 }
 \arguments{
