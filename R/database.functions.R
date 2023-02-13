@@ -132,16 +132,24 @@ upload.datatable.to.database <- function(
     ## Connect to MySQL to check existence of database ##
     if (mode == "SQLite"){
         
-        prim.data.dbPath <- unlist(strsplit(prim.data.db, "/"))[1:(length(unlist(strsplit(prim.data.db, "/")))-1)]
-        prim.data.dbPath <- paste0(prim.data.dbPath, collapse = "/")
+        # create path to database. To do that, split everything that's not the database file name. 
+        pos <- grep("/", prim.data.db)
+        if (length(pos) > 0){
+            prim.data.dbPath <- unlist(strsplit(prim.data.db, "/"))[1:(length(unlist(strsplit(prim.data.db, "/")))-1)]
+            prim.data.dbPath <- paste0(prim.data.dbPath, collapse = "/")    
+        } else {
+            prim.data.dbPath <- "./"
+        }
+        
         
         if (!dir.exists(prim.data.dbPath)){
             dir.create(prim.data.dbPath, recursive = T)
         }
         
+        
         dbDB <- DBI::dbConnect(
             drv = RSQLite::SQLite(),
-            dbname=prim.data.db
+            dbname=paste0(prim.data.db)
         )
         
         
@@ -226,7 +234,7 @@ upload.datatable.to.database <- function(
         
         dbDB <- DBI::dbConnect(
             drv = RSQLite::SQLite(),
-            dbname=prim.data.db
+            dbname=paste0(prim.data.db)
         )
         
     } else {
@@ -264,6 +272,8 @@ upload.datatable.to.database <- function(
     
     totalRows <- nrow(df.data)
     
+    ## Begin of loop
+    #res <- purrr::map(1:iter, function(i){
     for (i in 1:iter){
         if (nrow(df.data) > increment){
             limit <- increment
@@ -276,14 +286,14 @@ upload.datatable.to.database <- function(
         uploaded = FALSE
         while (!uploaded){
             tryCatch({
-                biologicViewerSC::killDbConnections()
+                biologicSeqTools2::killDbConnections()
                 
                 ## Establish connection ##
                 if (mode == "SQLite"){
                     
                     dbDB <- DBI::dbConnect(
                         drv = RSQLite::SQLite(),
-                        dbname=prim.data.db
+                        dbname=paste0(prim.data.db)
                     )
                     
                 } else {
@@ -317,7 +327,7 @@ upload.datatable.to.database <- function(
         
         print(paste0(i * increment, " rows out of ",totalRows," processed..."))
         ## Connect to database for dbtable upload  ##
-    }
+    }  #End of upload loop
     
     print("Processing successfully completed")
     ####################################################
@@ -334,7 +344,7 @@ upload.datatable.to.database <- function(
             
             dbDB <- DBI::dbConnect(
                 drv = RSQLite::SQLite(),
-                dbname=prim.data.db
+                dbname=paste0(prim.data.db)
             )
             
         } else {
@@ -553,17 +563,6 @@ upload.datatable.to.database <- function(
 }
 
 
-
-#RENAME TABLE p131_rna_seq_table_part_1 TO p131_rna_seq_table
-#INSERT INTO p131_rna_seq_table SELECT * FROM p131_rna_seq_table_part_2;
-#INSERT INTO p131_rna_seq_table SELECT * FROM p131_rna_seq_table_part_3;
-#INSERT INTO p131_rna_seq_table SELECT * FROM p131_rna_seq_table_part_4;
-#INSERT INTO p131_rna_seq_table SELECT * FROM p131_rna_seq_table_part_5;
-
-#DROP TABLE p131_rna_seq_table_part_2;
-#DROP TABLE p131_rna_seq_table_part_3;
-#DROP TABLE p131_rna_seq_table_part_4;
-#DROP TABLE p131_rna_seq_table_part_5;
 
 ## End of function                                                           ##
 ###############################################################################
@@ -954,7 +953,7 @@ uploadDbTableInfile <- function(
         resOut = FALSE
     )
     
-    print("Data is being rendered. This may take a few minutes for larger datasets.")
+    print("Data is being formated. This may take a few minutes for larger datasets.")
     
     ## infile upload
     query3 <- paste0(

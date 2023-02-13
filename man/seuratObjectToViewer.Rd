@@ -2,7 +2,9 @@
 % Please edit documentation in R/biologicViewerSC.pckg.R
 \name{seuratObjectToViewer}
 \alias{seuratObjectToViewer}
-\title{seuratObjectToLocalViewer}
+\title{seuratObjectToLocalViewer
+
+This function creates a shiny single-cell viewer based on a Seurat single-cell object.}
 \usage{
 seuratObjectToViewer(
   params = NULL,
@@ -16,14 +18,47 @@ seuratObjectToViewer(
   db.user = "boeings",
   appDomains = c("shiny-bioinformatics.crick.ac.uk", "10.\%"),
   geneDefault = NULL,
-  dfExpr = NULL
+  dfExpr = NULL,
+  clusterNameColumn = "clusterName",
+  sampleNameColumn = "sampleName",
+  seuratAssayToUse = "RNA",
+  defaultSplitOption = NULL,
+  defaultSplitOrder = NULL,
+  defaultColorOption = NULL
 )
 }
 \arguments{
-\item{project_id}{Project id}
+\item{params}{A parameter list created by the biologicViewerSC::scanObjParams function.}
 
-\item{OsC}{Seurat object}
+\item{project_id}{A project ID string}
+
+\item{projectPath}{A path into which the shiny app will be deposited.}
+
+\item{OsC}{A Seurat object}
+
+\item{dataMode}{"MySQL" or "SQLite". This parameter determines whether a remote MySQL database ("MySQL") or a local database ("SQLite") is used}
+
+\item{host}{Host url}
+
+\item{dbname}{Database name}
+
+\item{db.pwd}{Database password}
+
+\item{db.user}{Database username}
+
+\item{geneDefault}{Default gene string}
+
+\item{dfExpr}{Dataframe containing expression data}
+
+\item{clusterNameColumn}{Column name of the sample name column}
+
+\item{sampleNameColumn}{Column name of the cluster name column}
+}
+\value{
+No return. A shiny single-cell app will be created.
 }
 \description{
 seuratObjectToLocalViewer
+
+This function creates a shiny single-cell viewer based on a Seurat single-cell object.
 }
