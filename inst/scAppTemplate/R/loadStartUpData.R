@@ -257,9 +257,9 @@ createDropdownMenuList <- function(){
             )
             
             if (length(colSel) > 0){
-                conditionVec <- unique(sort(dfCoordSel[,colSel[1]])) 
+                conditionVec <- unique(dfCoordSel[,colSel[1]])
             } else {
-                conditionVec <- unique(sort(dfCoordSel[,1]))  
+                conditionVec <- unique(dfCoordSel[,1])
             }
         }
     }
@@ -493,7 +493,7 @@ createDropdownMenuList <- function(){
     
     ## Remove all split options with more than 20 options ##
     Nopt <- apply(dfCoordSel[,splitOptions], 2, function(x) length(unique(x)))
-    Nopt <- sort(Nopt[Nopt < 42], decreasing = F)
+    Nopt <- Nopt[Nopt < 42]
     
     
     splitOptions2 <- as.vector(names(Nopt))
@@ -556,6 +556,7 @@ createDropdownMenuList <- function(){
     
     
     defaultS <- splitOptions2[1]
+    
     
     sDisplayName <- "Split Plots By"
     

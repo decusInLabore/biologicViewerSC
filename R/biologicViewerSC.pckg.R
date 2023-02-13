@@ -1155,7 +1155,10 @@ seuratObjectToViewer <- function(
     dfExpr = NULL,
     clusterNameColumn = "clusterName",
     sampleNameColumn = "sampleName",
-    seuratAssayToUse = "RNA"
+    seuratAssayToUse = "RNA",
+    defaultSplitOption = NULL,
+    defaultSplitOrder = NULL,
+    defaultColorOption = NULL
 ){  
     ############################################################################
     ## Checks & Formatting                                                    ##
@@ -1424,10 +1427,10 @@ seuratObjectToViewer <- function(
   
     dfdbTable <- dfCoord
   
-    pos <- grep("integrated_", names(dfdbTable))
-    if (length(pos) > 0){
-      dfdbTable <- dfdbTable[,-pos]
-    }
+    # pos <- grep("integrated_", names(dfdbTable))
+    # if (length(pos) > 0){
+    #   dfdbTable <- dfdbTable[,-pos]
+    # }
     names(dfdbTable) <- gsub("\\.", "_", names(dfdbTable))
   
   
@@ -1493,9 +1496,10 @@ seuratObjectToViewer <- function(
     } else {
       paramList <- params
     }
-    paramList$splitPlotsBy <- NULL
     
-    paramList$splitPlotsBy <- splitOptions
+    paramList$splitPlotsBy <- paramList$splitPlotsBy[paramList$splitPlotsBy %in% splitOptions]
+    
+    
     
     ## Make None the first option
   
@@ -1545,9 +1549,8 @@ seuratObjectToViewer <- function(
     names(colorDisplayOptions) <- gsub("_", " ", names(colorDisplayOptions))
     
     
-    paramList$colorPlotsBy <- NULL
+    paramList$colorPlotsBy <- paramList$colorPlotsBy[paramList$colorPlotsBy %in% colorDisplayOptions]
     
-    paramList$colorPlotsBy <- colorDisplayOptions
   
     ## Order Options ##
   
@@ -1558,7 +1561,7 @@ seuratObjectToViewer <- function(
     ############################################################################
     ## Create sample order and color specification files                      ##
   
-    writeAppParameterFiles(
+    biologicViewerSC::writeAppParameterFiles(
         project_id = project_id,
         projectPath = projectPath,
         params = paramList,
