@@ -510,21 +510,28 @@ createDropdownMenuList <- function(){
     }
     
     
+    
+    
     if (Nsamples > 3 | nrow(dfCoordSel) < 5000){
-        headVec <- c(
-            grep("all", splitOptions2),
-            grep("sampleName", splitOptions2),
-            grep("meta_", tolower(splitOptions2)),
-            grep("clusterName", splitOptions2),
-            grep("subClusterName", splitOptions2)
+        headVec <- unique(
+            c(
+                splitOptions2[1],
+                grep("all", splitOptions2),
+                grep("sampleName", splitOptions2),
+                grep("meta_", tolower(splitOptions2)),
+                grep("clusterName", splitOptions2),
+                grep("subClusterName", splitOptions2)
+            )
         )  
     } else {
-        headVec <- c(
-            grep(names(dfCoordSel)[pos[1]], splitOptions2),
-            grep("meta_", tolower(splitOptions2)),
-            grep("all", splitOptions2),
-            grep("clusterName", splitOptions2),
-            grep("subClusterName", splitOptions2)
+        headVec <- unique(
+            c(
+                splitOptions2[1],
+                grep("meta_", tolower(splitOptions2)),
+                grep("all", splitOptions2),
+                grep("clusterName", splitOptions2),
+                grep("subClusterName", splitOptions2)
+            )
         )  
     }
     

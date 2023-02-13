@@ -953,7 +953,7 @@ uploadDbTableInfile <- function(
         resOut = FALSE
     )
     
-    print("Data is being rendered. This may take a few minutes for larger datasets.")
+    print("Data is being formated. This may take a few minutes for larger datasets.")
     
     ## infile upload
     query3 <- paste0(

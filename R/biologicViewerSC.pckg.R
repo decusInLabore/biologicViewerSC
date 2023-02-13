@@ -131,6 +131,7 @@ setGeneric(
 #' @import tibble
 #' @import tidyr
 #' @import dplyr
+#' @import purrr
 #' @export
 
 
@@ -505,7 +506,6 @@ setGeneric(
 
 #' @title writeAppParameterFiles
 #'
-#'
 #' @param project_id Project id
 #' @param projectPath Path to project
 #' @param params biologic parameterList
@@ -597,7 +597,14 @@ writeAppParameterFiles <- function(
     
     colorList <- params[[pos]]
     
+    ## all entries with more than 1000 different colors from colorList
+    h <- unlist(lapply(colorList, length))
+    hFilter <- h < 1000
+    colorList <- colorList[ h < 1000]
+    
     mList <- list()
+    
+    
     for (i in 1:length(colorList)){
       mList[[i]] <- rbind(data.frame(
         menuName = rep(names(colorList)[i], length(colorList[[i]])),
@@ -1361,7 +1368,7 @@ seuratObjectToViewer <- function(
     if (nrow(dfExpr) > 100000 & dataMode == "MySQL"){
         ## load infile  
       
-        print("Loading data infile...")
+        print("Loading data infile. Depending on the size of the dataset, this may take a few minutes.")
       
         biologicViewerSC::uploadDbTableInfile(
             host = host,
