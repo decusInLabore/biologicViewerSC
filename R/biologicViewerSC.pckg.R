@@ -476,8 +476,11 @@ setGeneric(
         } 
         
         if (!colorSelected){
+            sampleVec <- as.vector(unique(obj@meta.data[,tag]))
+          
             if (length(sampleVec) == 1){
               sampleColVec <- "black"
+              
               colorSelected <- TRUE
             }  else if (length(sampleVec) == 2){
               l1 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[1],tag])
