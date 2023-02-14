@@ -201,12 +201,12 @@ setGeneric(
 #' @export
 
 setGeneric(
-  name="scanObjParams",
-  def=function(
-    obj,
-    NmaxSplit = 25,
-    NcatColorMax = 40
-  ) {
+    name="scanObjParams",
+    def=function(
+      obj,
+      NmaxSplit = 25,
+      NcatColorMax = 40
+    ) {
     
     ###########################################################################
     ## Helper function                                                       ##
@@ -461,33 +461,53 @@ setGeneric(
     
     
     for (i in 1:length(colorVec)){
-        tag <-colorVec[i]
+        tag <- colorVec[i]
         
+        colorSelected <- FALSE
         
-        sampleVec <- as.vector(sort(unique(obj@meta.data[,tag])))
-        sampleVec <- na.omit(sampleVec)
-        sampleVec <- sampleVec[sampleVec != ""]
+        if (tag == "clusterName"){
+            pos <- grep("^clusterColor$", names(obj@meta.data))
+            if (length(pos) > 0){
+              dfCColor <- unique(obj@meta.data[,c("clusterName", "clusterColor")])
+              sampleVec <- as.vector(dfCColor[,tag])
+              sampleColVec <- as.vector(dfCColor[,"clusterColor"])
+              colorSelected <- TRUE
+            }
+        } 
         
-        if (length(sampleVec) == 1){
-          sampleColVec <- "black"
-        }  else if (length(sampleVec) == 2){
-          l1 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[1],tag])
-          l2 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[2],tag])
-          if (l1 > l2){
-            sampleColVec <- c("black", "red")
-          } else {
-            sampleColVec <- c("red", "black")
-          }
+        if (!colorSelected){
+            sampleVec <- as.vector(unique(obj@meta.data[,tag]))
           
-        } else {
-          library(scales)
-          sampleColVec <- scales::hue_pal()(length(sampleVec))
-          
+            if (length(sampleVec) == 1){
+              sampleColVec <- "black"
+              
+              colorSelected <- TRUE
+            }  else if (length(sampleVec) == 2){
+              l1 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[1],tag])
+              l2 <- length(obj@meta.data[obj@meta.data[,tag] == sampleVec[2],tag])
+              if (l1 > l2){
+                sampleColVec <- c("black", "red")
+              } else {
+                sampleColVec <- c("red", "black")
+              }
+              colorSelected <- TRUE
+            } else {
+              
+              
+              sampleColVec <- scales::hue_pal()(length(sampleVec))
+              colorSelected <- TRUE
+              
+            }
         }
         
         names(sampleColVec) <- sampleVec
+        
+        #sampleVec <- na.omit(sampleVec)
+        #sampleVec <- sampleVec[sampleVec != ""]
+        
         sampleColorList[[colorVec[i]]] <-  sampleColVec
       }
+    
       paramList[["catColorList"]] <- sampleColorList
       ## Done creating color list
       
@@ -1156,9 +1176,9 @@ seuratObjectToViewer <- function(
     clusterNameColumn = "clusterName",
     sampleNameColumn = "sampleName",
     seuratAssayToUse = "RNA",
-    defaultSplitOption = NULL,
-    defaultSplitOrder = NULL,
-    defaultColorOption = NULL
+    defaultSplitOption = NULL #,
+    #defaultSplitOrder = NULL,
+    #defaultColorOption = NULL
 ){  
     ############################################################################
     ## Checks & Formatting                                                    ##
@@ -1465,6 +1485,16 @@ seuratObjectToViewer <- function(
     if (is.null(params)){
         params <- biologicViewerSC::scanObjParams(OsC)
         print("Created parameter list, as it was not provided")
+    }
+    
+    if (!is.null(defaultSplitOption)){
+        if (defaultSplitOption %in% params$splitPlotsBy){
+            h <- params$splitPlotsBy
+            pos <- grep(defaultSplitOption, h)
+            hNew <- c(h[pos], h[-pos])
+            params$splitPlotsBy <- NULL
+            params$splitPlotsBy <- hNew
+        }
     }
     ##                                                                        ##
     ############################################################################
