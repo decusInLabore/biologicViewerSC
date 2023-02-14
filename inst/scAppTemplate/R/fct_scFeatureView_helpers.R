@@ -223,6 +223,17 @@ createDfTemp <- function(
   
   conditionVec <- unique(dfTemp[,splitByColumn])
   
+  ## Order condition vec according to 
+  dfH <- startUpList$dfColOptions
+  dfH <- dfH[dfH$menuName == splitByColumn, ]
+  pos <- grep("^displayOrder$", names(dfH))
+  if (length(pos) == 1){
+      dfH <- dfH[order(dfH$displayOrder), ]
+  }
+  
+  cVec <- dfH$colOption
+  conditionVec <- cVec[cVec %in% conditionVec]
+  
   #######################################################################
   ## Check if custom colors are to be used                             ##
   
@@ -280,6 +291,17 @@ createDfTemp <- function(
   ####################
   ## Create plot data names
   plot_data_names <- sort(as.vector(unique(dfTemp[, splitByColumn])))
+  
+  ## Order condition vec according to 
+  dfH <- startUpList$dfColOptions
+  dfH <- dfH[dfH$menuName == splitByColumn, ]
+  pos <- grep("^displayOrder$", names(dfH))
+  if (length(pos) == 1){
+    dfH <- dfH[order(dfH$displayOrder), ]
+  }
+  
+  cVec <- dfH$colOption
+  plot_data_names <- cVec[cVec %in% plot_data_names]
   ##
   ####################
   
@@ -334,7 +356,7 @@ createDfTemp <- function(
   
   
   dimVec <- c(minX, maxX, minY, maxY)
-  dimVec
+  #dimVec
   #})
   
   ##
@@ -404,6 +426,7 @@ featureViewPlot <- function(
   #plotInput <- reactive({
   startUpList <- golem::get_golem_options(which = "startUpList")
   nonNumCols <- startUpList$utilityList$nonNumCols
+  numCols <- startUpList$utilityList$numCols
   
   if (colorBy %in% startUpList$nonNumCols ){
     df$Dcolor[df$Dcolor == ""] <- "Rest"
@@ -438,10 +461,18 @@ featureViewPlot <- function(
       ) + ggplot2::geom_density(alpha=0.3, position="stack") 
     } else if (df$y_axis[1] == "Histogram"){
       plotLogic <- "histogram"
-      Nbin <- ceiling(length(df$x_axis)/5)
-      p <- ggplot2::ggplot(
-        data = df, ggplot2::aes(x=x_axis, color=Dcolor,fill=Dcolor)
-      ) + ggplot2::geom_histogram(alpha=0.3, position="stack", bins = Nbin)
+      
+          Nbin <- ceiling(length(df$x_axis)/5)
+          p <- ggplot2::ggplot(
+            data = df, 
+            ggplot2::aes(x=x_axis, color=Dcolor,fill=Dcolor)
+            ) + ggplot2::geom_histogram(
+                alpha=0.3, 
+                position="stack", 
+                bins = Nbin
+            )    
+      
+        
     } else if (df$y_axis[1] == "Ridgeplot"){
       plotLogic <- "ridgeplot"
       p <- ggplot2::ggplot(data = df, ggplot2::aes_string(x = "x_axis", y = colorBy, fill=colorBy, color=colorBy)
@@ -457,15 +488,14 @@ featureViewPlot <- function(
     }
     ## Done deciding factorial display logic
     #########################################################################  
-  } else {
-    if (df$y_axis[1] == "Barchart"){
+  } else if (df$y_axis[1] == "Barchart" | df$y_axis[1] == "Histogram") {
       plotLogic <- "barchart"
       p <- ggplot2::ggplot(
-        data = df, ggplot2::aes(x= x_axis, fill=Dcolor)) + ggplot2::geom_bar(color="black")  
+        data = df, ggplot2::aes_string(x= "x_axis", fill= colorBy, color=colorBy)) + ggplot2::geom_bar(stat="identity")  
       if (showPlotLegend){
         p <- p + geom_text(stat='count', aes(label=..count..), position = position_stack(vjust = 0.5))
       }
-    } else {
+    }  else {
       plotLogic <- "violin"
       
       ## Add noise to y_axis to mimit Seurat displays as per
@@ -481,7 +511,7 @@ featureViewPlot <- function(
         p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
       }
     }
-  }
+  
   ## Done plot logic                                                       ##
   ###########################################################################
   
