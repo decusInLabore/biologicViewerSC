@@ -15,11 +15,11 @@ mod_scFeatureView_ui <- function(
 ){
     ns <- NS( id )
     ## Load parameters ##
-    startUpList  <- golem::get_golem_options( which = "startUpList" )
-    geneDefault  <- startUpList$keyList$geneDefault
+    startUpList <- golem::get_golem_options( which = "startUpList" )
+    geneDefault <- startUpList$keyList$geneDefault
     dropDownList <- startUpList$utilityList$dropDownList
-    numCols      <- startUpList$utilityList$numCols
-    nonNumCols   <- startUpList$utilityList$nonNumCols
+    numCols <- startUpList$utilityList$numCols
+    nonNumCols <- startUpList$utilityList$nonNumCols
     splitOptions <- startUpList$utilityList$dropDownList$splitByColumn$selOptions
   
     ## Set defaults ##
