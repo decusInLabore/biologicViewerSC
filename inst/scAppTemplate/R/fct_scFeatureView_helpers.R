@@ -10,6 +10,7 @@
 #'
 #' @return The return value, if any, from executing the function.
 #' 
+
 createDfCoord <- function(
   startUpList
 ){
@@ -221,8 +222,7 @@ createDfExprSel <- function(
 #' 
 #' @import dplyr
 #'
-#' @return The return value, if any, from executing the function.
-   
+#' @return The return value, if any, from executing the function.      
 createDfTemp <- function(
   startUpList,
   gene,
@@ -524,8 +524,8 @@ featureViewPlot <- function(
       df$y_axis <- df$y_axis + noise
       
       p <- ggplot2::ggplot(
-        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8")
+        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor, fill=Dcolor)
+      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3)
       
       if (showPlotLegend){
         p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
@@ -550,7 +550,7 @@ featureViewPlot <- function(
     ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
     )
     
-    if (plotLogic %in% c("ridgeplot","density", "histogram", "barchart")){
+    if (plotLogic %in% c("ridgeplot","density", "histogram", "barchart", "violin")){
       p <- p + ggplot2::scale_fill_manual(colorBy ,values = colVec
       ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
       )
@@ -622,8 +622,8 @@ featureViewPlot <- function(
   
   p
 }
-##                                                                            ##
-####################################################################$###########
+##
+##################
 
 
 
