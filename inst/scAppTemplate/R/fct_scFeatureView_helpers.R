@@ -1,13 +1,15 @@
-#' scFeatureView_helpers 
-#' biologicHeatmap_helpers 
-#'
-#' @description Plot function
-#'
-#' @return The return value, if any, from executing the function.
-#'
-
 ###############################################################################
 ## Load dfCoord from db                                                      ##
+#' @title addDf2seuratMetaData
+#' 
+#' @description Plot function
+#' 
+#' @param startUpList
+#' 
+#' @import DBI RSQLite RMySQL
+#'
+#' @return The return value, if any, from executing the function.
+#' 
 
 createDfCoord <- function(
   startUpList
@@ -53,13 +55,21 @@ createDfCoord <- function(
   return(dfCoordSel) 
   
 }
-#end_time <- Sys.time()
-#print(paste0("Q S1 DBQ Coordinates: ",end_time - start_time))
 ##                                                                           ##
 ###############################################################################
 
 ###############################################################################
 ## Create Color Table                                                        ##
+#' @title createColorTable
+#' 
+#' @description Create color table
+#' 
+#' @param startUpList
+#' @param colorBy
+#' 
+#' @import dplyr
+#'
+#' @return The return value, if any, from executing the function.
 
 createColorTable <- function(
   startUpList,
@@ -134,16 +144,18 @@ createColorTable <- function(
 ##                                                                       ##
 ###########################################################################
 
-#########################################################################
-## Retrieve Coordinates for this query
-
-## Done retrieving Coordinates
-#########################################################################
-
 ###########################################################################
 ## Database query for dfExpr                                             ##
-## create agl315_gene_expr_tb
-#start_time <- Sys.time()
+#' @title createDfExprSel
+#' 
+#' @description Create Expression data frame
+#' 
+#' @param startUpList
+#' @param gene
+#' 
+#' @import dplyr DBI RSQLite RMySQL
+#'
+#' @return The return value, if any, from executing the function.
 createDfExprSel <- function(
   startUpList,
   gene
@@ -192,14 +204,25 @@ createDfExprSel <- function(
   return(dfExprSel)
 }
 
-#end_time <- Sys.time()
-#print(paste0("Q S2 agl315_gene_expr_tb: ",end_time - start_time))
-#paste0("SELECT DISTINCT gene, condition, expr FROM agl315_gene_expr_tb WHERE gene = '",gene,"'" )
 ## Done db query                                                         ##
 ###########################################################################
 
 ###############################################################################
-## Create dfTemp                                                             ##       
+## Create dfTemp                                                             ##  
+#' @title createDfTemp
+#' 
+#' @description Create Expression data frame
+#' 
+#' @param startUpList
+#' @param gene
+#' @param splitByColumn,
+#' @param colorBy,
+#' @param x_axis, 
+#' @param y_axis
+#' 
+#' @import dplyr
+#'
+#' @return The return value, if any, from executing the function.      
 createDfTemp <- function(
   startUpList,
   gene,
@@ -355,8 +378,35 @@ createDfTemp <- function(
 ##                                                                           ##
 ###############################################################################
 
-################
-##
+
+######################################################################$#########
+## FeatureViewPlot Function                                                   ## 
+
+#' @title featureViewPlot
+#' 
+#' @description Create Expression data frame
+#' 
+#' @param df
+#' @param plot_name
+#' @param colorBy,
+#' @param dotsize,
+#' @param lowColor, 
+#' @param dotcolor
+#' @param x_axis
+#' @param y_axis
+#' @param background
+#' @param maxX
+#' @param minX
+#' @param maxY
+#' @param minY
+#' @param geneSel
+#' @param maxExpr
+#' @param showPlotLegend
+#' @param colVec
+#' 
+#' @import dplyr
+#'
+#' @return The return value, if any, from executing the function.
 
 featureViewPlot <- function(
   df,
@@ -458,7 +508,7 @@ featureViewPlot <- function(
     ## Done deciding factorial display logic
     #########################################################################  
   } else {
-    if (df$y_axis[1] == "Barchart"){
+    if (df$y_axis[1] == "Barchart" | df$y_axis[1] == "Histogram"){
       plotLogic <- "barchart"
       p <- ggplot2::ggplot(
         data = df, ggplot2::aes(x= x_axis, fill=Dcolor)) + ggplot2::geom_bar(color="black")  
@@ -474,8 +524,8 @@ featureViewPlot <- function(
       df$y_axis <- df$y_axis + noise
       
       p <- ggplot2::ggplot(
-        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE, fill="#E8E8E8")
+        data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor, fill=Dcolor)
+      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3)
       
       if (showPlotLegend){
         p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
@@ -500,7 +550,7 @@ featureViewPlot <- function(
     ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
     )
     
-    if (plotLogic %in% c("ridgeplot","density", "histogram")){
+    if (plotLogic %in% c("ridgeplot","density", "histogram", "barchart", "violin")){
       p <- p + ggplot2::scale_fill_manual(colorBy ,values = colVec
       ) + ggplot2::guides(col = guide_legend(override.aes = list(shape = 16, size = 5))
       )

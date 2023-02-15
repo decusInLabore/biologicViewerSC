@@ -475,6 +475,27 @@ setGeneric(
             }
         } 
         
+        if (tag == "seurat_clusters"){
+            sampleVec <- unique(sort(as.numeric(as.vector(obj@meta.data[,tag]))))
+            sampleVec <- na.omit(sampleVec)
+            
+            sampleColVec <- scales::hue_pal()(length(sampleVec))
+            
+            colorSelected <- TRUE
+          
+        } 
+        
+        if (tag == "sampleName"){
+          pos <- grep("^sampleColor$", names(obj@meta.data))
+          if (length(pos) > 0){
+            dfCColor <- unique(obj@meta.data[,c("sampleName", "sampleColor")])
+            sampleVec <- as.vector(dfCColor[,tag])
+            sampleColVec <- as.vector(dfCColor[,"sampleColor"])
+            colorSelected <- TRUE
+          }
+        } 
+        
+        
         if (!colorSelected){
             sampleVec <- as.vector(unique(obj@meta.data[,tag]))
           
