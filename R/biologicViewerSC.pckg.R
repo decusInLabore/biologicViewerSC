@@ -26,7 +26,7 @@ setGeneric(
         }
     }
     
-    interferenceVec <- c("SeuratDisk", "SeuratObject", "DESeq2")
+    interferenceVec <- c("SeuratDisk", "DESeq2")
     detachPacks <- interferenceVec[paste0("package:", interferenceVec) %in% search()]
     
     if (length(detachPacks) > 0){
