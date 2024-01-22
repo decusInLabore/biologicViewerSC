@@ -141,7 +141,8 @@ setGeneric(
         obj,
         assay = "RNA",
         #slot = "data",
-        geneSel = NULL
+        geneSel = NULL,
+        exprCol = "lg10Expr"
     ) {
     
         Seurat::DefaultAssay(obj) <- assay
@@ -159,9 +160,9 @@ setGeneric(
             tidyr::pivot_longer(
               !gene,
               names_to = "cellID",
-              values_to = "lg10Expr"
+              values_to = exprCol
             ) %>%
-            filter(lg10Expr > 0)
+            filter(!!as.symbol(exprCol) > 0)
             return(z)
         }
         ## End of helper function
@@ -205,7 +206,9 @@ setGeneric(
     def=function(
       obj,
       NmaxSplit = 25,
-      NcatColorMax = 40
+      NcatColorMax = 40,
+      exprCol = "lg10Expr",
+      exprColName = "log10 Expr"
     ) {
     
     ###########################################################################
@@ -293,8 +296,10 @@ setGeneric(
     names(XYsel) <- sapply(gsub("_", " ", names(XYsel)), firstup)
     
     paramList <- list()
-    paramList[["x_axis"]] <- c("log10 Expr" = "lg10Expr", XYsel)
-    paramList[["y_axis"]] <- c("log10 Expr" = "lg10Expr", XYsel)
+    paramList[["x_axis"]] <- c(exprCol, XYsel)
+    names(paramList[["x_axis"]])[1] <- exprColName
+    paramList[["y_axis"]] <- c(exprCol, XYsel)
+    names(paramList[["y_axis"]])[1] <- exprColName
     
     
     ## Now cretate split by options ##
@@ -385,7 +390,7 @@ setGeneric(
     
     numOptions <- names(obj@meta.data)[!(names(obj@meta.data)) %in% splitOptions]
     numOptions <- c(
-      "lg10Expr",
+      exprCol,
       numOptions
     )
     
@@ -416,13 +421,13 @@ setGeneric(
     
     
     colorDisplayOptions <- c(
-      "lg10Expr",
+      exprCol,
       colorByOptions
     )
     
     names(colorDisplayOptions) <- colorDisplayOptions
     names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
-    names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
+    names(colorDisplayOptions) <- gsub(exprCol, exprColName, names(colorDisplayOptions))
     
     firstup <- function(x) {
       substr(x, 1, 1) <- toupper(substr(x, 1, 1))
@@ -453,7 +458,7 @@ setGeneric(
     
     numOptions <- names(obj@meta.data)[unlist(lapply(obj@meta.data, is.numeric))]
     numOptions <- c(
-      "lg10Expr",
+      exprCol,
       numOptions
     )
     
@@ -1183,6 +1188,8 @@ seuratObjectToLocalViewer <- function(
 
 seuratObjectToViewer <- function(
     params = NULL,
+    exprCol = "lg10Expr",
+    exprColName = "log10 Expr",
     project_id = "testApp",
     projectPath = "./",
     OsC = NULL,
@@ -1191,6 +1198,7 @@ seuratObjectToViewer <- function(
     dbname = "dbname_db",
     db.pwd = "dbAdminPassword",
     db.user = "boeings",
+    exprCol = "lg10Expr",
     appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
     geneDefault = NULL,
     dfExpr = NULL,
@@ -1357,7 +1365,8 @@ seuratObjectToViewer <- function(
             obj = OsC,
             assay = seuratAssayToUse,
             #slot = "data",
-            geneSel = NULL
+            geneSel = NULL,
+            exprCol = exprCol
         ) 
     }
   
@@ -1396,10 +1405,12 @@ seuratObjectToViewer <- function(
   
     ## Rearrange expression talbe
     ## This step may take a couple of minutes in a large dataset
-   
+
+
     dfExpr <- dfExpr %>% 
         dplyr::rename(condition = cellID)  %>%  
-        dplyr::mutate(lg10Expr = round(lg10Expr, 3)) 
+        #dplyr::mutate(lg10Expr = round(lg10Expr, 3))
+        dplyr::mutate(!!as.name({{exprCol}}) := round(!!as.name({{exprCol}}), 3))
     
     ## Upload expression table to database 
   
@@ -1504,7 +1515,11 @@ seuratObjectToViewer <- function(
     ############################################################################
     ## Create params if they don't exist                                      ##
     if (is.null(params)){
-        params <- biologicViewerSC::scanObjParams(OsC)
+        params <- biologicViewerSC::scanObjParams(
+          OsC,
+          exprCol = exprCol,
+          exprColName = exprColName
+        )
         print("Created parameter list, as it was not provided")
     }
     
@@ -1589,7 +1604,7 @@ seuratObjectToViewer <- function(
   
     names(colorDisplayOptions) <- colorDisplayOptions
     names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
-    names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
+    names(colorDisplayOptions) <- gsub(exprCol, exprColName, names(colorDisplayOptions))
     
     firstup <- function(x) {
       substr(x, 1, 1) <- toupper(substr(x, 1, 1))
