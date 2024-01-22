@@ -1075,7 +1075,7 @@ seuratObjectToLocalViewer <- function(
     
     names(colorDisplayOptions) <- colorDisplayOptions
     names(colorDisplayOptions) <- gsub("all", "Uniform", names(colorDisplayOptions))
-    names(colorDisplayOptions) <- gsub("lg10Expr", "log10 Expr", names(colorDisplayOptions))
+    names(colorDisplayOptions) <- gsub(exprCol, exprColName, names(colorDisplayOptions))
     
     firstup <- function(x) {
       substr(x, 1, 1) <- toupper(substr(x, 1, 1))
@@ -1198,7 +1198,6 @@ seuratObjectToViewer <- function(
     dbname = "dbname_db",
     db.pwd = "dbAdminPassword",
     db.user = "boeings",
-    exprCol = "lg10Expr",
     appDomains = c("shiny-bioinformatics.crick.ac.uk","10.%"),
     geneDefault = NULL,
     dfExpr = NULL,
@@ -1597,7 +1596,7 @@ seuratObjectToViewer <- function(
   
   
     colorDisplayOptions <- c(
-        "lg10Expr",
+        exprCol,
         colorByOptions
     )
   
