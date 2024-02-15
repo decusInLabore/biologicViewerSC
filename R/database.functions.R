@@ -864,6 +864,7 @@ uploadDbTableInfile <- function(
     prim.data.db = "project.database",
     dbTableName = "rnaseqdbTableName",
     df.data = "df.data.to.upload",
+    exprCol = "lg10Expr",
     db.col.parameter.list = list(
         "VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci" = c("gene_description"),
         "VARCHAR(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci" = c("ENSG", "ENSMUSG", "hgnc_symbol", "mgi_symbol", "uniprot", "entrezgene","display_ptm", "^sequence_window", "p_site_env","for_GSEA_gene_chip","associated_gene_name", "gene_type"),
@@ -940,7 +941,7 @@ uploadDbTableInfile <- function(
         #query,
         "CREATE TABLE IF NOT EXISTS ",
         dbTableName,
-        " (gene VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, cellID VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, lg10Expr DECIMAL(6,3) NULL DEFAULT NULL, row_names INT(10) NOT NULL AUTO_INCREMENT,PRIMARY KEY (row_names)); "
+        " (gene VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, cellID VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci, ", exprCol ," DECIMAL(6,3) NULL DEFAULT NULL, row_names INT(10) NOT NULL AUTO_INCREMENT,PRIMARY KEY (row_names)); "
     )
     
     doQuery(
@@ -962,7 +963,7 @@ uploadDbTableInfile <- function(
         tempFileName,
         "' INTO TABLE ",
         dbTableName,
-        " FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (gene, cellID, lg10Expr, row_names);"
+        " FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (gene, cellID, ", exprCol ,", row_names);"
     )
     
     

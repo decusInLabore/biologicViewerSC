@@ -723,6 +723,8 @@ seuratObjectToLocalViewer <- function(
     project_id = "testApp",
     projectPath = "./",
     OsC = NULL,
+    exprCol = "lg10Expr",
+    exprColName = "log10 Expr",
     dataMode = "SQLite",
     geneDefault = NULL,
     dfExpr = NULL
@@ -910,12 +912,18 @@ seuratObjectToLocalViewer <- function(
     
     ## Rearrange expression talbe
     ## This step may take a couple of minutes in a large dataset
-    dfExpr <- dfExpr %>% 
-        dplyr::rename(condition = cellID)  %>%  
-        dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>% 
-        dplyr::arrange(gene) 
-    
-    ## Upload expression table to database 
+    #dfExpr <- dfExpr %>%
+    #    dplyr::rename(condition = cellID)  %>%
+    #    dplyr::mutate(lg10Expr = round(lg10Expr, 3)) %>%
+    #    dplyr::arrange(gene)
+    dfExpr <- dfExpr %>%
+        dplyr::rename(condition = cellID)  %>%
+        #dplyr::mutate(lg10Expr = round(lg10Expr, 3))
+        dplyr::mutate(!!as.name({{exprCol}}) := round(!!as.name({{exprCol}}), 3)) %>%
+        dplyr::arrange(gene)
+
+
+      ## Upload expression table to database
     
     print(paste0("Database to be used: ", primDataDB))
     print(paste0("Database table name to be used: ", expDbTable))
@@ -1067,7 +1075,7 @@ seuratObjectToLocalViewer <- function(
     }
     
     colorDisplayOptions <- c(
-      "lg10Expr",
+      exprCol,
       colorByOptions
     )
     
@@ -1431,6 +1439,7 @@ seuratObjectToViewer <- function(
             prim.data.db = dbname,
             dbTableName = expDbTable,
             df.data = dfExpr,
+            exprCol = "lg10Expr",
             db.col.parameter.list = colCatList,
             new.table = TRUE,
             cols2Index = c("gene"),
