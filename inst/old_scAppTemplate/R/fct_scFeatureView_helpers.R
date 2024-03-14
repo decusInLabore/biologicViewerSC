@@ -464,20 +464,6 @@ featureViewPlot <- function(
   nonNumCols <- startUpList$utilityList$nonNumCols
 
 
-  ## Get sample order
-  if (x_axis %in% startUpList$utilityList$nonNumCols){
-    dfCol <- startUpList$dfColOptions
-    dfCol <- dfCol[dfCol[,"menuName"] == x_axis, ]
-    dfCol <- dfCol[order(dfCol$displayOrder),]
-    x_order <- dfCol$colOption
-    x_all <- unique(df[,x_axis])
-
-    if (identical(sort(x_order), sort(x_all))){
-      df$x_axis <- factor(df$x_axis, levels = x_order)
-    } else {
-      df$x_axis <- factor(df$x_axis)
-    }
-  }
 
   if (colorBy %in% startUpList$utilityList$nonNumCols ){
     # Get order of colorBy
@@ -485,7 +471,7 @@ featureViewPlot <- function(
 
     df$Dcolor[df$Dcolor == "" | is.na(df$Dcolor)] <- "Rest"
 
-    factorVec <- factorVec[names(factorVec) %in% names(colVec)]
+    factorVec <- factorVec[names(factorVec) %in% unique(df[,colorBy])]
 
     if (length(factorVec) == length(unique(df[,colorBy]))){
       df$Dcolor <- factor(df$Dcolor, levels = names(factorVec))
@@ -510,14 +496,14 @@ featureViewPlot <- function(
 
     df$Dcolor[df$Dcolor == "" | is.na(df$Dcolor)] <- "Rest"
 
-    factorVec <- factorVec[names(factorVec) %in% names(colVec)]
+    factorVec <- factorVec[names(factorVec) %in% unique(df[,colorBy])]
 
     if (length(factorVec) == length(unique(df[,colorBy]))){
       df$Dcolor <- factor(df$Dcolor, levels = names(factorVec))
     } else {
       df$Dcolor <- factor(df$Dcolor)
     }
-
+    
   }     
   
   
@@ -571,11 +557,8 @@ featureViewPlot <- function(
       
       p <- ggplot2::ggplot(
         data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor, fill=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3
-      #) + ggplot2::scale_x_discrete(limits = unique(df$x_axis)
-      )
-
-
+      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3)
+      
       if (showPlotLegend){
         p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
       }
