@@ -78,6 +78,10 @@ createColorTable <- function(
   dfDL <- createDfCoord(startUpList = startUpList)
   #startUpList <- golem::get_golem_options(which = "startUpList")
   dfColOptions <- startUpList$dfColOptions
+
+  ## Make sure to order by display order
+  dfColOptions <- dfColOptions[order(dfColOptions$menuName, as.numeric(as.character(dfColOptions$displayOrder))),]
+
   #######################################################################
   ## Check if colors are available                                     ##
   colorAnnoFound <- FALSE
@@ -108,6 +112,10 @@ createColorTable <- function(
         selVec <- c(colorBy, "dotColor")
         dfDL <- unique(dfDL[,selVec])
         colorAnnoFound <- TRUE
+
+        ## Ensure order
+        dfDL[,colorBy] <- factor(dfDL[,colorBy], levels = dfPlotCols$colOption)
+        dfDL <- dfDL[order(dfDL[,colorBy], decreasing = F),]
       }
       
     }
@@ -274,7 +282,7 @@ createDfTemp <- function(
   
   
   if (!is.numeric(dfTemp$x_axis)){
-    dfTemp$x_axis <- factor(dfTemp$x_axis, levels = sort(unique(dfTemp$x_axis)))
+    dfTemp$x_axis <- factor(dfTemp$x_axis, levels = (unique(dfTemp$x_axis)))
   }
   
   
@@ -302,7 +310,7 @@ createDfTemp <- function(
   
   ####################
   ## Create plot data names
-  plot_data_names <- sort(as.vector(unique(dfTemp[, splitByColumn])))
+  plot_data_names <- (as.vector(unique(dfTemp[, splitByColumn])))
   ##
   ####################
   
@@ -454,10 +462,39 @@ featureViewPlot <- function(
   #plotInput <- reactive({
   startUpList <- golem::get_golem_options(which = "startUpList")
   nonNumCols <- startUpList$utilityList$nonNumCols
-  
-  if (colorBy %in% startUpList$nonNumCols ){
-    df$Dcolor[df$Dcolor == ""] <- "Rest"
-    df$Dcolor <- factor(df$Dcolor)
+
+
+  ## Get sample order
+  if (x_axis %in% startUpList$utilityList$nonNumCols){
+    dfCol <- startUpList$dfColOptions
+    dfCol <- dfCol[dfCol[,"menuName"] == x_axis, ]
+    dfCol <- dfCol[order(dfCol$displayOrder),]
+    x_order <- dfCol$colOption
+    x_all <- unique(df[,x_axis])
+
+    if (identical(sort(x_order), sort(x_all))){
+      df$x_axis <- factor(df$x_axis, levels = x_order)
+    } else {
+      df$x_axis <- factor(df$x_axis)
+    }
+  }
+
+  if (colorBy %in% startUpList$utilityList$nonNumCols ){
+    # Get order of colorBy
+    factorVec <- c(colVec, "Rest" = "grey")
+
+    df$Dcolor[df$Dcolor == "" | is.na(df$Dcolor)] <- "Rest"
+
+    factorVec <- factorVec[names(factorVec) %in% names(colVec)]
+
+    if (length(factorVec) == length(unique(df[,colorBy]))){
+      df$Dcolor <- factor(df$Dcolor, levels = names(factorVec))
+    } else {
+      df$Dcolor <- factor(df$Dcolor)
+    }
+
+
+
   } else if( is.numeric( df$Dcolor ) ) {
     minExpr <- floor(min(df$Dcolor, na.rm = T))
     
@@ -470,8 +507,17 @@ featureViewPlot <- function(
     }
     
   } else {
-    df$Dcolor[df$Dcolor == ""] <- "Rest"
-    df$Dcolor <- factor(df$Dcolor)
+
+    df$Dcolor[df$Dcolor == "" | is.na(df$Dcolor)] <- "Rest"
+
+    factorVec <- factorVec[names(factorVec) %in% names(colVec)]
+
+    if (length(factorVec) == length(unique(df[,colorBy]))){
+      df$Dcolor <- factor(df$Dcolor, levels = names(factorVec))
+    } else {
+      df$Dcolor <- factor(df$Dcolor)
+    }
+
   }     
   
   
@@ -525,8 +571,11 @@ featureViewPlot <- function(
       
       p <- ggplot2::ggplot(
         data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor, fill=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3)
-      
+      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3
+      #) + ggplot2::scale_x_discrete(limits = unique(df$x_axis)
+      )
+
+
       if (showPlotLegend){
         p <- p + ggplot2::geom_jitter(height = 0, size = as.numeric(dotsize))
       }
