@@ -143,21 +143,14 @@ mod_scFeatureView_ui <- function(
           mainPanel(
               if (require("shinycssloaders")){
                   uiOutput(ns("plotsFV")) %>% shinycssloaders::withSpinner(color = "#C4DEB9")
-
               } else {
                   uiOutput(ns("plotsFV"))
-
               }
-
+              
           )
   )
 }
-
-
-
-
-
-
+    
 #' scFeatureView Server Functions
 #'
 #' @noRd 
@@ -243,7 +236,7 @@ mod_scFeatureView_server <- function(id){
               colVec <- colVec[colVec != ""]
               
         
-              # dfColSel <- dfColSel[order(dfColSel[,nameCol]),]
+              dfColSel <- dfColSel[order(dfColSel[,nameCol]),]
          
         
         
@@ -288,25 +281,15 @@ mod_scFeatureView_server <- function(id){
         
         
         #dynamically create the right number of htmlOutput
-
-
         output$plotsFV <- renderUI({
-
             plot_output_list <- lapply(1:length(plot_data_names), function(i) {
                 plotname <- paste("plot", i, sep="")
                 plotOutput(ns(plotname))
             })
-
-            # Plot table for review purposes
-            devMode <- TRUE
-            if (devMode){
-                plot_output_list[[length(plot_data_names) + 1]] <- tableOutput(ns("table1"))
-            }
-
+          
             # Convert the list to a tagList - this is necessary for the list of items
             # to display properly.
             do.call(tagList, plot_output_list)
-
         })
         
         # plotList <- rplotList()
@@ -315,10 +298,9 @@ mod_scFeatureView_server <- function(id){
         
         if (!(input$colorBy %in% numCols)){
             dfColourSel <- rColorTable()
-            #dfColourSel <- dfColourSel[order(dfColourSel[[input$colorBy]]), ]
+            dfColourSel <- dfColourSel[order(dfColourSel[[input$colorBy]]), ]
             cols <- as.vector(dfColourSel[,"dotColor"])
             names(cols) <- as.vector(dfColourSel[,input$colorBy])
-
             
             inInput <- names(input)[names(input) %in% as.vector(dfColourSel[,input$colorBy])]
             
@@ -336,13 +318,9 @@ mod_scFeatureView_server <- function(id){
         } else {
             cols <- NULL
         }
-
-
-        ## Output table
-        # output$table1 <- renderTable({
-        #     head(plot_data[[1]])
-        # })
-
+        
+        
+    
         plotResList <- lapply(1:length(plot_data_names), function(i){ 
             featureViewPlot(
                 df = plot_data[[i]],
@@ -402,8 +380,7 @@ mod_scFeatureView_server <- function(id){
           
         #})
     }) # end lapply
-
-
+        
     ## Create downloads
     output$plotDLall <- downloadHandler(
         filename = function() {
