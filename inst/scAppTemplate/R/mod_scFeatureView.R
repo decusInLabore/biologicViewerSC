@@ -274,7 +274,9 @@ mod_scFeatureView_server <- function(id){
         plotList <- rplotList()
         dfTemp <- plotList[["dfTemp"]]
         plot_data <- plotList[["plot_data"]]
+
         plot_data_names <- plotList[["plot_data_names"]]
+
         maxExpr <- plotList[["maxExpr"]]
         
         req(plot_data)

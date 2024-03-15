@@ -252,7 +252,7 @@ createDfTemp <- function(
   dfTemp <- data.frame(dfTemp, stringsAsFactors = FALSE)
   dfTemp$gene <- as.character(dfTemp$gene)
   
-  conditionVec <- unique(dfTemp[,splitByColumn])
+  #conditionVec <- unique(dfTemp[,splitByColumn])
   
   #######################################################################
   ## Check if custom colors are to be used                             ##
@@ -301,19 +301,36 @@ createDfTemp <- function(
   #################
   ## Create plot select
   #plot_select <- reactive({
+
+  ## Determine plot order ##
+  dfOrder <- startUpList$dfColOptions
+  dfOrder <- dfOrder[dfOrder[,"menuName"] == splitByColumn, ]
+  dfOrder <- dfOrder[order(dfOrder$displayOrder, decreasing = F),]
+  plotOrder <- dfOrder$colOption
+
   df <- dfTemp
   df[["all"]] <- "all"
   plot_select <-  as.vector(unique(df[, splitByColumn]))
+
+
+  ####################
+  ## Create plot data names
+
+  ## sort plot_data_names according to splitByColumn order.
+  #plot_data_names <- (as.vector(unique(dfTemp[, splitByColumn])))
+  ##
+  ####################
+
+  if (identical(sort(plot_select), sort(plotOrder))){
+    plot_select <- plotOrder
+  }
+  plot_data_names <- plot_select
+
   #})
   ## Done Creating plot select
   ####################
   
-  ####################
-  ## Create plot data names
-  plot_data_names <- (as.vector(unique(dfTemp[, splitByColumn])))
-  ##
-  ####################
-  
+
   ###################
   ## get max expr
   #maxExpr <- reactive({
@@ -421,7 +438,8 @@ featureViewPlot <- function(
   plot_name,
   colorBy = "lg10Expr",
   dotsize = "dotsize",
-  lowColor = "grey", 
+  lowColor = "grey",
+  midColor = "white",
   dotcolor = "darkblue",
   x_axis = "UMAP_1",
   y_axis = "UMAP_2",
@@ -571,7 +589,12 @@ featureViewPlot <- function(
       
       p <- ggplot2::ggplot(
         data = df, ggplot2::aes(x_axis, y_axis, color=Dcolor, fill=Dcolor)
-      ) + ggplot2::geom_violin(trim=FALSE,  alpha = 0.3
+      ) + ggplot2::geom_violin(
+        scale = "width",
+        # width = 3,
+        position = ggplot2::position_dodge(0.5),
+        trim=FALSE,
+        alpha = 0.3
       #) + ggplot2::scale_x_discrete(limits = unique(df$x_axis)
       )
 
@@ -607,7 +630,7 @@ featureViewPlot <- function(
     
   } else if (is.numeric( df$Dcolor )){
     if (minExpr < 0){
-      p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = "white", high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
+      p <- p + ggplot2::scale_color_gradient2("Expr",low= lowColor, mid = midColor, high= dotcolor, midpoint = 0, limits=c(minExpr,maxExpr)
       )
       
     } else {
