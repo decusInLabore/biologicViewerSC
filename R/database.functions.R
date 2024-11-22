@@ -859,6 +859,7 @@ killDbConnections <- function () {
 
 uploadDbTableInfile <- function(
     host = NULL,
+    port = 6008,
     user = NULL,
     password = NULL,
     prim.data.db = "project.database",
@@ -897,6 +898,7 @@ uploadDbTableInfile <- function(
             user = user,
             password = password,
             host = host,
+            port = port,
             dbname = dbname
         )
         
@@ -929,6 +931,7 @@ uploadDbTableInfile <- function(
         user = user,
         password = password,
         host = host,
+        port = port,
         dbname = prim.data.db,
         query = query1,
         #existingAccessFileName = existingAccessFileName
@@ -947,6 +950,7 @@ uploadDbTableInfile <- function(
         user = user,
         password = password,
         host = host,
+        port = port,
         dbname = prim.data.db,
         query = query2,
         #existingAccessFileName = existingAccessFileName
@@ -970,6 +974,7 @@ uploadDbTableInfile <- function(
         user = user,
         password = password,
         host = host,
+        port = port,
         dbname = prim.data.db,
         query = query3,
         #existingAccessFileName = existingAccessFileName
@@ -986,6 +991,7 @@ uploadDbTableInfile <- function(
         user = user,
         password = password,
         host = host,
+        port = port,
         dbname = prim.data.db,
         query = query4,
         #existingAccessFileName = existingAccessFileName
@@ -1002,6 +1008,7 @@ uploadDbTableInfile <- function(
         user = user,
         password = password,
         host = host,
+        port = port,
         dbname = prim.data.db,
         query = query5,
         #existingAccessFileName = existingAccessFileName
