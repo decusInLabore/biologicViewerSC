@@ -885,7 +885,7 @@ seuratObjectToLocalViewer <- function(
     print(paste0("Database to be used: ", primDataDB))
     print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
     
-    biologicViewerSC::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
       #host = host,
       #user = db.user,
       #password = db.pwd,
@@ -917,7 +917,7 @@ seuratObjectToLocalViewer <- function(
     
     colCatList <- biologicViewerSC::inferDBcategories(dfExpr)
     
-    biologicViewerSC::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
         #host = host,
         #user = db.user,
         #password = db.pwd,
@@ -980,7 +980,7 @@ seuratObjectToLocalViewer <- function(
     columnDBcategoryList <- biologicViewerSC::inferDBcategories(dfData=dfdbTable)
     
     
-    biologicViewerSC::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
       host = host,
       user = db.user,
       password = db.pwd,
@@ -1380,7 +1380,7 @@ seuratObjectToViewer <- function(
     print(paste0("Database to be used: ", dbname))
     print(paste0("Database table name to be used: ", paste0(project_id, "_geneID_tb")))
   
-    biologicViewerSC::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
         host = host,
         user = db.user,
         password = db.pwd,
@@ -1431,7 +1431,7 @@ seuratObjectToViewer <- function(
         )
     } else {
        
-        biologicViewerSC::upload.datatable.to.database(
+        biologicSeqTools2::upload.datatable.to.database(
             host = host,
             user = db.user,
             password = db.pwd,
@@ -1486,7 +1486,7 @@ seuratObjectToViewer <- function(
     columnDBcategoryList <- biologicViewerSC::inferDBcategories(dfData=dfdbTable)
   
   
-    biologicViewerSC::upload.datatable.to.database(
+    biologicSeqTools2::upload.datatable.to.database(
         host = host,
         user = db.user,
         password = db.pwd,
