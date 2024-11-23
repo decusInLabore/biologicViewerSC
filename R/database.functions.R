@@ -659,6 +659,7 @@ inferDBcategories <- function(
 assignDbUsersAndPrivileges <- function(
     accessFilePath = shinyDataPath,
     hostDbUrl = "10.27.241.82",
+    port = 6008,
     appUserName = substr(paste0(project_id, "_aUser"), 1, 15),
     geneDefault = NULL,
     domains = c("shiny-bioinformatics.crick.ac.uk", "10.%"),
@@ -679,6 +680,7 @@ assignDbUsersAndPrivileges <- function(
         user = "db.user",
         password = "db.upload.pwd",
         host = "host",
+
         dbname = "primDataDB",
         query = "mysql db query",
         #existingAccessFileName = existingAccessFileName
@@ -691,6 +693,7 @@ assignDbUsersAndPrivileges <- function(
             user = user,
             password = password,
             host = host,
+            port = port,
             dbname = dbname
         )
         
@@ -726,6 +729,7 @@ assignDbUsersAndPrivileges <- function(
                 user = dbAdminUser,
                 password = dbAdminPwd,
                 host = hostDbUrl,
+                port = port,
                 dbname = dbname,
                 query = query0,
                 #existingAccessFileName = existingAccessFileName
@@ -740,6 +744,7 @@ assignDbUsersAndPrivileges <- function(
                     user = dbAdminUser,
                     password = dbAdminPwd,
                     host = hostDbUrl,
+                    port = port,
                     dbname = dbname,
                     query = query0a,
                     #existingAccessFileName = existingAccessFileName
@@ -759,6 +764,7 @@ assignDbUsersAndPrivileges <- function(
                 user = dbAdminUser,
                 password = dbAdminPwd,
                 host = hostDbUrl,
+                port = port,
                 dbname = dbname,
                 query = query1,
                 #existingAccessFileName = existingAccessFileName
@@ -775,6 +781,7 @@ assignDbUsersAndPrivileges <- function(
             type = "main",
             dataMode = dataMode,
             url = hostDbUrl,
+            port = port,
             id = sUser,
             id2 = sPwd,
             db = dbname,
@@ -807,6 +814,7 @@ assignDbUsersAndPrivileges <- function(
                 user = dbAdminUser,
                 password = dbAdminPwd,
                 host = hostDbUrl,
+                port = port,
                 dbname = dbname,
                 query = query7,
                 #existingAccessFileName = existingAccessFileName
