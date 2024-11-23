@@ -1188,6 +1188,7 @@ seuratObjectToViewer <- function(
     OsC = NULL,
     dataMode = "MySQL",
     host = "dbHostURL",
+    port = 6008,
     dbname = "dbname_db",
     db.pwd = "dbAdminPassword",
     db.user = "boeings",
