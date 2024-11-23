@@ -31,6 +31,7 @@
 
 upload.datatable.to.database <- function(
     host = NULL,
+    port = 6008,
     user = NULL,
     password = NULL,
     prim.data.db = "project.database",
@@ -68,7 +69,8 @@ upload.datatable.to.database <- function(
             user= "user",
             password = "password",
             dbname = "prim.data.db",
-            host = "host"){
+            host = "host",
+            port = 6008){
             
             if (mode == "SQLite"){
                 
@@ -82,7 +84,8 @@ upload.datatable.to.database <- function(
                     drv = RMySQL::MySQL(),
                     user = user,
                     password = password,
-                    host = host
+                    host = host,
+                    port = port
                     
                 )
                 
@@ -106,7 +109,8 @@ upload.datatable.to.database <- function(
             user= user,
             password = password,
             dbname = prim.data.db,
-            host = host
+            host = host,
+            port = port
         )
         
         while (connectionCount > 2){
@@ -119,7 +123,8 @@ upload.datatable.to.database <- function(
                 user= user,
                 password = password,
                 dbname = prim.data.db,
-                host = host
+                host = host,
+                port = port
             )
             
             
@@ -161,6 +166,7 @@ upload.datatable.to.database <- function(
             user = user,
             password = password,
             host = host,
+            port = port,
             #dbname=prim.data.db,
             new.table = TRUE
         )
@@ -244,6 +250,7 @@ upload.datatable.to.database <- function(
             user = user,
             password = password,
             host = host,
+            port = port,
             dbname=prim.data.db
         )
         
@@ -303,6 +310,7 @@ upload.datatable.to.database <- function(
                         user = user,
                         password = password,
                         host = host,
+                        port = port,
                         dbname=prim.data.db
                     )
                     
@@ -337,7 +345,8 @@ upload.datatable.to.database <- function(
         user = "user",
         password = "password",
         dbname = "prim.data.db",
-        host = "host"
+        host = "host",
+        port = 6008
     ){
         ## Establish connection ##
         if (mode == "SQLite"){
@@ -354,6 +363,7 @@ upload.datatable.to.database <- function(
                 user = user,
                 password = password,
                 host = host,
+                port = port,
                 dbname=prim.data.db
             )
             
@@ -385,7 +395,8 @@ upload.datatable.to.database <- function(
             user = user,
             password = password,
             dbname = dbname,
-            host = host
+            host = host,
+            port = port
         )
         
         ## Describe key columns in database table ##
@@ -407,7 +418,8 @@ upload.datatable.to.database <- function(
             user = user,
             password = password,
             dbname = dbname,
-            host = host
+            host = host,
+            port = port
         )
         
         
@@ -453,7 +465,8 @@ upload.datatable.to.database <- function(
                     user = user,
                     password = password,
                     dbname = dbname,
-                    host = host
+                    host = host,
+                    port = port
                 )
             }
             #print(alteration.string)
@@ -541,6 +554,7 @@ upload.datatable.to.database <- function(
                     user = user,
                     password = password,
                     host = host,
+                    port = port,
                     dbname=prim.data.db
                 )
                 
