@@ -1417,6 +1417,7 @@ seuratObjectToViewer <- function(
       
         biologicViewerSC::uploadDbTableInfile(
             host = host,
+            port = 6008,
             user = db.user,
             password = db.pwd,
             prim.data.db = dbname,
