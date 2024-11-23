@@ -1651,6 +1651,7 @@ seuratObjectToViewer <- function(
   biologicViewerSC::assignDbUsersAndPrivileges(
       accessFilePath = shinyDataPath,
       hostDbUrl = host,
+      port = 6008,
       appUserName = paste0(substr(project_id, 1, 22), rs,"_aUser"),
       domains = appDomains,
       dbname = dbname,
