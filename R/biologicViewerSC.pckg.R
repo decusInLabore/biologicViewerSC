@@ -1383,6 +1383,7 @@ seuratObjectToViewer <- function(
   
     biologicSeqTools2::upload.datatable.to.database(
         host = host,
+        port = port,
         user = db.user,
         password = db.pwd,
         prim.data.db = dbname,
@@ -1417,7 +1418,7 @@ seuratObjectToViewer <- function(
       
         biologicViewerSC::uploadDbTableInfile(
             host = host,
-            port = 6008,
+            port = port,
             user = db.user,
             password = db.pwd,
             prim.data.db = dbname,
@@ -1435,6 +1436,7 @@ seuratObjectToViewer <- function(
        
         biologicSeqTools2::upload.datatable.to.database(
             host = host,
+            port = port,
             user = db.user,
             password = db.pwd,
             prim.data.db = dbname,
@@ -1490,6 +1492,7 @@ seuratObjectToViewer <- function(
   
     biologicSeqTools2::upload.datatable.to.database(
         host = host,
+        port = port,
         user = db.user,
         password = db.pwd,
         prim.data.db = dbname,
@@ -1651,7 +1654,7 @@ seuratObjectToViewer <- function(
   biologicViewerSC::assignDbUsersAndPrivileges(
       accessFilePath = shinyDataPath,
       hostDbUrl = host,
-      port = 6008,
+      port = port,
       appUserName = paste0(substr(project_id, 1, 22), rs,"_aUser"),
       domains = appDomains,
       dbname = dbname,
