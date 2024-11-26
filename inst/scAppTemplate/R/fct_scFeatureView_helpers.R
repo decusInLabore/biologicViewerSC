@@ -29,9 +29,10 @@ createDfCoord <- function(
     
     dbDB <- DBI::dbConnect(
       drv = RMySQL::MySQL(),
-      user = keyList[["user"]], 
-      password = keyList[["DBpd"]], 
-      host = keyList[["host"]], 
+      user = keyList[["user"]],
+      password = keyList[["DBpd"]],
+      host = keyList[["host"]],
+      port = keyList[["port"]],
       dbname=keyList[["dbname"]]
       
     )
@@ -187,7 +188,8 @@ createDfExprSel <- function(
       drv = RMySQL::MySQL(),
       user = keyList[["user"]], 
       password = keyList[["DBpd"]], 
-      host = keyList[["host"]], 
+      host = keyList[["host"]],
+      port = keyList[["port"]],
       dbname=keyList[["dbname"]]
       
     )
