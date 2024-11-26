@@ -32,7 +32,13 @@ assembleKeyList <- function(){
     keyList[["coordinateTbName"]] <- as.character(dfkey$coordTb)
     keyList[["exprTbName"]] <- as.character(dfkey$exprTb)
     keyList[["geneID_TbName"]] <- as.character(dfkey$geneTb)
-    
+
+    if (is.null(dfkey$port)){
+        keyList[["port"]] <- 6008
+    } else {
+        keyList[["port"]] <- as.numeric(dfkey$port)
+    }
+
     pos <- grep("experiment", names(dfkey))
     if (length(pos) == 0){
         dfkey[["experiment"]] <- paste0("Experiment_", 1:nrow(dfkey))
@@ -148,7 +154,8 @@ getAllEntriesToList <- function(){
             drv = RMySQL::MySQL(),
             user = keyList[["user"]], 
             password = keyList[["DBpd"]], 
-            host = keyList[["host"]], 
+            host = keyList[["host"]],
+            port = keyList[["port"]],
             dbname=keyList[["dbname"]]
             
         )
@@ -196,7 +203,8 @@ createDropdownMenuList <- function(){
             drv = RMySQL::MySQL(),
             user = keyList[["user"]], 
             password = keyList[["DBpd"]], 
-            host = keyList[["host"]], 
+            host = keyList[["host"]],
+            port = keyList[["port"]],
             dbname=keyList[["dbname"]]
             
         )
